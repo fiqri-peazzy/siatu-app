@@ -1,6 +1,6 @@
-    # CLAUDE.md — Panduan AI Agent untuk Proyek Aplikasi Tata Usaha SMA
+# CLAUDE.md — Panduan AI Agent untuk Proyek Aplikasi Tata Usaha SMA
 
-> File ini adalah panduan utama bagi AI agent (Claude di IDE) dalam membantu pengembangan aplikasi **Sistem Informasi Tata Usaha SMA**. Baca seluruh file ini sebelum mengerjakan task apapun.
+> File ini adalah panduan utama bagi AI agent (Antigravity) dalam membantu pengembangan aplikasi **Sistem Informasi Tata Usaha SMA**. Baca seluruh file ini sebelum mengerjakan task apapun.
 
 ---
 
@@ -16,10 +16,10 @@
 ## 2. Tech Stack
 
 ```
-Backend  : Laravel 11 (PHP 8.2+)
+Backend  : Laravel 12 (PHP 8.2+)
 Frontend : Blade + Livewire 3 (server-side reactive) + Alpine.js
 Database : MySQL 8.0
-CSS      : Tailwind CSS 3
+CSS      : Tailwind CSS 4
 Storage  : Local disk / S3-compatible (untuk upload dokumen & foto)
 Auth     : Laravel Sanctum (session-based untuk web)
 Queue    : Laravel Queue (database driver, bisa upgrade Redis)
