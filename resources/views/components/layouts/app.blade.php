@@ -64,6 +64,22 @@
                     <x-nav-link href="#">
                         Kegiatan
                     </x-nav-link>
+
+                    <div class="pt-4 pb-2 px-4">
+                        <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Data Master</span>
+                    </div>
+                    <x-nav-link href="{{ route('master.tahun-ajaran') }}" :active="request()->routeIs('master.tahun-ajaran')">
+                        Tahun Ajaran
+                    </x-nav-link>
+                    <x-nav-link href="{{ route('master.guru') }}" :active="request()->routeIs('master.guru')">
+                        Data Guru
+                    </x-nav-link>
+                    <x-nav-link href="{{ route('master.kelas') }}" :active="request()->routeIs('master.kelas')">
+                        Data Kelas
+                    </x-nav-link>
+                    <x-nav-link href="{{ route('master.siswa') }}" :active="request()->routeIs('master.siswa')">
+                        Data Siswa
+                    </x-nav-link>
                 </nav>
 
                 <div class="p-4 bg-surface-container border-t-0">

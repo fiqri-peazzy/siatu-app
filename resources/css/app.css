@@ -48,4 +48,8 @@
     .tonal-shadow {
         box-shadow: 0 12px 40px rgba(25, 28, 30, 0.06);
     }
+    
+    [x-cloak] {
+        display: none !important;
+    }
 }
