@@ -72,10 +72,17 @@
                             {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
                         </div>
                         <div>
-                            <p class="text-sm font-semibold">{{ auth()->user()->name ?? 'Admin TU' }}</p>
-                            <p class="text-xs text-on-surface-variant">Kepala TU</p>
+                            <p class="text-sm font-semibold">{{ auth()->user()->name ?? 'Pengguna' }}</p>
+                            <p class="text-xs text-on-surface-variant">{{ auth()->user()->role_label ?? '' }}</p>
                         </div>
                     </div>
+
+                    <form method="POST" action="{{ route('logout') }}" class="mt-2 px-4">
+                        @csrf
+                        <button type="submit" class="w-full text-left text-xs text-on-surface-variant hover:text-on-surface transition-colors py-1">
+                            ← Keluar
+                        </button>
+                    </form>
                 </div>
             </aside>
 
@@ -83,7 +90,7 @@
             <main class="flex-1 flex flex-col">
                 <header class="h-16 flex items-center justify-between px-8 bg-surface/80 backdrop-blur-md sticky top-0 z-10">
                     <div class="flex items-center gap-4">
-                        <h2 class="text-lg font-medium text-on-surface-variant">@yield('header')</h2>
+                        <h2 class="text-lg font-medium text-on-surface-variant">{{ $header ?? '' }}</h2>
                     </div>
                     <div class="flex items-center gap-4">
                         <button class="p-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors">
