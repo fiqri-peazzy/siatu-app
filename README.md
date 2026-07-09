@@ -1,59 +1,152 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# SITU-SMA (Sistem Informasi Tata Usaha SMA)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+[![Laravel Version](https://img.shields.io/badge/Laravel-12.x-red.svg?style=flat-square&logo=laravel)](https://laravel.com)
+[![PHP Version](https://img.shields.io/badge/PHP-%5E8.2-blue.svg?style=flat-square&logo=php)](https://php.net)
+[![Tailwind CSS Version](https://img.shields.io/badge/Tailwind_CSS-v4.0-38bdf8.svg?style=flat-square&logo=tailwind-css)](https://tailwindcss.com)
+[![Livewire Version](https://img.shields.io/badge/Livewire-v3.x-fb7185.svg?style=flat-square)](https://livewire.laravel.com)
+[![License](https://img.shields.io/badge/License-MIT-green.svg?style=flat-square)](https://opensource.org/licenses/MIT)
 
-## About Laravel
+**SITU-SMA** adalah Sistem Informasi Tata Usaha Sekolah Menengah Atas yang dirancang untuk mendigitalisasi seluruh proses administrasi, pengelolaan aset (sapras), keuangan dana BOS, permohonan kegiatan, absensi, serta galeri dokumentasi sekolah. Aplikasi ini membantu pihak Tata Usaha, Kepala Sekolah, Guru, dan Staf dalam meningkatkan efisiensi dan transparansi manajemen sekolah.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## 🚀 Fitur Utama
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Aplikasi ini memiliki 7 modul utama yang saling terintegrasi:
 
-## Learning Laravel
+1. **Data Master Sekolah**
+   * Pengelolaan data Siswa, Guru, Kelas, dan Tahun Ajaran secara terpusat.
+   * Master data pendukung seperti Kategori Surat, Jenis Aset, Mata Pelajaran, Rekening BOS, dan Jenis Kegiatan.
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+2. **Administrasi & Persuratan**
+   * **Surat Masuk:** Pencatatan surat masuk, upload dokumen (max 5MB, PDF/JPG/PNG), dan penomoran agenda otomatis (`{KODE_KATEGORI}/{ROMAWI_BULAN}/{TAHUN}`).
+   * **Surat Keluar:** Pembuatan surat keluar dengan format nomor otomatis (`{NO_URUT}/{KODE}/{ROMAWI_BULAN}/{TAHUN}`).
+   * **Disposisi Multi-Level:** Alur disposisi dari Kepala Sekolah / Kepala TU ke staf pelaksana secara digital.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+3. **Absensi & Jurnal Harian**
+   * **Absensi Guru & Staf:** Pencatatan kehadiran harian beserta unggah surat izin jika berhalangan.
+   * **Absensi Siswa:** Input absensi per jam pelajaran dengan fitur threshold alert (notifikasi jika siswa alfa $\ge$ 3 kali dalam sebulan).
+   * **Jurnal Mengajar Guru:** Pengisian materi, kegiatan kelas, dan tanda tangan digital guru per jam pelajaran.
 
-## Laravel Sponsors
+4. **Sarana & Prasarana (Sapras)**
+   * **Inventarisasi Aset:** Pencatatan aset dengan kode unik otomatis (`{KODE_JENIS}-{TAHUN}-{NO_URUT}`).
+   * **Integrasi QR Code:** Generate QR Code otomatis saat aset disimpan untuk mempermudah inventarisasi fisik.
+   * **Riwayat Aset:** Pencatatan riwayat mutasi, perbaikan, atau berita acara penghapusan aset.
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+5. **Manajemen Keuangan BOS**
+   * **RKAS:** Penyusunan Rencana Kegiatan dan Anggaran Sekolah per tahun anggaran.
+   * **Realisasi Anggaran:** Pencatatan realisasi dana BOS dilengkapi dengan upload bukti kuitansi (max 10MB).
+   * **Export ARKAS:** Laporan triwulan yang kompatibel dan siap diunggah ke sistem ARKAS Kemdikbud.
 
-### Premium Partners
+6. **Permohonan & Approval Kegiatan**
+   * **Pengajuan Proposal:** Guru/Staf dapat mengajukan rencana kegiatan lengkap dengan estimasi biaya (RAB) dan proposal.
+   * **Alur Approval Berjenjang:** Alur persetujuan otomatis (Guru $\rightarrow$ Wakasek $\rightarrow$ Kepsek).
+   * **Surat Tugas Otomatis:** Setelah disetujui Kepsek, sistem otomatis men-generate Surat Tugas dalam format PDF.
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+7. **Galeri Dokumentasi**
+   * Dokumentasi kegiatan sekolah dalam bentuk album publik dan internal.
+   * Resize otomatis gambar (Thumbnail 300x200px, Preview 800x600px) & watermark otomatis logo sekolah.
 
-## Contributing
+---
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 🛠️ Tech Stack
 
-## Code of Conduct
+* **Backend:** Laravel 12 (PHP 8.2+)
+* **Frontend:** Blade + Livewire 3 (Server-side Reactive) + Alpine.js
+* **Database:** MySQL 8.0 / MariaDB
+* **Styling (CSS):** Tailwind CSS 4
+* **Library Eksternal:**
+  * **PDF Generation:** DomPDF (via `barryvdh/laravel-dompdf`)
+  * **Excel Export/Import:** Laravel Excel (via `maatwebsite/excel`)
+  * **QR Code:** Simple QR Code (via `simplesoftwareio/simple-qrcode`)
+  * **Notifikasi:** WhatsApp Gateway (via Fonnte API) & SMTP Email
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+---
 
-## Security Vulnerabilities
+## 🔑 Role & Hak Akses (RBAC)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Menggunakan **Spatie Laravel Permission** untuk mengelola hak akses berdasarkan role berikut:
 
-## License
+| Role | Kode Role | Cakupan Hak Akses |
+|---|---|---|
+| **Super Admin** | `super-admin` | Kontrol penuh sistem, manajemen user, & konfigurasi database |
+| **Admin TU** | `admin-tu` | Kelola data master, administrasi surat, sapras, dan keuangan BOS |
+| **Kepala Sekolah**| `kepala-sekolah` | Monitoring dashboard, persetujuan (approval) kegiatan, disposisi surat |
+| **Guru** | `guru` | Input jurnal harian, absensi kelas, dan pengajuan kegiatan |
+| **Staf TU** | `staf-tu` | Input surat masuk/keluar, absensi guru, dan inventarisasi aset |
+| **Siswa** | `siswa` | Akses terbatas untuk melihat absensi pribadi & album galeri publik |
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+---
+
+## ⚙️ Petunjuk Instalasi
+
+Ikuti langkah-langkah di bawah ini untuk menjalankan project di lingkungan lokal:
+
+### 1. Clone Repositori
+```bash
+git clone https://github.com/username/siatu-app.git
+cd siatu-app
+```
+
+### 2. Instalasi Dependency PHP & JavaScript
+```bash
+# Install PHP packages
+composer install
+
+# Install npm packages
+npm install
+```
+
+### 3. Konfigurasi Environment
+Salin file `.env.example` menjadi `.env` dan sesuaikan kredensial database Anda:
+```bash
+cp .env.example .env
+```
+Buka `.env` dan edit bagian koneksi database:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=siatu_app
+DB_USERNAME=root
+DB_PASSWORD=
+```
+
+### 4. Generate Application Key & Link Storage
+```bash
+php artisan key:generate
+php artisan storage:link
+```
+
+### 5. Jalankan Migrasi & Database Seeding
+Jalankan perintah berikut untuk membuat tabel database dan mengisi data awal (roles, permissions, dan akun uji coba):
+```bash
+php artisan migrate --seed
+```
+
+### 6. Jalankan Server Dev & Asset Build
+Jalankan server lokal Laravel dan compiler aset frontend secara bersamaan:
+```bash
+composer run dev
+```
+
+---
+
+## 🧪 Akun Uji Coba (Akses Demo)
+
+Setelah menjalankan seeder, gunakan akun-akun berikut untuk masuk dan menguji sistem:
+
+| Role | Email | Password |
+|---|---|---|
+| **Super Admin** | `superadmin@situ-sma.test` | `password` |
+| **Admin TU** | `admin.tu@situ-sma.test` | `password` |
+| **Kepala Sekolah**| `kepala.sekolah@situ-sma.test` | `password` |
+| **Guru** | `guru@situ-sma.test` | `password` |
+| **Staf TU** | `staf.tu@situ-sma.test` | `password` |
+| **Siswa** | `siswa@situ-sma.test` | `password` |
+
+---
+
+## 📄 Lisensi
+
+Project ini dilisensikan di bawah **[MIT License](LICENSE)**.
