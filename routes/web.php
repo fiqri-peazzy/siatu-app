@@ -41,6 +41,104 @@ Route::middleware('auth')->group(function () {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.surat-keluar', ['surat' => $surat]);
             return $pdf->stream('Surat_Keluar_' . str_replace('/', '_', $surat->no_surat) . '.pdf');
         })->name('surat-keluar.pdf');
+
+        Route::get('/surat-keluar/{surat}/word', function (\App\Models\SuratKeluar $surat) {
+            if (!in_array($surat->status->value, ['approved', 'terkirim'])) {
+                abort(403, 'Dokumen resmi belum tersedia.');
+            }
+
+            if (!\Illuminate\Support\Facades\Storage::exists('temp')) {
+                \Illuminate\Support\Facades\Storage::makeDirectory('temp');
+            }
+            \PhpOffice\PhpWord\Settings::setTempDir(storage_path('app/temp'));
+
+            $phpWord = new \PhpOffice\PhpWord\PhpWord();
+            $section = $phpWord->addSection();
+
+            // Header (Kop Surat)
+            $header = $section->addHeader();
+            $table = $header->addTable();
+            $table->addRow();
+            
+            $logoPath = public_path('images/logo-removebg-preview.png');
+            if (file_exists($logoPath)) {
+                $table->addCell(2000)->addImage($logoPath, ['width' => 80, 'alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]);
+            } else {
+                $table->addCell(2000);
+            }
+            
+            $cell = $table->addCell(8000);
+            $cell->addText('SMA MUHAMMADIYAH GORONTALO', ['bold' => true, 'size' => 18, 'color' => '002060'], ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]);
+            $cell->addText('ISLAMIC GLOBAL SCHOOL', ['bold' => true, 'size' => 12, 'color' => 'B8860B'], ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]);
+            
+            // Simulating the contact info in one line
+            $cell->addText('● Jln. Taman Bunga, Kota Timur, Kota Gorontalo, Gorontalo 96135  |  ✉ Email. smasmuhammadiyahkotagorontalo@gmail.com', ['size' => 9], ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]);
+
+            $section->addLine(['weight' => 4, 'width' => 600, 'height' => 0, 'color' => '002060']);
+            $section->addLine(['weight' => 2, 'width' => 600, 'height' => 0, 'color' => 'B8860B']);
+            $section->addTextBreak(1);
+
+            // Meta Surat
+            $metaTable = $section->addTable();
+            $metaTable->addRow();
+            $metaTable->addCell(1500)->addText('Nomor');
+            $metaTable->addCell(200)->addText(':');
+            $metaTable->addCell(4000)->addText($surat->no_surat);
+            $metaTable->addCell(4000)->addText('Gorontalo, ' . $surat->tanggal->translatedFormat('d F Y'), [], ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::RIGHT]);
+            
+            $metaTable->addRow();
+            $metaTable->addCell(1500)->addText('Lampiran');
+            $metaTable->addCell(200)->addText(':');
+            $metaTable->addCell(4000)->addText('-');
+            
+            $metaTable->addRow();
+            $metaTable->addCell(1500)->addText('Hal');
+            $metaTable->addCell(200)->addText(':');
+            $metaTable->addCell(4000)->addText($surat->perihal);
+
+            $section->addTextBreak(2);
+
+            // Tujuan
+            $section->addText('Kepada Yth.');
+            $section->addText($surat->tujuan);
+            $section->addText('di');
+            $section->addText('       Tempat');
+
+            $section->addTextBreak(1);
+
+            // Isi
+            // Render HTML to Word
+            $html = str_replace(['<br>', '<br/>', '<br />'], '<br/>', $surat->isi_ringkas);
+            \PhpOffice\PhpWord\Shared\Html::addHtml($section, $html, false, false);
+
+            $section->addTextBreak(2);
+
+            // Tanda Tangan
+            $ttdTable = $section->addTable(['alignment' => \PhpOffice\PhpWord\SimpleType\JcTable::END]);
+            $ttdTable->addRow();
+            $ttdTable->addCell(4000)->addText('Mengetahui,', [], ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]);
+            $ttdTable->addRow();
+            $ttdTable->addCell(4000)->addText('Kepala SMAMGo', [], ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]);
+            $ttdTable->addRow();
+            $ttdTable->addCell(4000)->addTextBreak(3);
+            $ttdTable->addRow();
+            $ttdTable->addCell(4000)->addText($surat->disetujuiOleh->name ?? 'NAMA KEPALA SEKOLAH', ['bold' => true, 'underline' => 'single'], ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]);
+            $ttdTable->addRow();
+            $ttdTable->addCell(4000)->addText('NBM. 1478021', [], ['alignment' => \PhpOffice\PhpWord\SimpleType\Jc::CENTER]);
+
+            $fileName = 'Surat_Keluar_' . str_replace('/', '_', $surat->no_surat) . '.docx';
+            
+            // Save to Laravel's storage directory to avoid permissions issue in C:\Windows\Temp
+            if (!\Illuminate\Support\Facades\Storage::exists('temp')) {
+                \Illuminate\Support\Facades\Storage::makeDirectory('temp');
+            }
+            $tempFile = storage_path('app/temp/' . uniqid('word_') . '.docx');
+            
+            $objWriter = \PhpOffice\PhpWord\IOFactory::createWriter($phpWord, 'Word2007');
+            $objWriter->save($tempFile);
+            
+            return response()->download($tempFile, $fileName)->deleteFileAfterSend(true);
+        })->name('surat-keluar.word');
     });
 
     Route::post('/logout', function () {

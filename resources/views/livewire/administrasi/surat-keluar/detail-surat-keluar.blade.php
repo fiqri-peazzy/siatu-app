@@ -86,7 +86,7 @@
                 </div>
                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Isi Ringkas</dt>
-                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $surat->isi_ringkas }}</dd>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 prose prose-sm max-w-none">{!! $surat->isi_ringkas !!}</dd>
                 </div>
                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Tanggal Pembuatan</dt>
@@ -95,9 +95,9 @@
                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Balasan Untuk Surat Masuk</dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                        @if($surat->suratMasuk)
-                            <a href="{{ route('administrasi.surat-masuk.show', $surat->suratMasuk) }}" class="text-indigo-600 hover:underline">
-                                {{ $surat->suratMasuk->no_agenda }} - {{ $surat->suratMasuk->perihal }}
+                        @if($surat->balasanDari)
+                            <a href="{{ route('administrasi.surat-masuk.show', $surat->balasanDari) }}" class="text-indigo-600 hover:underline">
+                                {{ $surat->balasanDari->no_agenda }} - {{ $surat->balasanDari->perihal }}
                             </a>
                         @else
                             -
@@ -106,12 +106,12 @@
                 </div>
                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Dibuat Oleh</dt>
-                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $surat->pembuat->name ?? '-' }} (pada {{ $surat->created_at->format('d M Y H:i') }})</dd>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $surat->dibuatOleh->name ?? '-' }} (pada {{ $surat->created_at->format('d M Y H:i') }})</dd>
                 </div>
                 @if($surat->disetujui_oleh)
                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">Disetujui Oleh</dt>
-                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $surat->penyetuju->name ?? '-' }} (pada {{ \Carbon\Carbon::parse($surat->disetujui_at)->format('d M Y H:i') }})</dd>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">{{ $surat->disetujuiOleh->name ?? '-' }} (pada {{ \Carbon\Carbon::parse($surat->disetujui_at)->format('d M Y H:i') }})</dd>
                 </div>
                 @endif
                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
@@ -126,11 +126,15 @@
                 </div>
                 @if($surat->status->value == 'approved' || $surat->status->value == 'terkirim')
                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6 bg-blue-50">
-                    <dt class="text-sm font-medium text-blue-900">Dokumen PDF Resmi</dt>
-                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
-                        <a href="{{ route('administrasi.surat-keluar.pdf', $surat) }}" target="_blank" class="font-medium text-blue-700 hover:text-blue-900 inline-flex items-center">
-                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            Download PDF Resmi
+                    <dt class="text-sm font-medium text-blue-900">Dokumen Resmi</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0 flex space-x-4">
+                        <a href="{{ route('administrasi.surat-keluar.pdf', $surat) }}" target="_blank" class="font-medium text-red-600 hover:text-red-900 inline-flex items-center">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                            Download PDF
+                        </a>
+                        <a href="{{ route('administrasi.surat-keluar.word', $surat) }}" target="_blank" class="font-medium text-blue-600 hover:text-blue-900 inline-flex items-center">
+                            <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                            Download Word (.docx)
                         </a>
                     </dd>
                 </div>

@@ -21,7 +21,7 @@ class DetailSuratKeluar extends Component
     public function mount(SuratKeluar $surat)
     {
         $this->authorize('view', $surat);
-        $this->surat = $surat->load(['kategori', 'pembuat', 'penyetuju', 'suratMasuk']);
+        $this->surat = $surat->load(['kategori', 'dibuatOleh', 'disetujuiOleh', 'balasanDari']);
     }
 
     public function ajukanApproval()

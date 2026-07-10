@@ -60,9 +60,13 @@
                                 @error('perihal') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                             </div>
 
-                            <div class="col-span-6">
-                                <label class="block text-sm font-medium text-gray-700">Isi Ringkas Surat <span class="text-red-500">*</span></label>
-                                <textarea wire:model="isi_ringkas" rows="4" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Tuliskan draf isi utama surat di sini..."></textarea>
+                            <div class="col-span-6" wire:ignore>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Isi Surat Lengkap <span class="text-red-500">*</span></label>
+                                <!-- Quill Editor Container -->
+                                <div id="editor-container" class="mt-1" style="height: 300px; border-bottom-left-radius: 0.375rem; border-bottom-right-radius: 0.375rem;">
+                                    {!! $isi_ringkas !!}
+                                </div>
+                                <textarea wire:model="isi_ringkas" id="isi_ringkas" class="hidden"></textarea>
                                 @error('isi_ringkas') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                             </div>
 
@@ -98,4 +102,38 @@
             </form>
         </div>
     </div>
+
+    <!-- Include Quill via CDN -->
+    <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+    <script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+    <script>
+        document.addEventListener('livewire:initialized', () => {
+            var quill = new Quill('#editor-container', {
+                theme: 'snow',
+                placeholder: 'Tuliskan isi surat secara lengkap beserta format...',
+                modules: {
+                    toolbar: [
+                        ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+                        ['blockquote', 'code-block'],
+                        [{ 'header': 1 }, { 'header': 2 }],               // custom button values
+                        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                        [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+                        [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+                        [{ 'direction': 'rtl' }],                         // text direction
+                        [{ 'size': ['small', false, 'large', 'huge'] }],  // custom dropdown
+                        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+                        [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+                        [{ 'font': [] }],
+                        [{ 'align': [] }],
+                        ['clean']                                         // remove formatting button
+                    ]
+                }
+            });
+
+            quill.on('text-change', function(delta, oldDelta, source) {
+                // Saat ada perubahan di editor, update model isi_ringkas di Livewire
+                @this.set('isi_ringkas', quill.root.innerHTML);
+            });
+        });
+    </script>
 </div>
