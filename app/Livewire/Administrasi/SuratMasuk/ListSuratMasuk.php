@@ -6,9 +6,11 @@ use App\Models\Master\MasterKategoriSurat;
 use App\Models\SuratMasuk;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
+#[Layout('components.layouts.app')]
 class ListSuratMasuk extends Component
 {
     use WithPagination, AuthorizesRequests;

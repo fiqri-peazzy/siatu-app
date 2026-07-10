@@ -21,6 +21,14 @@ Route::middleware('auth')->group(function () {
         Route::get('/siswa/{siswa}/edit', \App\Livewire\Master\Siswa\EditSiswa::class)->name('siswa.edit');
     });
 
+    // Administrasi Routes
+    Route::prefix('administrasi')->name('administrasi.')->group(function () {
+        Route::get('/surat-masuk', \App\Livewire\Administrasi\SuratMasuk\ListSuratMasuk::class)->name('surat-masuk.index');
+        Route::get('/surat-masuk/create', \App\Livewire\Administrasi\SuratMasuk\FormSuratMasuk::class)->name('surat-masuk.create');
+        Route::get('/surat-masuk/{surat}/edit', \App\Livewire\Administrasi\SuratMasuk\FormSuratMasuk::class)->name('surat-masuk.edit');
+        Route::get('/surat-masuk/{surat}', \App\Livewire\Administrasi\SuratMasuk\DetailSuratMasuk::class)->name('surat-masuk.show');
+    });
+
     Route::post('/logout', function () {
         auth()->logout();
         request()->session()->invalidate();

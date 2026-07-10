@@ -9,9 +9,11 @@ use App\Models\SuratMasuk;
 use App\Services\SuratService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Livewire\Attributes\Computed;
+use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithFileUploads;
 
+#[Layout('components.layouts.app')]
 class FormSuratMasuk extends Component
 {
     use WithFileUploads, AuthorizesRequests;

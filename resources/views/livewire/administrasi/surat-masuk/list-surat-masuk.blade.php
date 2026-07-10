@@ -6,7 +6,7 @@
         </div>
         <div class="mt-4 sm:mt-0">
             @can('create', \App\Models\SuratMasuk::class)
-            <a href="#" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto">
+            <a href="{{ route('administrasi.surat-masuk.create') }}" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 sm:w-auto">
                 Tambah Surat Masuk
             </a>
             @endcan
@@ -97,9 +97,9 @@
                                     </span>
                                 </td>
                                 <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
-                                    <a href="#" class="text-indigo-600 hover:text-indigo-900 mr-3">Detail</a>
+                                    <a href="{{ route('administrasi.surat-masuk.show', $surat) }}" class="text-indigo-600 hover:text-indigo-900 mr-3">Detail</a>
                                     @can('update', $surat)
-                                    <a href="#" class="text-indigo-600 hover:text-indigo-900">Edit</a>
+                                    <a href="{{ route('administrasi.surat-masuk.edit', $surat) }}" class="text-indigo-600 hover:text-indigo-900">Edit</a>
                                     @endcan
                                 </td>
                             </tr>

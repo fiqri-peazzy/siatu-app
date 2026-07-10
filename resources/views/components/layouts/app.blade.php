@@ -32,7 +32,7 @@
                     <div class="pt-4 pb-2 px-4">
                         <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Administrasi</span>
                     </div>
-                    <x-nav-link href="#">
+                    <x-nav-link href="{{ route('administrasi.surat-masuk.index') }}" :active="request()->routeIs('administrasi.surat-masuk.*')">
                         Surat Masuk
                     </x-nav-link>
                     <x-nav-link href="#">
