@@ -98,4 +98,118 @@ class SuratService
             return $surat;
         });
     }
+
+    /**
+     * Simpan Draft Surat Keluar
+     */
+    public function simpanSuratKeluar(array $data, ?UploadedFile $file): \App\Models\SuratKeluar
+    {
+        return DB::transaction(function () use ($data, $file) {
+            $data['status'] = \App\Enums\StatusSuratKeluar::DRAFT;
+            
+            if ($file) {
+                $tanggal = Carbon::parse($data['tanggal']);
+                $tahun = $tanggal->year;
+                $bulan = str_pad($tanggal->month, 2, '0', STR_PAD_LEFT);
+                $path = $file->store("surat/keluar/draft/{$tahun}/{$bulan}", 'local');
+                $data['file_draft_path'] = $path;
+            }
+
+            return \App\Models\SuratKeluar::create($data);
+        });
+    }
+
+    /**
+     * Update Surat Keluar
+     */
+    public function updateSuratKeluar(\App\Models\SuratKeluar $surat, array $data, ?UploadedFile $file): \App\Models\SuratKeluar
+    {
+        return DB::transaction(function () use ($surat, $data, $file) {
+            if ($file) {
+                $tanggal = Carbon::parse($data['tanggal'] ?? $surat->tanggal);
+                $tahun = $tanggal->year;
+                $bulan = str_pad($tanggal->month, 2, '0', STR_PAD_LEFT);
+                $path = $file->store("surat/keluar/draft/{$tahun}/{$bulan}", 'local');
+                $data['file_draft_path'] = $path;
+            }
+
+            $surat->update($data);
+            return $surat;
+        });
+    }
+
+    /**
+     * Generate Nomor Surat Keluar (saat approved)
+     */
+    public function generateNomorSuratKeluar(\App\Models\SuratKeluar $surat): string
+    {
+        $kategori = MasterKategoriSurat::findOrFail($surat->kategori_surat_id);
+        
+        $tahun = $surat->tanggal->year;
+        $bulan = $surat->tanggal->month;
+        $romawiBulan = $this->getRomawiBulan($bulan);
+
+        // Count surat keluar yang sudah approved di tahun yang sama
+        $count = \App\Models\SuratKeluar::where('kategori_surat_id', $surat->kategori_surat_id)
+                           ->whereYear('tanggal', $tahun)
+                           ->whereNotNull('no_surat')
+                           ->count();
+        
+        $noUrut = str_pad($count + 1, 3, '0', STR_PAD_LEFT);
+        $kodeKategori = $kategori->kode;
+
+        $nomorSurat = "{$noUrut}/{$kodeKategori}/{$romawiBulan}/{$tahun}";
+
+        // Handle possible duplicate
+        $suffix = 1;
+        $originalNomor = $nomorSurat;
+        while (\App\Models\SuratKeluar::where('no_surat', $nomorSurat)->exists()) {
+            $nomorSurat = "{$originalNomor}-{$suffix}";
+            $suffix++;
+        }
+
+        return $nomorSurat;
+    }
+
+    /**
+     * Approve Surat Keluar oleh Kepsek
+     */
+    public function approveSuratKeluar(\App\Models\SuratKeluar $surat): \App\Models\SuratKeluar
+    {
+        return DB::transaction(function () use ($surat) {
+            $nomorSurat = $this->generateNomorSuratKeluar($surat);
+
+            $surat->update([
+                'status' => \App\Enums\StatusSuratKeluar::APPROVED,
+                'no_surat' => $nomorSurat,
+                'disetujui_oleh' => auth()->id(),
+                'disetujui_at' => now(),
+            ]);
+
+            // TODO: Generate PDF resmi menggunakan DOMPDF
+            // $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('pdf.surat-keluar', ['surat' => $surat]);
+            // simpan PDF...
+
+            // TODO: Kirim notifikasi WA ke pembuat draft
+            
+            return $surat;
+        });
+    }
+
+    /**
+     * Reject Surat Keluar oleh Kepsek
+     */
+    public function rejectSuratKeluar(\App\Models\SuratKeluar $surat, string $catatan): \App\Models\SuratKeluar
+    {
+        return DB::transaction(function () use ($surat, $catatan) {
+            $surat->update([
+                'status' => \App\Enums\StatusSuratKeluar::REVISI,
+                'catatan_revisi' => $catatan,
+            ]);
+
+            // TODO: Kirim notifikasi WA ke pembuat draft
+            
+            return $surat;
+        });
+    }
 }

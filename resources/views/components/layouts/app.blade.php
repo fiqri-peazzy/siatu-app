@@ -35,7 +35,7 @@
                     <x-nav-link href="{{ route('administrasi.surat-masuk.index') }}" :active="request()->routeIs('administrasi.surat-masuk.*')">
                         Surat Masuk
                     </x-nav-link>
-                    <x-nav-link href="#">
+                    <x-nav-link href="{{ route('administrasi.surat-keluar.index') }}" :active="request()->routeIs('administrasi.surat-keluar.*')">
                         Surat Keluar
                     </x-nav-link>
 
