@@ -230,3 +230,23 @@ Menyimpan riwayat disposisi surat masuk berjenjang.
 | `tgl_disposisi` | `timestamp` | Waktu disposisi dibuat |
 | `deleted_at` | `timestamp` | Soft Deletes |
 | `created_at`, `updated_at` | `timestamp` | Timestamps |
+
+
+5. **`surat_masuks`**
+   - `kategori_surat_id` -> `master_kategori_surats.id`
+   - `klasifikasi_arsip_id` -> `master_klasifikasi_arsips.id`
+   - `input_oleh` -> `users.id`
+
+6. **`surat_keluars`**
+   - `kategori_surat_id` -> `master_kategori_surats.id`
+   - `klasifikasi_arsip_id` -> `master_klasifikasi_arsips.id`
+   - `surat_masuk_id` -> `surat_masuks.id`
+   - `dibuat_oleh` -> `users.id`
+   - `disetujui_oleh` -> `users.id`
+
+7. **`disposisis`**
+   - `surat_masuk_id` -> `surat_masuks.id`
+   - `parent_disposisi_id` -> `disposisis.id` (Self-referencing untuk disposisi berantai)
+   - `dari_user_id` -> `users.id`
+   - `ke_user_id` -> `users.id`
+
