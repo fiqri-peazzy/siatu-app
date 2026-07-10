@@ -387,6 +387,10 @@ albums              → permohonan_kegiatan (nullable, many-to-one)
 9. Seeder jika dibutuhkan (database/seeders/)
 ```
 
+### Perubahan Database
+
+- **Wajib Update `DB_SCHEMA.md`:** Jika ada perubahan pada struktur database (menambah tabel, menambah/mengubah kolom, mengubah relasi, dsb), Anda **wajib secara otomatis memperbarui file `DB_SCHEMA.md`**. Hal ini untuk memastikan aplikasi selalu memiliki dokumentasi skema database yang lengkap dan *up-to-date* seiring pengembangan fitur.
+
 ### Validasi Wajib di Form Request
 
 ```php
