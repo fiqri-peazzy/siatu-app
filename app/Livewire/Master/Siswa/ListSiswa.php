@@ -4,44 +4,31 @@ namespace App\Livewire\Master\Siswa;
 
 use App\Models\Master\MasterSiswa;
 use App\Models\Master\MasterKelas;
+use App\Imports\SiswaImport;
+use App\Exports\SiswaTemplateExport;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Computed;
+use Maatwebsite\Excel\Facades\Excel;
 
 #[Layout('components.layouts.app')]
 #[Title('Data Siswa')]
 class ListSiswa extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public string $search = '';
     public $filterKelas = '';
     
-    // Form properties
-    public bool $isModalOpen = false;
-    public ?int $editingId = null;
-    public string $nis = '';
-    public string $nisn = '';
-    public string $nama = '';
-    public ?int $kelas_id = null;
-    public string $status = 'aktif';
-
-    protected function rules()
-    {
-        return [
-            'nis' => 'nullable|string|max:255|unique:master_siswas,nis,' . $this->editingId,
-            'nisn' => 'nullable|string|max:255|unique:master_siswas,nisn,' . $this->editingId,
-            'nama' => 'required|string|max:255',
-            'kelas_id' => 'nullable|exists:master_kelas,id',
-            'status' => 'required|in:aktif,lulus,pindah,keluar',
-        ];
-    }
+    public bool $isImportModalOpen = false;
+    public $importFile;
 
     public function mount()
     {
-        if (!auth()->user()->hasAnyRole(['super-admin', 'admin-tu'])) {
+        if (!auth()->user()->hasAnyRole(['super-admin', 'admin-tu', 'admin'])) {
             abort(403, 'Anda tidak memiliki akses ke halaman ini.');
         }
     }
@@ -76,7 +63,6 @@ class ListSiswa extends Component
     #[Computed]
     public function kelas()
     {
-        // Hanya tampilkan kelas dari tahun ajaran aktif
         return MasterKelas::with('tahunAjaran')
             ->whereHas('tahunAjaran', function($q) {
                 $q->where('is_active', true);
@@ -86,47 +72,36 @@ class ListSiswa extends Component
             ->get();
     }
 
-    public function create()
-    {
-        $this->resetValidation();
-        $this->reset(['editingId', 'nis', 'nisn', 'nama', 'kelas_id', 'status']);
-        $this->isModalOpen = true;
-    }
-
-    public function edit(MasterSiswa $siswa)
-    {
-        $this->resetValidation();
-        $this->editingId = $siswa->id;
-        $this->nis = $siswa->nis ?? '';
-        $this->nisn = $siswa->nisn ?? '';
-        $this->nama = $siswa->nama;
-        $this->kelas_id = $siswa->kelas_id;
-        $this->status = $siswa->status;
-        $this->isModalOpen = true;
-    }
-
-    public function store()
-    {
-        $validatedData = $this->validate();
-        
-        $validatedData['nis'] = $validatedData['nis'] ?: null;
-        $validatedData['nisn'] = $validatedData['nisn'] ?: null;
-        $validatedData['kelas_id'] = $validatedData['kelas_id'] ?: null;
-
-        MasterSiswa::updateOrCreate(
-            ['id' => $this->editingId],
-            $validatedData
-        );
-
-        $this->isModalOpen = false;
-        
-        session()->flash('success', $this->editingId ? 'Data siswa berhasil diperbarui.' : 'Data siswa berhasil ditambahkan.');
-    }
-
     public function delete(MasterSiswa $siswa)
     {
         $siswa->delete();
         session()->flash('success', 'Data siswa berhasil dihapus.');
+    }
+
+    public function openImportModal()
+    {
+        $this->reset('importFile');
+        $this->isImportModalOpen = true;
+    }
+
+    public function downloadTemplate()
+    {
+        return Excel::download(new SiswaTemplateExport, 'template_import_siswa.xlsx');
+    }
+
+    public function import()
+    {
+        $this->validate([
+            'importFile' => 'required|mimes:xlsx,xls,csv|max:10240', // 10MB max
+        ]);
+
+        try {
+            Excel::import(new SiswaImport, $this->importFile);
+            $this->isImportModalOpen = false;
+            session()->flash('success', 'Data siswa berhasil diimport.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan saat import data: ' . $e->getMessage());
+        }
     }
 
     public function render()
@@ -134,3 +109,4 @@ class ListSiswa extends Component
         return view('livewire.master.siswa.list-siswa');
     }
 }
+

@@ -15,7 +15,10 @@ Route::middleware('auth')->group(function () {
         Route::get('/tahun-ajaran', \App\Livewire\Master\TahunAjaran\ListTahunAjaran::class)->name('tahun-ajaran');
         Route::get('/guru', \App\Livewire\Master\Guru\ListGuru::class)->name('guru');
         Route::get('/kelas', \App\Livewire\Master\Kelas\ListKelas::class)->name('kelas');
+        
         Route::get('/siswa', \App\Livewire\Master\Siswa\ListSiswa::class)->name('siswa');
+        Route::get('/siswa/create', \App\Livewire\Master\Siswa\CreateSiswa::class)->name('siswa.create');
+        Route::get('/siswa/{siswa}/edit', \App\Livewire\Master\Siswa\EditSiswa::class)->name('siswa.edit');
     });
 
     Route::post('/logout', function () {

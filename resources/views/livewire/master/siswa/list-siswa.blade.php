@@ -19,17 +19,31 @@
             </select>
         </div>
         
-        <button wire:click="create" class="px-4 py-2 bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors flex items-center gap-2">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            Tambah Siswa
-        </button>
+        <div class="flex gap-2">
+            <button wire:click="openImportModal" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                Import Excel
+            </button>
+            <a href="/master/siswa/create" wire:navigate class="px-4 py-2 bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors flex items-center gap-2">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Tambah Siswa
+            </a>
+        </div>
     </div>
 
     @if (session()->has('success'))
         <div class="mb-4 p-4 rounded-lg bg-green-50 text-green-800 border border-green-200">
             {{ session('success') }}
+        </div>
+    @endif
+    
+    @if (session()->has('error'))
+        <div class="mb-4 p-4 rounded-lg bg-red-50 text-red-800 border border-red-200">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -76,7 +90,7 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 text-right">
-                            <button wire:click="edit({{ $siswa->id }})" class="text-primary hover:text-primary-container font-medium mr-3">Edit</button>
+                            <a href="/master/siswa/{{ $siswa->id }}/edit" wire:navigate class="text-primary hover:text-primary-container font-medium mr-3">Edit</a>
                             <button wire:click="delete({{ $siswa->id }})" wire:confirm="Yakin ingin menghapus data siswa ini?" class="text-red-600 hover:text-red-800 font-medium">Hapus</button>
                         </td>
                     </tr>
@@ -95,10 +109,9 @@
         </div>
     </div>
 
-    <!-- Modal Form (Alpine.js integration) -->
-    <div x-data="{ open: @entangle('isModalOpen') }" x-show="open" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
+    <!-- Import Modal (Alpine.js integration) -->
+    <div x-data="{ open: @entangle('isImportModalOpen') }" x-show="open" class="fixed inset-0 z-50 overflow-y-auto" style="display: none;">
         <div class="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <!-- Background overlay -->
             <div x-show="open" 
                  x-transition:enter="ease-out duration-300" 
                  x-transition:enter-start="opacity-0" 
@@ -112,7 +125,6 @@
 
             <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
 
-            <!-- Modal panel -->
             <div x-show="open" 
                  x-transition:enter="ease-out duration-300" 
                  x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
@@ -121,11 +133,12 @@
                  x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
                  x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
                  class="inline-block align-bottom bg-surface rounded-xl text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full relative z-10 border border-outline-variant">
-                <form wire:submit="store">
+                
+                <form wire:submit="import">
                     <div class="px-6 pt-6 pb-4">
                         <div class="flex justify-between items-center mb-5">
                             <h3 class="text-lg font-medium text-on-surface">
-                                {{ $editingId ? 'Edit Data Siswa' : 'Tambah Data Siswa' }}
+                                Import Data Siswa
                             </h3>
                             <button type="button" @click="open = false" class="text-on-surface-variant hover:text-on-surface transition-colors">
                                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -135,52 +148,26 @@
                         </div>
                         
                         <div class="space-y-4">
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-on-surface mb-1">NIS</label>
-                                    <input type="text" wire:model="nis" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
-                                    @error('nis') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-on-surface mb-1">NISN</label>
-                                    <input type="text" wire:model="nisn" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
-                                    @error('nisn') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                                </div>
-                            </div>
-
                             <div>
-                                <label class="block text-sm font-medium text-on-surface mb-1">Nama Lengkap</label>
-                                <input type="text" wire:model="nama" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
-                                @error('nama') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-on-surface mb-1">Kelas Saat Ini</label>
-                                    <select wire:model="kelas_id" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
-                                        <option value="">-- Belum ada kelas --</option>
-                                        @foreach($this->kelas as $k)
-                                            <option value="{{ $k->id }}">{{ $k->nama }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('kelas_id') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-on-surface mb-1">Status</label>
-                                    <select wire:model="status" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
-                                        <option value="aktif">Aktif</option>
-                                        <option value="lulus">Lulus</option>
-                                        <option value="pindah">Pindah</option>
-                                        <option value="keluar">Keluar</option>
-                                    </select>
-                                    @error('status') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                                </div>
+                                <label class="block text-sm font-medium text-on-surface mb-1">File Excel Data Siswa</label>
+                                <input type="file" wire:model="importFile" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow" accept=".csv, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel">
+                                <p class="text-xs text-on-surface-variant mt-2">Pastikan file sesuai dengan format Dapodik (Header pada baris ke-5 dan ke-6, Data mulai baris ke-7).</p>
+                                <div wire:loading wire:target="importFile" class="text-sm text-primary mt-2">Uploading...</div>
+                                @error('importFile') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
                         </div>
                     </div>
-                    <div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex justify-end gap-3 rounded-b-xl">
-                        <button type="button" @click="open = false" class="px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant font-medium hover:bg-surface-container transition-colors">Batal</button>
-                        <button type="submit" class="px-4 py-2 bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors">Simpan</button>
+                    <div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex justify-between items-center rounded-b-xl">
+                        <button type="button" wire:click="downloadTemplate" class="text-primary hover:text-primary-container font-medium text-sm flex items-center gap-1 transition-colors">
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Download Template
+                        </button>
+                        <div class="flex gap-3">
+                            <button type="button" @click="open = false" class="px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant font-medium hover:bg-surface-container transition-colors">Batal</button>
+                            <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors disabled:opacity-50" wire:loading.attr="disabled">Proses Import</button>
+                        </div>
                     </div>
                 </form>
             </div>

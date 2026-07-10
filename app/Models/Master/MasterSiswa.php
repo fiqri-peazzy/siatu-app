@@ -11,11 +11,17 @@ class MasterSiswa extends Model
     use SoftDeletes;
 
     protected $fillable = [
-        'nis',
-        'nisn',
-        'nama',
-        'kelas_id',
-        'status',
+        'nis', 'nisn', 'nama', 'kelas_id', 'status',
+        'jk', 'tempat_lahir', 'tanggal_lahir', 'nik', 'agama', 'alamat', 'rt', 'rw', 'dusun',
+        'kelurahan', 'kecamatan', 'kode_pos', 'jenis_tinggal', 'alat_transportasi', 'telepon',
+        'hp', 'email', 'skhun', 'penerima_kps', 'no_kps',
+        'ayah_nama', 'ayah_tahun_lahir', 'ayah_pendidikan', 'ayah_pekerjaan', 'ayah_penghasilan', 'ayah_nik',
+        'ibu_nama', 'ibu_tahun_lahir', 'ibu_pendidikan', 'ibu_pekerjaan', 'ibu_penghasilan', 'ibu_nik',
+        'wali_nama', 'wali_tahun_lahir', 'wali_pendidikan', 'wali_pekerjaan', 'wali_penghasilan', 'wali_nik',
+        'no_peserta_un', 'no_seri_ijazah', 'penerima_kip', 'nomor_kip', 'nama_di_kip', 'nomor_kks',
+        'no_akta_lahir', 'bank', 'no_rekening_bank', 'rekening_atas_nama', 'layak_pip', 'alasan_layak_pip',
+        'kebutuhan_khusus', 'sekolah_asal', 'anak_ke', 'lintang', 'bujur', 'no_kk', 'berat_badan',
+        'tinggi_badan', 'lingkar_kepala', 'jml_saudara_kandung', 'jarak_rumah_ke_sekolah'
     ];
 
     public function kelas(): BelongsTo
