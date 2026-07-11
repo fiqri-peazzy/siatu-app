@@ -7,6 +7,12 @@
 
         <title>{{ config('app.name', 'SITU-SMA') }}</title>
 
+        <!-- PWA -->
+        <link rel="icon" type="image/png" href="{{ asset('images/logo-removebg-preview.png') }}">
+        <link rel="manifest" href="{{ asset('manifest.json') }}">
+        <meta name="theme-color" content="#4f46e5">
+        <link rel="apple-touch-icon" href="{{ asset('images/logo-removebg-preview.png') }}">
+
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -155,5 +161,18 @@
                 });
             </script>
         @endif
+
+        <!-- PWA Service Worker Registration -->
+        <script>
+            if ('serviceWorker' in navigator) {
+                window.addEventListener('load', function() {
+                    navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                        console.log('ServiceWorker registration successful with scope: ', registration.scope);
+                    }, function(err) {
+                        console.log('ServiceWorker registration failed: ', err);
+                    });
+                });
+            }
+        </script>
     </body>
 </html>
