@@ -47,7 +47,7 @@ class FormAbsensi extends Component
         $this->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
-            'foto' => 'required|image|max:5120', // Max 5MB
+            'foto' => 'required|string', // Base64 string
         ]);
 
         // 1. Validasi Lokasi

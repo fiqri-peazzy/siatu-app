@@ -60,18 +60,35 @@ class AbsensiService
     /**
      * Catat absensi guru (masuk/pulang).
      */
-    public function catatAbsenGuru(array $data, ?\Illuminate\Http\UploadedFile $foto): \App\Models\AbsensiGuru
+    public function catatAbsenGuru(array $data, mixed $foto = null): \App\Models\AbsensiGuru
     {
-        if ($foto) {
-            $tahun = date('Y');
-            $bulan = date('m');
-            $data['foto_path'] = $foto->store("absensi/{$tahun}/{$bulan}", 'local');
-        }
-
         $absen = \App\Models\AbsensiGuru::create($data);
 
-        // Fire event
-        event(new \App\Events\AbsensiGuruDicatat($absen));
+        if ($foto) {
+            $path = '';
+            $folder = 'absensi/' . date('Y/m');
+            
+            if ($foto instanceof \Illuminate\Http\UploadedFile) {
+                $path = $foto->store($folder);
+            } elseif (is_string($foto) && str_starts_with($foto, 'data:image')) {
+                // Decode base64
+                $image_parts = explode(";base64,", $foto);
+                $image_type_aux = explode("image/", $image_parts[0]);
+                $image_type = $image_type_aux[1];
+                $image_base64 = base64_decode($image_parts[1]);
+                $filename = uniqid() . '.' . $image_type;
+                $path = $folder . '/' . $filename;
+                
+                \Illuminate\Support\Facades\Storage::put($path, $image_base64);
+            }
+
+            if ($path) {
+                $absen->update(['foto' => $path]);
+            }
+        }
+
+        // Trigger Event
+        \App\Events\AbsensiGuruDicatat::dispatch($absen);
 
         return $absen;
     }
