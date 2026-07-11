@@ -85,7 +85,7 @@
                     <p class="text-sm text-slate-500 font-medium">Sistem memerlukan akses lokasi akurat dan verifikasi wajah (*liveness detection*).</p>
                 </div>
                 
-                <div x-data="absensiLiveness()" x-init="initData()" class="space-y-6 relative z-10">
+                <div x-data="absensiLiveness($wire)" class="space-y-6 relative z-10">
 
                     <!-- Location Tracking State -->
                     <div x-show="!lokasiDitemukan" class="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm text-center">
@@ -133,50 +133,62 @@
                                     <p class="text-xs text-rose-600 mt-0.5 font-medium">{{ $pesanErrorLokasi }}</p>
                                 </div>
                             </div>
+                        @else
+                            @if($dalamRadius)
+                            <div class="mb-4">
+                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 pl-1">Catatan Tambahan (Opsional)</label>
+                                <textarea wire:model="keterangan" rows="2" placeholder="Cth: Lupa bawa jas lab..." class="w-full rounded-2xl border-0 ring-1 ring-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-shadow resize-none shadow-sm placeholder:text-slate-300"></textarea>
+                                @error('keterangan') <span class="text-rose-500 font-bold text-xs mt-2 block pl-1">{{ $message }}</span> @enderror
+                            </div>
+                            <button type="button" @click="openModal()" class="w-full bg-indigo-600 text-white rounded-full py-4 font-bold text-sm shadow-[0_8px_20px_rgba(99,102,241,0.25)] hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                Lanjutkan ke Presensi Wajah
+                            </button>
+                            @endif
                         @endif
-
-                        <!-- Face Recognition Liveness Camera -->
-                        <div class="mb-6 relative">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3 pl-1">Verifikasi Wajah (Liveness)</label>
+                        
+                        <!-- Face Recognition Liveness Modal (Mobile Responsive) -->
+                        <div x-show="showLivenessModal" style="display: none;" class="fixed inset-0 z-50 flex flex-col bg-slate-900 animate-fade-in">
+                            <div class="px-6 pt-12 pb-4 flex items-center justify-between z-20 relative bg-gradient-to-b from-slate-900 to-transparent">
+                                <button type="button" @click="closeModal()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                                </button>
+                                <span class="text-white font-bold tracking-widest uppercase text-xs">Verifikasi Liveness</span>
+                                <div class="w-10"></div> <!-- spacer -->
+                            </div>
                             
-                            <div class="relative w-full aspect-[3/4] max-h-[400px] bg-slate-900 rounded-[2rem] overflow-hidden shadow-[0_8px_30px_rgb(0,0,0,0.15)] ring-1 ring-slate-900/5">
+                            <div class="flex-1 relative w-full h-full bg-slate-900 overflow-hidden rounded-t-[3rem] shadow-[0_-10px_40px_rgb(0,0,0,0.5)]">
                                 
                                 <video id="webcam-video" autoplay muted playsinline class="w-full h-full object-cover transform scale-x-[-1]"></video>
                                 <canvas id="overlay-canvas" class="absolute inset-0 w-full h-full z-10"></canvas>
                                 
                                 <!-- Loading AI Overlay -->
-                                <div x-show="modelLoading" class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center text-white p-6 text-center">
-                                    <svg class="animate-spin w-10 h-10 text-indigo-500 mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                    <p class="font-bold text-lg">Memuat AI Model...</p>
-                                    <p class="text-xs text-slate-300 mt-2 opacity-80">Harap tunggu, sistem sedang memuat neural network untuk deteksi kedipan mata.</p>
+                                <div x-show="modelLoading" class="absolute inset-0 bg-slate-900/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-white p-6 text-center">
+                                    <svg class="animate-spin w-12 h-12 text-indigo-500 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    <p class="font-extrabold text-xl mb-2">Memuat AI Model...</p>
+                                    <p class="text-sm text-slate-400 max-w-[250px]">Sistem sedang mengkalibrasi neural network wajah Anda.</p>
                                 </div>
 
                                 <!-- UI Guidance Overlay -->
-                                <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-8 z-20 flex flex-col items-center justify-center pointer-events-none">
-                                    <div class="bg-black/50 backdrop-blur-md text-white px-5 py-2.5 rounded-full font-semibold text-sm border border-white/10 shadow-lg text-center mx-4" x-transition>
-                                        <span x-show="!faceDetected">Arahkan wajah ke kamera</span>
-                                        <span x-show="faceDetected && !blinkDetected" class="text-indigo-200">Wajah terdeteksi. Silakan berkedip!</span>
+                                <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-12 z-20 flex flex-col items-center justify-center pointer-events-none">
+                                    <div class="bg-black/60 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold text-sm border border-white/20 shadow-2xl text-center mx-4" x-transition>
+                                        <span x-show="!faceDetected">Arahkan wajah ke dalam bingkai</span>
+                                        <span x-show="faceDetected && !blinkDetected" class="text-indigo-300">Wajah terdeteksi. Silakan berkedip!</span>
                                     </div>
                                     <!-- Scan Line -->
-                                    <div x-show="faceDetected && !blinkDetected" class="w-3/4 h-0.5 bg-indigo-500 mt-4 rounded-full shadow-[0_0_10px_#6366f1] animate-[pulse_1s_ease-in-out_infinite]"></div>
+                                    <div x-show="faceDetected && !blinkDetected" class="w-2/3 h-1 bg-indigo-500 mt-6 rounded-full shadow-[0_0_15px_#6366f1] animate-[pulse_1s_ease-in-out_infinite]"></div>
                                 </div>
 
                                 <!-- Success Overlay -->
-                                <div x-show="verifikasiBerhasil" class="absolute inset-0 bg-emerald-500/20 backdrop-blur-sm z-30 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
-                                    <div class="w-16 h-16 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg mb-4">
-                                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                                <div x-show="verifikasiBerhasil" class="absolute inset-0 bg-emerald-500/90 backdrop-blur-md z-30 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
+                                    <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl mb-6 scale-up-center">
+                                        <svg class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
                                     </div>
-                                    <h3 class="font-bold text-xl text-emerald-50 drop-shadow-md">Verifikasi Berhasil</h3>
-                                    <p class="text-sm text-emerald-100 font-medium drop-shadow-md mt-1">Mengirim data kehadiran...</p>
+                                    <h3 class="font-extrabold text-3xl drop-shadow-md mb-2">Sempurna!</h3>
+                                    <p class="text-emerald-100 font-semibold drop-shadow-md text-lg">Kehadiran terenkripsi dan terkirim.</p>
                                 </div>
                             </div>
-                            @error('foto') <span class="text-rose-500 font-bold text-xs mt-3 block pl-1">{{ $message }}</span> @enderror
-                        </div>
-
-                        <div class="mb-4">
-                            <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 pl-1">Catatan Tambahan (Opsional)</label>
-                            <textarea wire:model="keterangan" rows="2" placeholder="Cth: Lupa bawa jas lab..." class="w-full rounded-2xl border-0 ring-1 ring-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-shadow resize-none shadow-sm placeholder:text-slate-300"></textarea>
-                            @error('keterangan') <span class="text-rose-500 font-bold text-xs mt-2 block pl-1">{{ $message }}</span> @enderror
+                            @error('foto') <span class="absolute top-20 inset-x-0 text-center text-rose-500 font-bold text-sm bg-rose-100/90 py-2">{{ $message }}</span> @enderror
                         </div>
                     </div>
                 </div>
@@ -192,53 +204,73 @@
             @endif
         </div>
     </div>
-</div>
 
-<!-- Load face-api.js from CDN -->
-<script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.min.js"></script>
+    <!-- Load face-api.js from CDN -->
+    @assets
+    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.min.js"></script>
+    @endassets
 
-<script>
-document.addEventListener('alpine:init', () => {
-    Alpine.data('absensiLiveness', () => ({
-        lokasiDitemukan: @entangle('latitude').live ? true : false,
-        loadingLokasi: false,
-        alamatDetail: 'Sedang melacak alamat...',
-        
-        // Face AI States
-        modelLoading: true,
-        faceDetected: false,
-        blinkDetected: false,
-        verifikasiBerhasil: false,
-        stream: null,
-        videoEl: null,
-        detectionInterval: null,
-        blinkHistory: [],
-
-        initData() {
-            if (this.lokasiDitemukan) {
-                // If livewire already has lat/lon, fetch address and start camera
-                this.fetchAddress(@this.get('latitude'), @this.get('longitude'));
+    <script>
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('absensiLiveness', (wire) => ({
+            lokasiDitemukan: false,
+            loadingLokasi: false,
+            alamatDetail: 'Sedang melacak alamat...',
+            
+            // Modal States
+            showLivenessModal: false,
+            
+            // Face AI States
+            modelLoading: true,
+            faceDetected: false,
+            blinkDetected: false,
+            verifikasiBerhasil: false,
+            stream: null,
+            videoEl: null,
+            detectionInterval: null,
+            blinkHistory: [],
+            
+            init() {
+                this.lokasiDitemukan = wire.get('latitude') ? true : false;
+                if (this.lokasiDitemukan) {
+                    // Fetch address
+                    this.fetchAddress(wire.get('latitude'), wire.get('longitude'));
+                    wire.call('cekLokasi');
+                }
+            },
+            
+            openModal() {
+                this.showLivenessModal = true;
                 this.initFaceApi();
-            }
-        },
-        
-        mulaiLacakLokasi() {
-            this.loadingLokasi = true;
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    (position) => {
-                        const lat = position.coords.latitude;
-                        const lon = position.coords.longitude;
-                        @this.set('latitude', lat);
-                        @this.set('longitude', lon);
-                        this.lokasiDitemukan = true;
-                        this.loadingLokasi = false;
-                        
-                        this.fetchAddress(lat, lon);
-                        this.initFaceApi();
-                    },
-                    (error) => {
-                        this.loadingLokasi = false;
+            },
+            
+            closeModal() {
+                this.showLivenessModal = false;
+                if (this.stream) {
+                    this.stream.getTracks().forEach(track => track.stop());
+                }
+                if (this.detectionInterval) clearInterval(this.detectionInterval);
+            },
+            
+            mulaiLacakLokasi() {
+                this.loadingLokasi = true;
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        async (position) => {
+                            const lat = position.coords.latitude;
+                            const lon = position.coords.longitude;
+                            wire.set('latitude', lat);
+                            wire.set('longitude', lon);
+                            this.lokasiDitemukan = true;
+                            this.loadingLokasi = false;
+                            
+                            this.fetchAddress(lat, lon);
+                            
+                            // Validasi Jarak di Backend
+                            await wire.call('cekLokasi');
+                        },
+                        (error) => {
+                            this.loadingLokasi = false;
                         let msg = 'Gagal mendapatkan lokasi.';
                         if (error.code == 1) msg = 'Akses lokasi ditolak. Aktifkan GPS dan izinkan browser mengakses lokasi.';
                         else if (error.code == 2) msg = 'Posisi tidak tersedia.';
@@ -364,35 +396,36 @@ document.addEventListener('alpine:init', () => {
             return (v1 + v2) / (2.0 * h);
         },
 
-        triggerSuccessCapture() {
-            this.blinkDetected = true;
-            this.verifikasiBerhasil = true;
-            clearInterval(this.detectionInterval);
-            
-            // Capture frame from video
-            const canvas = document.createElement('canvas');
-            canvas.width = this.videoEl.videoWidth;
-            canvas.height = this.videoEl.videoHeight;
-            const ctx = canvas.getContext('2d');
-            
-            // Draw flipped because stream is mirrored
-            ctx.translate(canvas.width, 0);
-            ctx.scale(-1, 1);
-            ctx.drawImage(this.videoEl, 0, 0, canvas.width, canvas.height);
-            
-            const base64Image = canvas.toDataURL('image/jpeg', 0.8);
-            
-            // Stop camera
-            this.stream.getTracks().forEach(track => track.stop());
-            
-            // Send to Livewire
-            @this.set('foto', base64Image);
-            
-            // Wait a tiny bit for UI update, then submit
-            setTimeout(() => {
-                @this.call('submitAbsen', '{{ !$absenMasuk ? 'masuk' : 'pulang' }}');
-            }, 500);
-        }
-    }));
-});
-</script>
+            triggerSuccessCapture() {
+                this.blinkDetected = true;
+                this.verifikasiBerhasil = true;
+                clearInterval(this.detectionInterval);
+                
+                // Capture frame from video
+                const canvas = document.createElement('canvas');
+                canvas.width = this.videoEl.videoWidth;
+                canvas.height = this.videoEl.videoHeight;
+                const ctx = canvas.getContext('2d');
+                
+                // Draw flipped because stream is mirrored
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(this.videoEl, 0, 0, canvas.width, canvas.height);
+                
+                const base64Image = canvas.toDataURL('image/jpeg', 0.8);
+                
+                // Stop camera
+                this.stream.getTracks().forEach(track => track.stop());
+                
+                // Send to Livewire
+                wire.set('foto', base64Image);
+                
+                // Wait a tiny bit for UI update, then submit
+                setTimeout(() => {
+                    wire.call('submitAbsen', '{{ !$absenMasuk ? 'masuk' : 'pulang' }}');
+                }, 500);
+            }
+        }));
+    });
+    </script>
+</div>

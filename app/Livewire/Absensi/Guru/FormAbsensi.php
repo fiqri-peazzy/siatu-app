@@ -25,6 +25,7 @@ class FormAbsensi extends Component
     public $absenPulang = null;
     public $jarak = null;
     public $pesanErrorLokasi = null;
+    public $dalamRadius = false;
 
     public function mount()
     {
@@ -40,6 +41,26 @@ class FormAbsensi extends Component
             ->where('tanggal', $hariIni)
             ->where('jenis', \App\Enums\JenisAbsenGuru::PULANG->value)
             ->first();
+    }
+
+    public function cekLokasi(AbsensiService $service)
+    {
+        if (!$this->latitude || !$this->longitude) {
+            return false;
+        }
+
+        $validasi = $service->validasiLokasi((float) $this->latitude, (float) $this->longitude);
+        $this->jarak = $validasi['jarak'];
+        
+        if (!$validasi['valid']) {
+            $this->dalamRadius = false;
+            $this->pesanErrorLokasi = "Anda berada di luar area absen. Jarak Anda: {$this->jarak} meter (Maks: {$validasi['radius_maks']} meter).";
+            return false;
+        }
+
+        $this->dalamRadius = true;
+        $this->pesanErrorLokasi = null;
+        return true;
     }
 
     public function submitAbsen(string $jenis, AbsensiService $service)
@@ -85,9 +106,8 @@ class FormAbsensi extends Component
             DB::commit();
             
             $this->dispatch('swal:success', 'Absensi berhasil dicatat.');
-            $this->reset(['foto', 'keterangan', 'latitude', 'longitude']);
-            $this->mount();
             
+            return redirect()->route('akademik.absensi.guru.riwayat');
         } catch (\Exception $e) {
             DB::rollBack();
             $this->dispatch('swal:error', 'Gagal mencatat absen: ' . $e->getMessage());

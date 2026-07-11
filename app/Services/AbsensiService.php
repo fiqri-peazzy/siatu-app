@@ -83,7 +83,7 @@ class AbsensiService
             }
 
             if ($path) {
-                $absen->update(['foto' => $path]);
+                $absen->update(['foto_path' => $path]);
             }
         }
 

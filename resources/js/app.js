@@ -21,10 +21,14 @@ document.addEventListener('livewire:initialized', () => {
                 cancelButtonColor: '#d1d5db',  // Tailwind Gray 300
                 confirmButtonText: 'Ya, Lanjutkan',
                 cancelButtonText: 'Batal',
+                buttonsStyling: false,
                 customClass: {
-                    popup: 'rounded-xl',
-                    confirmButton: 'rounded-md shadow-sm',
-                    cancelButton: 'rounded-md shadow-sm text-gray-700'
+                    popup: 'rounded-[2rem] p-6 bg-white shadow-[0_10px_40px_rgb(0,0,0,0.1)] border border-slate-100',
+                    title: 'text-2xl font-extrabold text-slate-800 mb-2',
+                    htmlContainer: 'text-sm font-medium text-slate-500 mb-6',
+                    confirmButton: 'w-full bg-slate-900 text-white rounded-full py-3.5 font-bold text-sm shadow-[0_8px_20px_rgb(0,0,0,0.15)] active:scale-95 transition-all mb-3',
+                    cancelButton: 'w-full bg-slate-100 text-slate-600 rounded-full py-3.5 font-bold text-sm hover:bg-slate-200 active:scale-95 transition-all',
+                    actions: 'w-full flex-col'
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
@@ -51,10 +55,13 @@ document.addEventListener('livewire:initialized', () => {
             title: 'Berhasil!',
             text: message,
             icon: 'success',
-            confirmButtonColor: '#4f46e5',
+            buttonsStyling: false,
             customClass: {
-                popup: 'rounded-xl',
-                confirmButton: 'rounded-md shadow-sm'
+                popup: 'rounded-[2rem] p-6 bg-white shadow-[0_10px_40px_rgb(0,0,0,0.1)] border border-slate-100',
+                title: 'text-2xl font-extrabold text-slate-800 mb-2',
+                htmlContainer: 'text-sm font-medium text-slate-500 mb-6',
+                confirmButton: 'w-full bg-indigo-500 text-white rounded-full py-3.5 font-bold text-sm shadow-[0_8px_20px_rgb(99,102,241,0.3)] active:scale-95 transition-all',
+                icon: 'border-0'
             }
         });
     });
@@ -65,10 +72,13 @@ document.addEventListener('livewire:initialized', () => {
             title: 'Gagal!',
             text: message,
             icon: 'error',
-            confirmButtonColor: '#ef4444',
+            buttonsStyling: false,
             customClass: {
-                popup: 'rounded-xl',
-                confirmButton: 'rounded-md shadow-sm bg-red-500'
+                popup: 'rounded-[2rem] p-6 bg-white shadow-[0_10px_40px_rgb(0,0,0,0.1)] border border-slate-100',
+                title: 'text-2xl font-extrabold text-slate-800 mb-2',
+                htmlContainer: 'text-sm font-medium text-slate-500 mb-6',
+                confirmButton: 'w-full bg-rose-500 text-white rounded-full py-3.5 font-bold text-sm shadow-[0_8px_20px_rgb(244,63,94,0.3)] active:scale-95 transition-all',
+                icon: 'border-0'
             }
         });
     });
