@@ -7,7 +7,9 @@ use Livewire\WithPagination;
 use App\Models\Master\MasterGuru;
 use App\Models\AbsensiGuru;
 use Carbon\Carbon;
+use Livewire\Attributes\Layout;
 
+#[Layout('components.layouts.app')]
 class DashboardAbsensiHariIni extends Component
 {
     use WithPagination;

@@ -8,7 +8,9 @@ use App\Services\AbsensiService;
 use App\Models\AbsensiGuru;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
+use Livewire\Attributes\Layout;
 
+#[Layout('components.layouts.app')]
 class FormAbsensi extends Component
 {
     use WithFileUploads;

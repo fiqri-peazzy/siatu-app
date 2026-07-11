@@ -141,6 +141,13 @@ Route::middleware('auth')->group(function () {
         })->name('surat-keluar.word');
     });
 
+    // Akademik / Absensi
+    Route::prefix('akademik')->name('akademik.')->group(function () {
+        Route::get('/absensi/absen-sekarang', \App\Livewire\Absensi\Guru\FormAbsensi::class)->name('absensi.guru.form');
+        Route::get('/absensi/riwayat', \App\Livewire\Absensi\Guru\RiwayatAbsensi::class)->name('absensi.guru.riwayat');
+        Route::get('/absensi/monitoring', \App\Livewire\Absensi\DashboardAbsensiHariIni::class)->name('absensi.monitoring');
+    });
+
     Route::post('/logout', function () {
         auth()->logout();
         request()->session()->invalidate();

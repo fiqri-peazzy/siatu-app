@@ -6,7 +6,9 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use App\Models\AbsensiGuru;
 use Carbon\Carbon;
+use Livewire\Attributes\Layout;
 
+#[Layout('components.layouts.app')]
 class RiwayatAbsensi extends Component
 {
     use WithPagination;
