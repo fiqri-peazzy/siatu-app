@@ -60,5 +60,55 @@
             </div>
         </div>
 
+        </div>
+
+        {{-- Widget: Pending Approval (Kepsek) --}}
+        @if(auth()->user()->hasRole('kepala-sekolah'))
+            @php
+                $pendingApprovals = \App\Models\SuratKeluar::where('status', \App\Enums\StatusSuratKeluar::MENUNGGU_APPROVAL)->count();
+            @endphp
+            @if($pendingApprovals > 0)
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-md mb-6 shadow-sm">
+                <div class="flex">
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            Anda memiliki <strong>{{ $pendingApprovals }}</strong> draf surat keluar yang menunggu persetujuan (approval).
+                            <a href="{{ route('administrasi.surat-keluar.index') }}" class="font-medium underline text-yellow-700 hover:text-yellow-600">Tinjau sekarang &rarr;</a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            @endif
+        @endif
+
+        {{-- Widget: Disposisi Menunggu Tindak Lanjut (All Users) --}}
+        @php
+            $pendingDisposisi = \App\Models\Disposisi::with('suratMasuk')
+                ->where('ke_user_id', auth()->id())
+                ->where('status', \App\Enums\StatusDisposisi::DITERIMA)
+                ->get();
+        @endphp
+        @if($pendingDisposisi->count() > 0)
+        <div class="bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-md shadow-sm">
+            <div class="flex">
+                <div class="ml-3">
+                    <h3 class="text-sm font-medium text-indigo-800">Disposisi Menunggu Tindak Lanjut ({{ $pendingDisposisi->count() }})</h3>
+                    <div class="mt-2 text-sm text-indigo-700">
+                        <ul role="list" class="list-disc space-y-1 pl-5">
+                            @foreach($pendingDisposisi as $disp)
+                            <li>
+                                <a href="{{ route('administrasi.surat-masuk.show', $disp->surat_masuk_id) }}" class="hover:underline font-semibold">
+                                    {{ $disp->suratMasuk->no_agenda ?? 'Surat' }}
+                                </a> 
+                                - {{ \Illuminate\Support\Str::limit($disp->suratMasuk->perihal ?? '', 60) }}
+                            </li>
+                            @endforeach
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        @endif
+
     </div>
-</x-app-layout>
+</x-layouts.app>

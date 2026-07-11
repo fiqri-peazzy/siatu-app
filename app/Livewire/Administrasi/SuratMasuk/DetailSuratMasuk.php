@@ -69,7 +69,7 @@ class DetailSuratMasuk extends Component
                 'dari_user_id' => auth()->id(),
                 'ke_user_id' => $this->ke_user_id,
                 'catatan' => $this->catatan,
-                'status' => \App\Enums\StatusDisposisi::BARU,
+                'status' => \App\Enums\StatusDisposisi::DITERIMA,
             ]);
 
             // Update status parent disposisi (jika ada)
@@ -83,9 +83,47 @@ class DetailSuratMasuk extends Component
             }
         });
 
+        // Dispatch WA Notification to the recipient
+        $penerima = \App\Models\User::find($this->ke_user_id);
+        if ($penerima && $penerima->no_hp) {
+            $pesan = "Halo {$penerima->name}, Anda mendapat disposisi surat baru (No: {$this->surat->no_agenda}).\nCatatan: {$this->catatan}\nSilakan cek di sistem SITU-SMA.";
+            \App\Jobs\SendWhatsAppNotification::dispatch($penerima->no_hp, $pesan);
+        }
+
         $this->surat->refresh();
         $this->isDisposisiModalOpen = false;
-        session()->flash('success', 'Disposisi berhasil dikirim.');
+        $this->dispatch('swal:success', 'Disposisi berhasil dikirim.');
+    }
+
+    public function tandaiSelesai()
+    {
+        $this->authorize('dispose', $this->surat);
+
+        $disposisi = $this->surat->disposisis()
+            ->where('ke_user_id', auth()->id())
+            ->where('status', \App\Enums\StatusDisposisi::DITERIMA)
+            ->first();
+
+        if ($disposisi) {
+            $disposisi->update(['status' => \App\Enums\StatusDisposisi::SELESAI]);
+            
+            // Check if there are no more active dispositions
+            $activeDisposisiCount = $this->surat->disposisis()
+                ->where('status', \App\Enums\StatusDisposisi::DITERIMA)
+                ->count();
+                
+            if ($activeDisposisiCount === 0) {
+                $this->surat->update(['status' => \App\Enums\StatusSuratMasuk::SELESAI]);
+            }
+            
+            $this->dispatch('swal:success', 'Disposisi telah ditandai sebagai selesai dan ditindaklanjuti.');
+        } else {
+            // For kepsek/admin marking the whole letter done directly
+            $this->surat->update(['status' => \App\Enums\StatusSuratMasuk::SELESAI]);
+            $this->dispatch('swal:success', 'Surat masuk telah ditandai selesai.');
+        }
+
+        $this->surat->refresh();
     }
 
     public function render()

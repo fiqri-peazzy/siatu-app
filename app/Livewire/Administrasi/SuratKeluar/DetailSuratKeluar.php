@@ -32,7 +32,14 @@ class DetailSuratKeluar extends Component
             'status' => StatusSuratKeluar::MENUNGGU_APPROVAL
         ]);
         
-        session()->flash('success', 'Draft surat telah diajukan untuk approval Kepala Sekolah.');
+        // Notify Kepsek
+        $kepsek = \App\Models\User::role('kepala-sekolah')->first();
+        if ($kepsek && $kepsek->no_hp) {
+            $pesan = "Halo {$kepsek->name}, ada draf surat keluar baru yang menunggu approval Anda.\nPerihal: {$this->surat->perihal}\nSilakan cek di sistem SITU-SMA.";
+            \App\Jobs\SendWhatsAppNotification::dispatch($kepsek->no_hp, $pesan);
+        }
+
+        $this->dispatch('swal:success', 'Draft surat telah diajukan untuk approval Kepala Sekolah.');
         $this->surat->refresh();
     }
 
@@ -42,7 +49,14 @@ class DetailSuratKeluar extends Component
         
         $service->approveSuratKeluar($this->surat);
         
-        session()->flash('success', 'Surat berhasil di-approve. Nomor surat dan PDF telah di-generate.');
+        // Notify pembuat
+        $pembuat = $this->surat->dibuatOleh;
+        if ($pembuat && $pembuat->no_hp) {
+            $pesan = "Halo {$pembuat->name}, draf surat Anda (Perihal: {$this->surat->perihal}) telah DISETUJUI oleh Kepala Sekolah.\nNomor Surat: {$this->surat->no_surat}\nSilakan cek di sistem SITU-SMA.";
+            \App\Jobs\SendWhatsAppNotification::dispatch($pembuat->no_hp, $pesan);
+        }
+
+        $this->dispatch('swal:success', 'Surat berhasil di-approve. Nomor surat dan PDF telah di-generate.');
         $this->surat->refresh();
     }
 
@@ -69,7 +83,14 @@ class DetailSuratKeluar extends Component
         $service->rejectSuratKeluar($this->surat, $this->catatan_revisi);
         
         $this->isRejectModalOpen = false;
-        session()->flash('success', 'Surat telah dikembalikan untuk direvisi.');
+        // Notify pembuat
+        $pembuat = $this->surat->dibuatOleh;
+        if ($pembuat && $pembuat->no_hp) {
+            $pesan = "Halo {$pembuat->name}, draf surat Anda (Perihal: {$this->surat->perihal}) DITOLAK/DIKEMBALIKAN oleh Kepala Sekolah.\nCatatan: {$this->catatan_revisi}\nSilakan cek di sistem SITU-SMA.";
+            \App\Jobs\SendWhatsAppNotification::dispatch($pembuat->no_hp, $pesan);
+        }
+
+        $this->dispatch('swal:success', 'Surat telah dikembalikan untuk direvisi.');
         $this->surat->refresh();
     }
 

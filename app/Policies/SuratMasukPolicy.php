@@ -87,6 +87,11 @@ class SuratMasukPolicy
      */
     public function dispose(User $user, SuratMasuk $suratMasuk): bool
     {
-        return $user->hasAnyRole(['super-admin', 'admin-tu', 'kepala-sekolah']);
+        if ($user->hasAnyRole(['super-admin', 'admin-tu', 'kepala-sekolah'])) {
+            return true;
+        }
+        
+        // Penerima disposisi sebelumnya berhak meneruskan (disposisi berantai)
+        return $suratMasuk->disposisis()->where('ke_user_id', $user->id)->exists();
     }
 }
