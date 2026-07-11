@@ -48,12 +48,22 @@
                     <div class="pt-4 pb-2 px-4">
                         <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Akademik</span>
                     </div>
-                    <x-nav-link href="#">
-                        Absensi Guru
+                    
+                    @if(auth()->user()->hasRole('guru'))
+                    <x-nav-link href="{{ route('akademik.absensi.guru.form') }}" :active="request()->routeIs('akademik.absensi.guru.form')">
+                        Absen Sekarang
                     </x-nav-link>
-                    <x-nav-link href="#">
-                        Absensi Siswa
+                    <x-nav-link href="{{ route('akademik.absensi.guru.riwayat') }}" :active="request()->routeIs('akademik.absensi.guru.riwayat')">
+                        Riwayat Absensi
                     </x-nav-link>
+                    @endif
+
+                    @if(auth()->user()->hasAnyRole(['admin-tu', 'kepala-sekolah', 'super-admin']))
+                    <x-nav-link href="{{ route('akademik.absensi.monitoring') }}" :active="request()->routeIs('akademik.absensi.monitoring')">
+                        Monitoring Absensi Guru
+                    </x-nav-link>
+                    @endif
+
                     <x-nav-link href="#">
                         Jurnal Mengajar
                     </x-nav-link>

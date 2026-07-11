@@ -21,7 +21,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/siswa/{siswa}/edit', \App\Livewire\Master\Siswa\EditSiswa::class)->name('siswa.edit');
     });
 
-    // Administrasi Routes
+    // Administrasi
     Route::prefix('administrasi')->name('administrasi.')->group(function () {
         // Surat Masuk
         Route::get('/surat-masuk', \App\Livewire\Administrasi\SuratMasuk\ListSuratMasuk::class)->name('surat-masuk.index');

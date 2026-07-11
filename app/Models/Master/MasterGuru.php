@@ -30,4 +30,10 @@ class MasterGuru extends Model
     {
         return $this->hasMany(MasterKelas::class, 'wali_kelas_id');
     }
+
+
+    public function absensis()
+    {
+        return $this->hasMany(\App\Models\AbsensiGuru::class, 'guru_id');
+    }
 }
