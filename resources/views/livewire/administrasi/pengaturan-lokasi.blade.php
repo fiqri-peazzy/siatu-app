@@ -97,7 +97,7 @@
             }).addTo(map);
 
             // Add Marker
-            marker = L.marker([startLat, startLng]).addTo(map);
+            marker = L.marker([startLat, startLng], { draggable: true }).addTo(map);
             
             // Add Circle for radius
             circle = L.circle([startLat, startLng], {
@@ -106,36 +106,55 @@
                 fillOpacity: 0.2,
                 radius: radius || 50
             }).addTo(map);
+            
+            // Handle Marker Drag
+            marker.on('dragend', function (e) {
+                const position = marker.getLatLng();
+                $wire.set('lat_sekolah', position.lat);
+                $wire.set('lng_sekolah', position.lng);
+                circle.setLatLng(position);
+            });
+            
+            // Handle Map Click
+            map.on('click', function(e) {
+                marker.setLatLng(e.latlng);
+                $wire.set('lat_sekolah', e.latlng.lat);
+                $wire.set('lng_sekolah', e.latlng.lng);
+                circle.setLatLng(e.latlng);
+            });
         };
 
         // Run on init
         initMap($wire.lat_sekolah, $wire.lng_sekolah, $wire.radius_absen);
 
-        // Watch for livewire property changes
-        $wire.on('refresh-map', () => {
-            updateMapElements($wire.lat_sekolah, $wire.lng_sekolah, $wire.radius_absen);
-        });
-
         // Custom event when getting location from browser
         window.addEventListener('update-map', (e) => {
-            updateMapElements(e.detail.lat, e.detail.lng, $wire.radius_absen);
+            if(marker && circle && map) {
+                const newLatLng = new L.LatLng(e.detail.lat, e.detail.lng);
+                marker.setLatLng(newLatLng);
+                circle.setLatLng(newLatLng);
+                map.setView(newLatLng, 17);
+            }
         });
         
-        // Also watch input changes directly from Alpine/Livewire bind
-        setInterval(() => {
-            if(map && marker && circle) {
-                updateMapElements($wire.lat_sekolah, $wire.lng_sekolah, $wire.radius_absen);
+        // Listen to Livewire property changes (e.g. radius input)
+        $wire.watch('radius_absen', value => {
+            if(circle) circle.setRadius(value || 50);
+        });
+        $wire.watch('lat_sekolah', value => {
+            if(marker && circle && value) {
+                const pos = new L.LatLng(value, marker.getLatLng().lng);
+                marker.setLatLng(pos);
+                circle.setLatLng(pos);
             }
-        }, 1000);
-
-        function updateMapElements(lat, lng, radius) {
-            if (!lat || !lng) return;
-            const newLatLng = new L.LatLng(lat, lng);
-            marker.setLatLng(newLatLng);
-            circle.setLatLng(newLatLng);
-            circle.setRadius(radius || 50);
-            map.setView(newLatLng);
-        }
+        });
+        $wire.watch('lng_sekolah', value => {
+            if(marker && circle && value) {
+                const pos = new L.LatLng(marker.getLatLng().lat, value);
+                marker.setLatLng(pos);
+                circle.setLatLng(pos);
+            }
+        });
     </script>
     @endscript
 </div>

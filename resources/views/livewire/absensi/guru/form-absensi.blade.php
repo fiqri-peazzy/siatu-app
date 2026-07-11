@@ -148,48 +148,50 @@
                         @endif
                         
                         <!-- Face Recognition Liveness Modal (Mobile Responsive) -->
-                        <div x-show="showLivenessModal" style="display: none;" class="fixed inset-0 z-50 flex flex-col bg-slate-900 animate-fade-in">
-                            <div class="px-6 pt-12 pb-4 flex items-center justify-between z-20 relative bg-gradient-to-b from-slate-900 to-transparent">
-                                <button type="button" @click="closeModal()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
-                                </button>
-                                <span class="text-white font-bold tracking-widest uppercase text-xs">Verifikasi Liveness</span>
-                                <div class="w-10"></div> <!-- spacer -->
-                            </div>
-                            
-                            <div class="flex-1 relative w-full h-full bg-slate-900 overflow-hidden rounded-t-[3rem] shadow-[0_-10px_40px_rgb(0,0,0,0.5)]">
+                        <template x-teleport="body">
+                            <div x-show="showLivenessModal" style="display: none;" class="fixed inset-0 z-[9999] flex flex-col bg-slate-900 animate-fade-in">
+                                <div class="px-6 pt-12 pb-4 flex items-center justify-between z-20 relative bg-gradient-to-b from-slate-900 to-transparent">
+                                    <button type="button" @click="closeModal()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
+                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
+                                    </button>
+                                    <span class="text-white font-bold tracking-widest uppercase text-xs">Verifikasi Liveness</span>
+                                    <div class="w-10"></div> <!-- spacer -->
+                                </div>
                                 
-                                <video id="webcam-video" autoplay muted playsinline class="w-full h-full object-cover transform scale-x-[-1]"></video>
-                                <canvas id="overlay-canvas" class="absolute inset-0 w-full h-full z-10"></canvas>
-                                
-                                <!-- Loading AI Overlay -->
-                                <div x-show="modelLoading" class="absolute inset-0 bg-slate-900/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-white p-6 text-center">
-                                    <svg class="animate-spin w-12 h-12 text-indigo-500 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                    <p class="font-extrabold text-xl mb-2">Memuat AI Model...</p>
-                                    <p class="text-sm text-slate-400 max-w-[250px]">Sistem sedang mengkalibrasi neural network wajah Anda.</p>
-                                </div>
-
-                                <!-- UI Guidance Overlay -->
-                                <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-12 z-20 flex flex-col items-center justify-center pointer-events-none">
-                                    <div class="bg-black/60 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold text-sm border border-white/20 shadow-2xl text-center mx-4" x-transition>
-                                        <span x-show="!faceDetected">Arahkan wajah ke dalam bingkai</span>
-                                        <span x-show="faceDetected && !blinkDetected" class="text-indigo-300">Wajah terdeteksi. Silakan berkedip!</span>
+                                <div class="flex-1 relative w-full h-full bg-slate-900 overflow-hidden rounded-t-[3rem] shadow-[0_-10px_40px_rgb(0,0,0,0.5)]">
+                                    
+                                    <video id="webcam-video" autoplay muted playsinline class="w-full h-full object-cover transform scale-x-[-1]"></video>
+                                    <canvas id="overlay-canvas" class="absolute inset-0 w-full h-full z-10"></canvas>
+                                    
+                                    <!-- Loading AI Overlay -->
+                                    <div x-show="modelLoading" class="absolute inset-0 bg-slate-900/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-white p-6 text-center">
+                                        <svg class="animate-spin w-12 h-12 text-indigo-500 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                        <p class="font-extrabold text-xl mb-2">Memuat AI Model...</p>
+                                        <p class="text-sm text-slate-400 max-w-[250px]">Sistem sedang mengkalibrasi neural network wajah Anda.</p>
                                     </div>
-                                    <!-- Scan Line -->
-                                    <div x-show="faceDetected && !blinkDetected" class="w-2/3 h-1 bg-indigo-500 mt-6 rounded-full shadow-[0_0_15px_#6366f1] animate-[pulse_1s_ease-in-out_infinite]"></div>
-                                </div>
-
-                                <!-- Success Overlay -->
-                                <div x-show="verifikasiBerhasil" class="absolute inset-0 bg-emerald-500/90 backdrop-blur-md z-30 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
-                                    <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl mb-6 scale-up-center">
-                                        <svg class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+    
+                                    <!-- UI Guidance Overlay -->
+                                    <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-12 z-20 flex flex-col items-center justify-center pointer-events-none">
+                                        <div class="bg-black/60 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold text-sm border border-white/20 shadow-2xl text-center mx-4" x-transition>
+                                            <span x-show="!faceDetected">Arahkan wajah ke dalam bingkai</span>
+                                            <span x-show="faceDetected && !blinkDetected" class="text-indigo-300">Wajah terdeteksi. Silakan berkedip!</span>
+                                        </div>
+                                        <!-- Scan Line -->
+                                        <div x-show="faceDetected && !blinkDetected" class="w-2/3 h-1 bg-indigo-500 mt-6 rounded-full shadow-[0_0_15px_#6366f1] animate-[pulse_1s_ease-in-out_infinite]"></div>
                                     </div>
-                                    <h3 class="font-extrabold text-3xl drop-shadow-md mb-2">Sempurna!</h3>
-                                    <p class="text-emerald-100 font-semibold drop-shadow-md text-lg">Kehadiran terenkripsi dan terkirim.</p>
+    
+                                    <!-- Success Overlay -->
+                                    <div x-show="verifikasiBerhasil" class="absolute inset-0 bg-emerald-500/90 backdrop-blur-md z-30 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
+                                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl mb-6 scale-up-center">
+                                            <svg class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                                        </div>
+                                        <h3 class="font-extrabold text-3xl drop-shadow-md mb-2">Sempurna!</h3>
+                                        <p class="text-emerald-100 font-semibold drop-shadow-md text-lg">Kehadiran terenkripsi dan terkirim.</p>
+                                    </div>
                                 </div>
+                                @error('foto') <span class="absolute top-20 inset-x-0 text-center text-rose-500 font-bold text-sm bg-rose-100/90 py-2">{{ $message }}</span> @enderror
                             </div>
-                            @error('foto') <span class="absolute top-20 inset-x-0 text-center text-rose-500 font-bold text-sm bg-rose-100/90 py-2">{{ $message }}</span> @enderror
-                        </div>
+                        </template>
                     </div>
                 </div>
                 
@@ -229,6 +231,7 @@
             videoEl: null,
             detectionInterval: null,
             blinkHistory: [],
+            isCapturing: false,
             
             init() {
                 this.lokasiDitemukan = wire.get('latitude') ? true : false;
@@ -339,7 +342,7 @@
             faceapi.matchDimensions(canvas, displaySize);
 
             this.detectionInterval = setInterval(async () => {
-                if (this.verifikasiBerhasil) return clearInterval(this.detectionInterval);
+                if (this.verifikasiBerhasil || this.isCapturing) return;
 
                 const detections = await faceapi.detectSingleFace(this.videoEl, new faceapi.TinyFaceDetectorOptions())
                     .withFaceLandmarks();
@@ -379,7 +382,12 @@
                     const wasNotBlinking = this.blinkHistory[0] > 0.30;
 
                     if (isBlinking && wasNotBlinking) {
-                        this.triggerSuccessCapture();
+                        this.isCapturing = true;
+                        this.blinkDetected = true;
+                        // Delay 600ms to allow user to open their eyes fully before capturing
+                        setTimeout(() => {
+                            this.triggerSuccessCapture();
+                        }, 600);
                     }
 
                 } else {

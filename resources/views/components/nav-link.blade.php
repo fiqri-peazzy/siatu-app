@@ -7,5 +7,12 @@ $classes = ($active ?? false)
 @endphp
 
 <a {{ $attributes->merge(['class' => $classes]) }}>
-    {{ $slot }}
+    @if (isset($icon))
+        <div class="flex-shrink-0 w-5 h-5 flex items-center justify-center">
+            {{ $icon }}
+        </div>
+    @endif
+    <span class="truncate whitespace-nowrap transition-opacity duration-200" :class="{'lg:hidden': sidebarCollapsed}">
+        {{ $slot }}
+    </span>
 </a>
