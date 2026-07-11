@@ -10,7 +10,7 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.pwa')]
 class FormAbsensi extends Component
 {
     use WithFileUploads;
@@ -96,6 +96,6 @@ class FormAbsensi extends Component
 
     public function render()
     {
-        return view('livewire.absensi.guru.form-absensi');
+        return view('livewire.absensi.guru.form-absensi')->layout('components.layouts.pwa');
     }
 }

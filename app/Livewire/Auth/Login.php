@@ -26,6 +26,11 @@ class Login extends Component
 
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
             session()->regenerate();
+            
+            if (Auth::user()->hasRole('guru')) {
+                return redirect()->intended(route('akademik.absensi.guru.form'));
+            }
+            
             return redirect()->intended(route('dashboard'));
         }
 

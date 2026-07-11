@@ -7,6 +7,9 @@ Route::get('/login', Login::class)->name('login')->middleware('guest');
 
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
+        if (auth()->user()->hasRole('guru')) {
+            return redirect()->route('akademik.absensi.guru.form');
+        }
         return view('dashboard');
     })->name('dashboard');
 

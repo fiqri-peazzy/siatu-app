@@ -8,7 +8,7 @@ use App\Models\AbsensiGuru;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
 
-#[Layout('components.layouts.app')]
+#[Layout('components.layouts.pwa')]
 class RiwayatAbsensi extends Component
 {
     use WithPagination;
@@ -36,6 +36,6 @@ class RiwayatAbsensi extends Component
     {
         return view('livewire.absensi.guru.riwayat-absensi', [
             'riwayat' => $this->riwayat
-        ]);
+        ])->layout('components.layouts.pwa');
     }
 }
