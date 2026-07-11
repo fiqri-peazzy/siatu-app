@@ -39,11 +39,11 @@
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Absen Masuk</p>
             
             @if($absenMasuk)
-                <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ \Carbon\Carbon::parse($absenMasuk->jam)->format('H:i') }}</p>
+                <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ \Carbon\Carbon::parse($absenMasuk->waktu_absen)->format('H:i') }}</p>
                 <div class="mt-2 flex items-center">
-                    <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full {{ $absenMasuk->status->value === 'hadir' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
-                        <span class="w-1.5 h-1.5 rounded-full {{ $absenMasuk->status->value === 'hadir' ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
-                        {{ strtoupper($absenMasuk->status->value) }}
+                    <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full {{ $absenMasuk->status === 'hadir' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
+                        <span class="w-1.5 h-1.5 rounded-full {{ $absenMasuk->status === 'hadir' ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
+                        {{ strtoupper($absenMasuk->status) }}
                     </span>
                 </div>
             @else
@@ -59,7 +59,7 @@
             <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Absen Pulang</p>
             
             @if($absenPulang)
-                <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ \Carbon\Carbon::parse($absenPulang->jam)->format('H:i') }}</p>
+                <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ \Carbon\Carbon::parse($absenPulang->waktu_absen)->format('H:i') }}</p>
                 <div class="mt-2 flex items-center">
                     <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
                         <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
@@ -82,7 +82,7 @@
                     <h3 class="text-2xl font-extrabold text-slate-800 tracking-tight mb-2">
                         {{ !$absenMasuk ? 'Absensi Masuk' : 'Absensi Pulang' }}
                     </h3>
-                    <p class="text-sm text-slate-500 font-medium">Sistem memerlukan akses lokasi akurat dan verifikasi wajah (*liveness detection*).</p>
+                  
                 </div>
                 
                 <div x-data="absensiLiveness($wire)" class="space-y-6 relative z-10">
@@ -236,6 +236,8 @@
                     // Fetch address
                     this.fetchAddress(wire.get('latitude'), wire.get('longitude'));
                     wire.call('cekLokasi');
+                } else {
+                    this.mulaiLacakLokasi();
                 }
             },
             
@@ -407,9 +409,7 @@
                 canvas.height = this.videoEl.videoHeight;
                 const ctx = canvas.getContext('2d');
                 
-                // Draw flipped because stream is mirrored
-                ctx.translate(canvas.width, 0);
-                ctx.scale(-1, 1);
+                // Draw image directly (without mirroring) to prevent out-of-bounds black canvas bug
                 ctx.drawImage(this.videoEl, 0, 0, canvas.width, canvas.height);
                 
                 const base64Image = canvas.toDataURL('image/jpeg', 0.8);
@@ -422,7 +422,7 @@
                 
                 // Wait a tiny bit for UI update, then submit
                 setTimeout(() => {
-                    wire.call('submitAbsen', '{{ !$absenMasuk ? 'masuk' : 'pulang' }}');
+                    wire.call('submitAbsen');
                 }, 500);
             }
         }));

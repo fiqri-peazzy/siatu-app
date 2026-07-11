@@ -69,7 +69,7 @@ class AbsensiService
             $folder = 'absensi/' . date('Y/m');
             
             if ($foto instanceof \Illuminate\Http\UploadedFile) {
-                $path = $foto->store($folder);
+                $path = $foto->store($folder, 'public');
             } elseif (is_string($foto) && str_starts_with($foto, 'data:image')) {
                 // Decode base64
                 $image_parts = explode(";base64,", $foto);
@@ -79,7 +79,7 @@ class AbsensiService
                 $filename = uniqid() . '.' . $image_type;
                 $path = $folder . '/' . $filename;
                 
-                \Illuminate\Support\Facades\Storage::put($path, $image_base64);
+                \Illuminate\Support\Facades\Storage::disk('public')->put($path, $image_base64);
             }
 
             if ($path) {

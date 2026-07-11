@@ -3,7 +3,6 @@
 namespace App\Livewire\Absensi\Guru;
 
 use Livewire\Component;
-use Livewire\WithPagination;
 use App\Models\AbsensiGuru;
 use Carbon\Carbon;
 use Livewire\Attributes\Layout;
@@ -11,8 +10,6 @@ use Livewire\Attributes\Layout;
 #[Layout('components.layouts.pwa')]
 class RiwayatAbsensi extends Component
 {
-    use WithPagination;
-
     public $filterBulan;
     public $filterTahun;
 
@@ -24,12 +21,25 @@ class RiwayatAbsensi extends Component
 
     public function getRiwayatProperty()
     {
-        return AbsensiGuru::where('guru_id', auth()->user()->guru_id)
+        $records = AbsensiGuru::where('guru_id', auth()->user()->guru_id)
             ->whereMonth('tanggal', $this->filterBulan)
             ->whereYear('tanggal', $this->filterTahun)
             ->orderBy('tanggal', 'desc')
-            ->orderBy('waktu_absen', 'desc')
-            ->paginate(15);
+            ->get();
+            
+        $grouped = [];
+        foreach ($records as $record) {
+            if (!isset($grouped[$record->tanggal])) {
+                $grouped[$record->tanggal] = [
+                    'tanggal' => $record->tanggal,
+                    'masuk' => null, 
+                    'pulang' => null
+                ];
+            }
+            $grouped[$record->tanggal][$record->jenis] = $record;
+        }
+        
+        return $grouped;
     }
 
     public function render()

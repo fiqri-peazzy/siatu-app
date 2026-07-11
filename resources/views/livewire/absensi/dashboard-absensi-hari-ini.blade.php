@@ -51,16 +51,18 @@
                         <tr class="border-b border-outline-variant">
                             <th class="py-3 px-4 font-semibold text-sm text-on-surface-variant">Nama Guru</th>
                             <th class="py-3 px-4 font-semibold text-sm text-on-surface-variant">Status</th>
-                            <th class="py-3 px-4 font-semibold text-sm text-on-surface-variant">Jam Masuk</th>
-                            <th class="py-3 px-4 font-semibold text-sm text-on-surface-variant">Jarak Lokasi</th>
-                            <th class="py-3 px-4 font-semibold text-sm text-on-surface-variant">Aksi</th>
+                            <th class="py-3 px-4 font-semibold text-sm text-on-surface-variant">Waktu Masuk</th>
+                            <th class="py-3 px-4 font-semibold text-sm text-on-surface-variant">Waktu Pulang</th>
+                            <th class="py-3 px-4 font-semibold text-sm text-on-surface-variant">Info Jarak</th>
+                            <th class="py-3 px-4 font-semibold text-sm text-on-surface-variant">Aksi / Foto</th>
                         </tr>
                     </thead>
                     <tbody wire:poll.30s>
                         @forelse($gurus as $guru)
                             @php
-                                $absenHariIni = $guru->absensis->first();
-                                $status = $absenHariIni ? $absenHariIni->status : 'belum_absen';
+                                $absenMasuk = $guru->absensis->where('jenis', 'masuk')->first();
+                                $absenPulang = $guru->absensis->where('jenis', 'pulang')->first();
+                                $status = $absenMasuk ? $absenMasuk->status : 'belum_absen';
                                 
                                 $color = match($status) {
                                     'hadir' => 'bg-green-100 text-green-800',
@@ -80,19 +82,38 @@
                                         {{ str_replace('_', ' ', ucfirst($status)) }}
                                     </span>
                                 </td>
-                                <td class="py-3 px-4 text-sm text-on-surface">
-                                    {{ $absenHariIni ? \Carbon\Carbon::parse($absenHariIni->waktu_absen)->format('H:i') : '-' }}
+                                <td class="py-3 px-4 text-sm text-on-surface font-medium">
+                                    {{ $absenMasuk ? \Carbon\Carbon::parse($absenMasuk->waktu_absen)->format('H:i') : '-' }}
                                 </td>
-                                <td class="py-3 px-4 text-sm text-on-surface">
-                                    {{ $absenHariIni && $absenHariIni->jarak_dari_sekolah_meter ? $absenHariIni->jarak_dari_sekolah_meter . ' meter' : '-' }}
+                                <td class="py-3 px-4 text-sm text-on-surface font-medium">
+                                    {{ $absenPulang ? \Carbon\Carbon::parse($absenPulang->waktu_absen)->format('H:i') : '-' }}
                                 </td>
-                                <td class="py-3 px-4 text-sm text-on-surface">
-                                    @if($absenHariIni && $absenHariIni->foto_path)
-                                        <a href="{{ Storage::url($absenHariIni->foto_path) }}" target="_blank" class="text-primary hover:underline flex items-center">
-                                            <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                                            Foto
-                                        </a>
+                                <td class="py-3 px-4 text-xs text-on-surface-variant leading-relaxed">
+                                    @if($absenMasuk)
+                                        <div class="mb-1"><strong>M:</strong> {{ $absenMasuk->jarak_dari_sekolah_meter }}m</div>
                                     @endif
+                                    @if($absenPulang)
+                                        <div><strong>P:</strong> {{ $absenPulang->jarak_dari_sekolah_meter }}m</div>
+                                    @endif
+                                    @if(!$absenMasuk && !$absenPulang)
+                                        -
+                                    @endif
+                                </td>
+                                <td class="py-3 px-4 text-sm text-on-surface">
+                                    <div class="flex items-center gap-3">
+                                        @if($absenMasuk && $absenMasuk->foto_path)
+                                            <a href="{{ Storage::url($absenMasuk->foto_path) }}" target="_blank" class="text-primary hover:underline flex items-center text-xs bg-primary/5 px-2 py-1 rounded">
+                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                                                Masuk
+                                            </a>
+                                        @endif
+                                        @if($absenPulang && $absenPulang->foto_path)
+                                            <a href="{{ Storage::url($absenPulang->foto_path) }}" target="_blank" class="text-emerald-600 hover:underline flex items-center text-xs bg-emerald-50 px-2 py-1 rounded">
+                                                <svg class="w-3.5 h-3.5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                                                Pulang
+                                            </a>
+                                        @endif
+                                    </div>
                                 </td>
                             </tr>
                         @empty

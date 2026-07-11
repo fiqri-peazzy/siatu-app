@@ -26,8 +26,7 @@ class DashboardAbsensiHariIni extends Component
         
         $query = MasterGuru::query()
             ->with(['absensis' => function($q) use ($hariIni) {
-                $q->where('tanggal', $hariIni)
-                  ->where('jenis', \App\Enums\JenisAbsenGuru::MASUK->value);
+                $q->where('tanggal', $hariIni);
             }])
             ->when($this->search, function($q) {
                 $q->where('nama', 'like', "%{$this->search}%");
@@ -36,8 +35,7 @@ class DashboardAbsensiHariIni extends Component
         if ($this->filterStatus) {
             if ($this->filterStatus === 'belum_absen') {
                 $query->whereDoesntHave('absensis', function($q) use ($hariIni) {
-                    $q->where('tanggal', $hariIni)
-                      ->where('jenis', \App\Enums\JenisAbsenGuru::MASUK->value);
+                    $q->where('tanggal', $hariIni);
                 });
             } else {
                 $query->whereHas('absensis', function($q) use ($hariIni) {

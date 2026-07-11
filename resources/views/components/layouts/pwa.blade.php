@@ -44,11 +44,11 @@
         <header class="fixed top-0 w-full z-50 glass-nav shadow-sm">
             <div class="px-5 h-16 flex items-center justify-between max-w-md mx-auto">
                 <div class="flex items-center gap-3">
-                    <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-violet-500 flex items-center justify-center p-1.5 shadow-lg shadow-indigo-200">
-                        <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="Logo" class="w-full h-full object-contain filter brightness-0 invert">
+                    <div class="w-9 h-9 rounded-xl bg-white flex items-center justify-center p-1.5 shadow-sm shadow-slate-200/50 border border-slate-100">
+                        <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="Logo" class="w-full h-full object-contain">
                     </div>
                     <div>
-                        <h1 class="font-bold text-slate-900 leading-tight tracking-tight text-lg">SITU-SMA</h1>
+                        <h1 class="font-bold text-slate-900 leading-tight tracking-tight text-lg">SMAMGO</h1>
                         <p class="text-[10px] font-semibold text-indigo-600 uppercase tracking-widest leading-none">Guru Portal</p>
                     </div>
                 </div>

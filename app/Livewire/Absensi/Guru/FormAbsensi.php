@@ -63,13 +63,15 @@ class FormAbsensi extends Component
         return true;
     }
 
-    public function submitAbsen(string $jenis, AbsensiService $service)
+    public function submitAbsen(AbsensiService $service)
     {
         $this->validate([
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'foto' => 'required|string', // Base64 string
         ]);
+
+        $jenis = $this->absenMasuk ? \App\Enums\JenisAbsenGuru::PULANG->value : \App\Enums\JenisAbsenGuru::MASUK->value;
 
         // 1. Validasi Lokasi
         $validasi = $service->validasiLokasi((float) $this->latitude, (float) $this->longitude);
