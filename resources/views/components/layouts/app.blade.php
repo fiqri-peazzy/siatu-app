@@ -44,6 +44,12 @@
                     <x-nav-link href="{{ route('administrasi.surat-keluar.index') }}" :active="request()->routeIs('administrasi.surat-keluar.*')">
                         Surat Keluar
                     </x-nav-link>
+                    
+                    @if(auth()->user()->hasAnyRole(['admin-tu', 'super-admin']))
+                    <x-nav-link href="{{ route('administrasi.pengaturan-lokasi') }}" :active="request()->routeIs('administrasi.pengaturan-lokasi')">
+                        Pengaturan Lokasi
+                    </x-nav-link>
+                    @endif
 
                     <div class="pt-4 pb-2 px-4">
                         <span class="text-xs font-semibold text-on-surface-variant uppercase tracking-widest">Akademik</span>

@@ -27,6 +27,7 @@ Route::middleware('auth')->group(function () {
     // Administrasi
     Route::prefix('administrasi')->name('administrasi.')->group(function () {
         // Surat Masuk
+        Route::get('/pengaturan-lokasi', \App\Livewire\Administrasi\PengaturanLokasi::class)->name('pengaturan-lokasi');
         Route::get('/surat-masuk', \App\Livewire\Administrasi\SuratMasuk\ListSuratMasuk::class)->name('surat-masuk.index');
         Route::get('/surat-masuk/create', \App\Livewire\Administrasi\SuratMasuk\FormSuratMasuk::class)->name('surat-masuk.create');
         Route::get('/surat-masuk/{surat}/edit', \App\Livewire\Administrasi\SuratMasuk\FormSuratMasuk::class)->name('surat-masuk.edit');

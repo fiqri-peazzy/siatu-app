@@ -254,6 +254,7 @@ document.addEventListener('alpine:init', () => {
         },
 
         async fetchAddress(lat, lon) {
+            if (!lat || !lon) return;
             try {
                 const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
                 const data = await response.json();
@@ -338,9 +339,10 @@ document.addEventListener('alpine:init', () => {
                     this.blinkHistory.push(avgEAR);
                     if (this.blinkHistory.length > 5) this.blinkHistory.shift();
 
-                    // Detect blink (drops below 0.25 and then goes up)
-                    const isBlinking = avgEAR < 0.22;
-                    const wasNotBlinking = this.blinkHistory[0] > 0.25;
+                    // Detect blink (drops below 0.28 and then goes up)
+                    // Loosened threshold for easier detection on mobile cameras
+                    const isBlinking = avgEAR < 0.28;
+                    const wasNotBlinking = this.blinkHistory[0] > 0.30;
 
                     if (isBlinking && wasNotBlinking) {
                         this.triggerSuccessCapture();
@@ -351,7 +353,7 @@ document.addEventListener('alpine:init', () => {
                     // Reset history if face is lost
                     this.blinkHistory = [];
                 }
-            }, 100);
+            }, 80);
         },
 
         calculateEAR(eye) {
