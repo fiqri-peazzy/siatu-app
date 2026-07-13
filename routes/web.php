@@ -154,6 +154,11 @@ Route::middleware('auth')->group(function () {
         Route::get('/absensi/monitoring', \App\Livewire\Absensi\DashboardAbsensiHariIni::class)->name('absensi.monitoring');
     });
 
+    // Sistem / Pengaturan (Hanya Super Admin & Admin TU)
+    Route::prefix('sistem')->name('sistem.')->middleware(['role:super-admin|admin-tu'])->group(function () {
+        Route::get('/pengguna', \App\Livewire\Sistem\User\ListUser::class)->name('user');
+    });
+
     Route::post('/logout', function () {
         auth()->logout();
         request()->session()->invalidate();
