@@ -6,17 +6,26 @@ use App\Models\Master\MasterGuru;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Computed;
+use App\Imports\GuruImport;
+use App\Exports\GuruTemplateExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 #[Layout('components.layouts.app')]
 #[Title('Data Guru')]
 class ListGuru extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public string $search = '';
+    
+    // Import properties
+    public bool $isImportModalOpen = false;
+    public $importFile;
+
     // Form properties
     public bool $isModalOpen = false;
     public ?int $editingId = null;
@@ -172,6 +181,32 @@ class ListGuru extends Component
     {
         $guru->delete();
         session()->flash('success', 'Data guru berhasil dihapus.');
+    }
+
+    public function openImportModal()
+    {
+        $this->reset('importFile');
+        $this->isImportModalOpen = true;
+    }
+
+    public function downloadTemplate()
+    {
+        return Excel::download(new GuruTemplateExport, 'template_import_guru.xlsx');
+    }
+
+    public function import()
+    {
+        $this->validate([
+            'importFile' => 'required|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        try {
+            Excel::import(new GuruImport, $this->importFile);
+            $this->isImportModalOpen = false;
+            session()->flash('success', 'Data guru berhasil diimport.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan saat import data: ' . $e->getMessage());
+        }
     }
 
     public function render()

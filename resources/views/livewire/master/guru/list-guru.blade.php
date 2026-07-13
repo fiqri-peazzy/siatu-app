@@ -11,17 +11,31 @@
             </div>
         </div>
         
-        <button wire:click="create" class="px-4 py-2 bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors flex items-center gap-2">
-            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            Tambah Data
-        </button>
+        <div class="flex items-center gap-3">
+            <button wire:click="openImportModal" class="px-4 py-2 bg-surface-container-high text-on-surface rounded-lg font-medium hover:bg-surface-container-highest border border-outline-variant transition-colors flex items-center gap-2">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                </svg>
+                Import Excel
+            </button>
+            <button wire:click="create" class="px-4 py-2 bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors flex items-center gap-2">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                Tambah Guru
+            </button>
+        </div>
     </div>
 
     @if (session()->has('success'))
         <div class="mb-4 p-4 rounded-lg bg-green-50 text-green-800 border border-green-200">
             {{ session('success') }}
+        </div>
+    @endif
+
+    @if (session()->has('error'))
+        <div class="mb-4 p-4 rounded-lg bg-red-50 text-red-800 border border-red-200">
+            {{ session('error') }}
         </div>
     @endif
 
@@ -218,10 +232,91 @@
                                 </div>
                             </div>
                         </div>
-                    </div>
                     <div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex justify-end gap-3 rounded-b-xl">
                         <button type="button" @click="open = false" class="px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant font-medium hover:bg-surface-container transition-colors">Batal</button>
                         <button type="submit" class="px-4 py-2 bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors">Simpan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Import Modal -->
+    <div x-data="{ open: @entangle('isImportModalOpen') }" 
+         x-show="open" 
+         class="fixed inset-0 z-50 overflow-y-auto" 
+         aria-labelledby="modal-title" 
+         role="dialog" 
+         aria-modal="true" 
+         style="display: none;">
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div x-show="open" 
+                 x-transition:enter="ease-out duration-300" 
+                 x-transition:enter-start="opacity-0" 
+                 x-transition:enter-end="opacity-100" 
+                 x-transition:leave="ease-in duration-200" 
+                 x-transition:leave-start="opacity-100" 
+                 x-transition:leave-end="opacity-0" 
+                 class="fixed inset-0 bg-black/50 transition-opacity" 
+                 @click="open = false"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <div x-show="open" 
+                 x-transition:enter="ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                 x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave="ease-in duration-200" 
+                 x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100" 
+                 x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95" 
+                 class="inline-block align-bottom bg-surface rounded-xl text-left shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg w-full relative z-10 border border-outline-variant">
+                
+                <form wire:submit="import">
+                    <div class="px-6 py-4 border-b border-outline-variant flex justify-between items-center">
+                        <h3 class="text-lg leading-6 font-medium text-on-surface" id="modal-title">
+                            Import Data Guru
+                        </h3>
+                        <button type="button" @click="open = false" class="text-on-surface-variant hover:text-on-surface transition-colors">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <div class="px-6 py-6 space-y-4">
+                        <div class="p-4 bg-blue-50 text-blue-800 rounded-lg text-sm border border-blue-200">
+                            <p class="mb-2 font-medium">Cara Import Data:</p>
+                            <ol class="list-decimal pl-5 space-y-1">
+                                <li>Unduh template Excel yang disediakan.</li>
+                                <li>Isi data sesuai dengan format template (bisa juga menggunakan format asli file unduhan Dapodik).</li>
+                                <li>Pastikan baris judul (header) tetap berada di 5 baris pertama (data mulai di baris ke-6).</li>
+                                <li>Unggah file yang sudah diisi di bawah ini.</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="flex justify-center">
+                            <button type="button" wire:click="downloadTemplate" class="px-4 py-2 border border-primary text-primary rounded-lg font-medium hover:bg-primary/10 transition-colors flex items-center gap-2">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                Unduh Template
+                            </button>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-on-surface mb-2">File Excel (.xlsx, .xls)</label>
+                            <input type="file" wire:model="importFile" accept=".xlsx,.xls,.csv" class="block w-full text-sm text-on-surface-variant file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-primary/10 file:text-primary hover:file:bg-primary/20 transition-colors cursor-pointer border border-outline-variant rounded-lg">
+                            <div wire:loading wire:target="importFile" class="mt-2 text-sm text-primary">Mengunggah file...</div>
+                            @error('importFile') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                        </div>
+                    </div>
+                    
+                    <div class="px-6 py-4 bg-surface-container-low border-t border-outline-variant flex justify-end gap-3 rounded-b-xl">
+                        <button type="button" @click="open = false" class="px-4 py-2 border border-outline-variant rounded-lg text-on-surface-variant font-medium hover:bg-surface-container transition-colors">Batal</button>
+                        <button type="submit" class="px-4 py-2 bg-primary text-on-primary rounded-lg font-medium hover:bg-primary-container transition-colors disabled:opacity-50" wire:loading.attr="disabled" wire:target="import, importFile">
+                            <span wire:loading.remove wire:target="import">Proses Import</span>
+                            <span wire:loading wire:target="import">Memproses...</span>
+                        </button>
                     </div>
                 </form>
             </div>

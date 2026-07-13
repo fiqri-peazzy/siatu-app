@@ -6,18 +6,26 @@ use App\Models\Master\MasterTendik;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\WithPagination;
+use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Title;
 use Livewire\Attributes\Computed;
+use App\Imports\TendikImport;
+use App\Exports\TendikTemplateExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 #[Layout('components.layouts.app')]
 #[Title('Data Tenaga Kependidikan')]
 class ListTendik extends Component
 {
-    use WithPagination;
+    use WithPagination, WithFileUploads;
 
     public string $search = '';
     
+    // Import properties
+    public bool $isImportModalOpen = false;
+    public $importFile;
+
     // Form properties
     public bool $isModalOpen = false;
     public ?int $editingId = null;
@@ -160,6 +168,32 @@ class ListTendik extends Component
     {
         $tendik->delete();
         session()->flash('success', 'Data tendik berhasil dihapus.');
+    }
+
+    public function openImportModal()
+    {
+        $this->reset('importFile');
+        $this->isImportModalOpen = true;
+    }
+
+    public function downloadTemplate()
+    {
+        return Excel::download(new TendikTemplateExport, 'template_import_tendik.xlsx');
+    }
+
+    public function import()
+    {
+        $this->validate([
+            'importFile' => 'required|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        try {
+            Excel::import(new TendikImport, $this->importFile);
+            $this->isImportModalOpen = false;
+            session()->flash('success', 'Data tendik berhasil diimport.');
+        } catch (\Exception $e) {
+            session()->flash('error', 'Terjadi kesalahan saat import data: ' . $e->getMessage());
+        }
     }
 
     public function render()
