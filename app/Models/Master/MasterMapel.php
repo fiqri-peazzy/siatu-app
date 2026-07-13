@@ -12,6 +12,7 @@ class MasterMapel extends Model
     protected $fillable = [
         'kode',
         'nama',
+        'kelompok',
         'jam',
         'kurikulum',
     ];
