@@ -52,7 +52,7 @@
                             @endif
                         </td>
                         <td class="px-6 py-4">{{ $guru->jabatan ?? '-' }}</td>
-                        <td class="px-6 py-4">{{ $guru->mapel_utama ?? '-' }}</td>
+                        <td class="px-6 py-4">{{ $guru->mapel?->nama ?? '-' }}</td>
                         <td class="px-6 py-4">
                             @if($guru->status === 'aktif')
                                 <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
@@ -123,17 +123,36 @@
                             </button>
                         </div>
                         
-                        <div class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-on-surface mb-1">NIP (Opsional)</label>
-                                <input type="text" wire:model="nip" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
-                                @error('nip') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-on-surface mb-1">NIP (Opsional)</label>
+                                    <input type="text" wire:model="nip" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                    @error('nip') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-on-surface mb-1">NUPTK (Opsional)</label>
+                                    <input type="text" wire:model="nuptk" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                    @error('nuptk') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
                             </div>
 
-                            <div>
-                                <label class="block text-sm font-medium text-on-surface mb-1">Nama Lengkap</label>
-                                <input type="text" wire:model="nama" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
-                                @error('nama') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="col-span-2">
+                                    <label class="block text-sm font-medium text-on-surface mb-1">Nama Lengkap</label>
+                                    <input type="text" wire:model="nama" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                    @error('nama') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-on-surface mb-1">Email</label>
+                                    <input type="email" wire:model="email" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                    @error('email') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-on-surface mb-1">No HP</label>
+                                    <input type="text" wire:model="no_hp" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                    @error('no_hp') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
@@ -144,20 +163,39 @@
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-on-surface mb-1">Mapel Utama</label>
-                                    <input type="text" wire:model="mapel_utama" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
-                                    @error('mapel_utama') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                    <select wire:model="mapel_id" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                        <option value="">-- Pilih Mapel --</option>
+                                        @foreach($this->mapels as $mapel)
+                                            <option value="{{ $mapel->id }}">{{ $mapel->nama }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('mapel_id') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-on-surface mb-1">Status Kepegawaian</label>
+                                    <select wire:model="status_kepegawaian" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                        <option value="">-- Pilih Status --</option>
+                                        @foreach(\App\Enums\StatusKepegawaianGuru::cases() as $s)
+                                            <option value="{{ $s->value }}">{{ $s->label() }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('status_kepegawaian') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-on-surface mb-1">Status Personil</label>
+                                    <select wire:model="status" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                        @foreach(\App\Enums\StatusPersonil::cases() as $s)
+                                            <option value="{{ $s->value }}">{{ $s->label() }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('status') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-on-surface mb-1">Status</label>
-                                    <select wire:model="status" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
-                                        <option value="aktif">Aktif</option>
-                                        <option value="nonaktif">Nonaktif</option>
-                                    </select>
-                                    @error('status') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
-                                </div>
                                 <div>
                                     <label class="block text-sm font-medium text-on-surface mb-1">Akun User (Login)</label>
                                     <select wire:model="user_id" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
@@ -168,6 +206,15 @@
                                     </select>
                                     @error('user_id') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                                     <p class="text-xs text-on-surface-variant mt-1">Pilih akun pengguna yang ber-role Guru untuk keperluan login.</p>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-on-surface mb-1">Status Akun</label>
+                                    <select wire:model="status_akun" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                        @foreach(\App\Enums\StatusAkun::cases() as $s)
+                                            <option value="{{ $s->value }}">{{ $s->label() }}</option>
+                                        @endforeach
+                                    </select>
+                                    @error('status_akun') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                                 </div>
                             </div>
                         </div>

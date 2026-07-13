@@ -14,12 +14,37 @@ class MasterGuru extends Model
 
     protected $fillable = [
         'nip',
+        'nuptk',
         'nama',
+        'jenis_kelamin',
+        'tempat_lahir',
+        'tanggal_lahir',
+        'no_hp',
+        'email',
+        'alamat',
         'jabatan',
-        'mapel_utama',
+        'mapel_id',
+        'pendidikan_terakhir',
+        'status_kepegawaian',
+        'tmt_tugas',
+        'foto_path',
         'status',
         'user_id',
+        'status_akun',
     ];
+
+    protected $casts = [
+        'tanggal_lahir' => 'date',
+        'tmt_tugas' => 'date',
+        'status_kepegawaian' => \App\Enums\StatusKepegawaianGuru::class,
+        'status_akun' => \App\Enums\StatusAkun::class,
+        'status' => \App\Enums\StatusPersonil::class,
+    ];
+
+    public function mapel(): BelongsTo
+    {
+        return $this->belongsTo(MasterMapel::class, 'mapel_id');
+    }
 
     public function user(): BelongsTo
     {

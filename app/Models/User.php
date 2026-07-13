@@ -60,6 +60,16 @@ class User extends Authenticatable
         return $this->belongsTo(MasterSiswa::class, 'siswa_id');
     }
 
+    public function masterGuru()
+    {
+        return $this->hasOne(MasterGuru::class, 'user_id');
+    }
+
+    public function masterTendik()
+    {
+        return $this->hasOne(\App\Models\Master\MasterTendik::class, 'user_id');
+    }
+
     // ─── Helpers ──────────────────────────────────────────────────────────────
 
     /**
