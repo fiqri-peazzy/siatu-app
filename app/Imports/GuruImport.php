@@ -7,6 +7,9 @@ use Illuminate\Support\Collection;
 use Maatwebsite\Excel\Concerns\ToCollection;
 use Maatwebsite\Excel\Concerns\WithStartRow;
 use Carbon\Carbon;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class GuruImport implements ToCollection, WithStartRow
 {
@@ -57,17 +60,17 @@ class GuruImport implements ToCollection, WithStartRow
             if (!empty($row[15])) $alamatParts[] = trim($row[15]);
             $alamatLengkap = !empty($alamatParts) ? implode(', ', $alamatParts) : null;
 
-            // Determine matching criteria
+            // Determine matching criteria (prioritize unique fields: NIP, then NUPTK, then Nama)
             $match = [];
-            if (!empty($row[2])) {
-                $match['nuptk'] = $row[2];
-            } elseif (!empty($row[6])) {
+            if (!empty($row[6])) {
                 $match['nip'] = $row[6];
+            } elseif (!empty($row[2])) {
+                $match['nuptk'] = $row[2];
             } else {
                 $match['nama'] = $row[1];
             }
 
-            MasterGuru::updateOrCreate(
+            $guru = MasterGuru::updateOrCreate(
                 $match,
                 [
                     'nama' => $row[1],
@@ -82,6 +85,42 @@ class GuruImport implements ToCollection, WithStartRow
                     'email' => $row[19] ?? null,
                 ]
             );
+
+            if (!$guru->user_id) {
+                $email = $guru->email;
+                if (empty($email)) {
+                    if (!empty($guru->nip)) {
+                        $email = $guru->nip . '@situ-sma.test';
+                    } elseif (!empty($guru->nuptk)) {
+                        $email = $guru->nuptk . '@situ-sma.test';
+                    } else {
+                        $email = Str::slug($guru->nama) . '_' . time() . rand(10, 99) . '@situ-sma.test';
+                    }
+                }
+                
+                $user = User::firstOrCreate(
+                    ['email' => $email],
+                    [
+                        'name' => $guru->nama,
+                        'password' => Hash::make('password'),
+                        'is_active' => true,
+                        'nip' => $guru->nip,
+                        'jenis_kelamin' => $guru->jenis_kelamin,
+                        'no_hp' => $guru->no_hp,
+                    ]
+                );
+                
+                // assignRole is provided by Spatie Permission
+                if (method_exists($user, 'assignRole')) {
+                    $user->assignRole('guru');
+                }
+
+                $guru->update(['user_id' => $user->id]);
+                
+                // Link the user back to the guru if needed (since user has guru_id in UsersSeeder)
+                // Assuming User model has guru_id based on UsersSeeder.php: $guruUser->update(['guru_id' => $guruMaster->id]);
+                $user->update(['guru_id' => $guru->id]);
+            }
         }
     }
 }

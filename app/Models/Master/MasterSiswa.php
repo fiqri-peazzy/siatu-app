@@ -3,13 +3,11 @@
 namespace App\Models\Master;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+// use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class MasterSiswa extends Model
 {
-    use SoftDeletes;
-
     protected $fillable = [
         'nis', 'nisn', 'nama', 'kelas_id', 'status',
         'jk', 'tempat_lahir', 'tanggal_lahir', 'nik', 'agama', 'alamat', 'rt', 'rw', 'dusun',
@@ -27,5 +25,23 @@ class MasterSiswa extends Model
     public function kelas(): BelongsTo
     {
         return $this->belongsTo(MasterKelas::class, 'kelas_id');
+    }
+
+    public function user()
+    {
+        return $this->hasOne(\App\Models\User::class, 'siswa_id');
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($siswa) {
+            if ($siswa->user) {
+                if ($siswa->isForceDeleting()) {
+                    $siswa->user()->forceDelete();
+                } else {
+                    $siswa->user()->delete();
+                }
+            }
+        });
     }
 }

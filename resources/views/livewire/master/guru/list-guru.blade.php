@@ -12,6 +12,12 @@
         </div>
         
         <div class="flex items-center gap-3">
+            <button wire:click="exportExcel" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center gap-2 border border-green-600">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                Export Excel
+            </button>
             <button wire:click="openImportModal" class="px-4 py-2 bg-surface-container-high text-on-surface rounded-lg font-medium hover:bg-surface-container-highest border border-outline-variant transition-colors flex items-center gap-2">
                 <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
@@ -39,11 +45,26 @@
         </div>
     @endif
 
+    @if(count($selectedIds) > 0)
+        <div class="mb-4 p-4 rounded-lg bg-surface-container border border-outline-variant flex items-center justify-between">
+            <span class="text-on-surface font-medium">{{ count($selectedIds) }} data terpilih</span>
+            <button wire:click="deleteSelected" wire:confirm="Yakin ingin menghapus semua data terpilih?" class="px-4 py-2 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center gap-2">
+                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+                Hapus Pilihan
+            </button>
+        </div>
+    @endif
+
     <div class="bg-surface rounded-xl shadow-sm border border-outline-variant overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left text-sm whitespace-nowrap">
                 <thead class="bg-surface-container-low text-on-surface-variant font-medium border-b border-outline-variant">
                     <tr>
+                        <th class="px-6 py-4 w-10">
+                            <input type="checkbox" wire:model.live="selectAll" class="rounded border-outline-variant text-primary focus:ring-primary cursor-pointer w-4 h-4">
+                        </th>
                         <th class="px-6 py-4">NIP</th>
                         <th class="px-6 py-4">Nama Lengkap</th>
                         <th class="px-6 py-4">Jabatan</th>
@@ -54,7 +75,10 @@
                 </thead>
                 <tbody class="divide-y divide-outline-variant">
                     @forelse($this->gurus as $guru)
-                    <tr class="hover:bg-surface-container-lowest transition-colors">
+                    <tr class="hover:bg-surface-container-lowest transition-colors" wire:key="guru-{{ $guru->id }}">
+                        <td class="px-6 py-4">
+                            <input type="checkbox" wire:model.live="selectedIds" value="{{ $guru->id }}" class="rounded border-outline-variant text-primary focus:ring-primary cursor-pointer w-4 h-4">
+                        </td>
                         <td class="px-6 py-4 text-on-surface-variant">{{ $guru->nip ?? '-' }}</td>
                         <td class="px-6 py-4 font-medium text-on-surface">
                             {{ $guru->nama }}
@@ -85,7 +109,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-on-surface-variant">
+                        <td colspan="7" class="px-6 py-8 text-center text-on-surface-variant">
                             Tidak ada data guru.
                         </td>
                     </tr>

@@ -4,13 +4,12 @@ namespace App\Models\Master;
 
 use App\Models\User;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+// use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MasterGuru extends Model
 {
-    use SoftDeletes;
 
     protected $fillable = [
         'nip',
@@ -60,5 +59,18 @@ class MasterGuru extends Model
     public function absensis()
     {
         return $this->hasMany(\App\Models\AbsensiGuru::class, 'guru_id');
+    }
+
+    protected static function booted()
+    {
+        static::deleting(function ($guru) {
+            if ($guru->user) {
+                if ($guru->isForceDeleting()) {
+                    $guru->user()->forceDelete();
+                } else {
+                    $guru->user()->delete();
+                }
+            }
+        });
     }
 }

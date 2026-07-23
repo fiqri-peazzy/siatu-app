@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Master\MasterGuru;
 use App\Models\Master\MasterKelas;
+use App\Models\Master\MasterMapel;
 use App\Models\Master\MasterSiswa;
 use App\Models\Master\MasterTahunAjaran;
 use App\Models\User;
@@ -88,12 +89,16 @@ class UsersSeeder extends Seeder
                 'is_active'=> true,
             ]
         );
+        $mapelMatematika = MasterMapel::firstOrCreate(
+            ['kode' => 'MTK'],
+            ['nama' => 'Matematika']
+        );
         $guruMaster = MasterGuru::firstOrCreate(
             ['nip' => '198909202015011002'],
             [
                 'nama'         => 'Ahmad Fauzi, S.Pd.',
                 'jabatan'      => 'Guru Mapel',
-                'mapel_utama'  => 'Matematika',
+                'mapel_id'     => $mapelMatematika->id,
                 'status'       => 'aktif',
             ]
         );

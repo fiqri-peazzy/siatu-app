@@ -12,7 +12,10 @@ use Livewire\Attributes\Title;
 use Livewire\Attributes\Computed;
 use App\Imports\GuruImport;
 use App\Exports\GuruTemplateExport;
+use App\Exports\GuruExport;
 use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Hash;
 
 #[Layout('components.layouts.app')]
 #[Title('Data Guru')]
@@ -21,6 +24,10 @@ class ListGuru extends Component
     use WithPagination, WithFileUploads;
 
     public string $search = '';
+    
+    // Bulk select properties
+    public array $selectedIds = [];
+    public bool $selectAll = false;
     
     // Import properties
     public bool $isImportModalOpen = false;
@@ -167,20 +174,80 @@ class ListGuru extends Component
             }
         }
 
-        MasterGuru::updateOrCreate(
+        $guru = MasterGuru::updateOrCreate(
             ['id' => $this->editingId],
             $validatedData
         );
 
+        // Auto-create user if not linked and creating a new one or if no user is assigned
+        if (!$guru->user_id) {
+            $email = $guru->email;
+            if (empty($email)) {
+                if (!empty($guru->nip)) {
+                    $email = $guru->nip . '@situ-sma.test';
+                } elseif (!empty($guru->nuptk)) {
+                    $email = $guru->nuptk . '@situ-sma.test';
+                } else {
+                    $email = Str::slug($guru->nama) . '_' . time() . '@situ-sma.test';
+                }
+            }
+
+            $user = User::firstOrCreate(
+                ['email' => $email],
+                [
+                    'name' => $guru->nama,
+                    'password' => Hash::make('password'),
+                    'is_active' => true,
+                    'jabatan' => $guru->jabatan,
+                    'nip' => $guru->nip,
+                    'jenis_kelamin' => $guru->jenis_kelamin,
+                    'no_hp' => $guru->no_hp,
+                ]
+            );
+            $user->assignRole('guru');
+            $guru->update(['user_id' => $user->id]);
+            
+            // Link the user back to the guru if needed (since user has guru_id in UsersSeeder)
+            // Assuming User model has guru_id based on UsersSeeder.php: $guruUser->update(['guru_id' => $guruMaster->id]);
+            $user->update(['guru_id' => $guru->id]);
+        }
+
         $this->isModalOpen = false;
         
-        session()->flash('success', $this->editingId ? 'Data guru berhasil diperbarui.' : 'Data guru berhasil ditambahkan.');
+        session()->flash('success', $this->editingId ? 'Data guru berhasil diperbarui.' : 'Data guru berhasil ditambahkan. Akun default telah dibuat.');
     }
 
     public function delete(MasterGuru $guru)
     {
         $guru->delete();
         session()->flash('success', 'Data guru berhasil dihapus.');
+    }
+
+    public function updatedSelectAll($value)
+    {
+        if ($value) {
+            $this->selectedIds = $this->gurus->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        } else {
+            $this->selectedIds = [];
+        }
+    }
+
+    public function updatedSelectedIds()
+    {
+        $this->selectAll = false;
+    }
+
+    public function deleteSelected()
+    {
+        if (count($this->selectedIds) > 0) {
+            $gurus = MasterGuru::whereIn('id', $this->selectedIds)->get();
+            foreach ($gurus as $guru) {
+                $guru->delete();
+            }
+            $this->selectedIds = [];
+            $this->selectAll = false;
+            session()->flash('success', 'Data guru terpilih berhasil dihapus.');
+        }
     }
 
     public function openImportModal()
@@ -192,6 +259,11 @@ class ListGuru extends Component
     public function downloadTemplate()
     {
         return Excel::download(new GuruTemplateExport, 'template_import_guru.xlsx');
+    }
+
+    public function exportExcel()
+    {
+        return Excel::download(new GuruExport, 'data_guru_' . date('Y-m-d') . '.xlsx');
     }
 
     public function import()

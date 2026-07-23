@@ -23,6 +23,10 @@ class ListSiswa extends Component
     public string $search = '';
     public $filterKelas = '';
     
+    // Bulk select properties
+    public array $selectedIds = [];
+    public bool $selectAll = false;
+    
     public bool $isImportModalOpen = false;
     public $importFile;
 
@@ -76,6 +80,33 @@ class ListSiswa extends Component
     {
         $siswa->delete();
         session()->flash('success', 'Data siswa berhasil dihapus.');
+    }
+
+    public function updatedSelectAll($value)
+    {
+        if ($value) {
+            $this->selectedIds = $this->siswas->pluck('id')->map(fn($id) => (string) $id)->toArray();
+        } else {
+            $this->selectedIds = [];
+        }
+    }
+
+    public function updatedSelectedIds()
+    {
+        $this->selectAll = false;
+    }
+
+    public function deleteSelected()
+    {
+        if (count($this->selectedIds) > 0) {
+            $siswas = MasterSiswa::whereIn('id', $this->selectedIds)->get();
+            foreach ($siswas as $siswa) {
+                $siswa->delete();
+            }
+            $this->selectedIds = [];
+            $this->selectAll = false;
+            session()->flash('success', 'Data siswa terpilih berhasil dihapus.');
+        }
     }
 
     public function openImportModal()
