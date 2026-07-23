@@ -6,12 +6,12 @@ use App\Models\SuratKeluar;
 use App\Models\SuratMasuk;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
+
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class MasterKlasifikasiArsip extends Model
 {
-    use HasFactory, SoftDeletes;
+    use HasFactory;
 
     protected $fillable = [
         'kode',
