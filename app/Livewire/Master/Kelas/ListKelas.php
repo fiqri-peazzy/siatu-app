@@ -34,7 +34,7 @@ class ListKelas extends Component
         return [
             'nama' => 'required|string|max:255',
             'tingkat' => 'required|in:X,XI,XII',
-            'jurusan' => 'required|string|max:255',
+            'jurusan' => 'nullable|string|max:255',
             'wali_kelas_id' => 'nullable|exists:master_gurus,id',
             'tahun_ajaran_id' => 'required|exists:master_tahun_ajarans,id',
         ];

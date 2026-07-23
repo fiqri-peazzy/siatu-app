@@ -20,6 +20,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/tendik', \App\Livewire\Master\Tendik\ListTendik::class)->name('tendik');
         Route::get('/mapel', \App\Livewire\Master\Mapel\ListMapel::class)->name('mapel');
         Route::get('/kelas', \App\Livewire\Master\Kelas\ListKelas::class)->name('kelas');
+        Route::get('/jadwal', \App\Livewire\Master\Jadwal\ListJadwal::class)->name('jadwal.index');
         
         Route::get('/siswa', \App\Livewire\Master\Siswa\ListSiswa::class)->name('siswa');
         Route::get('/siswa/create', \App\Livewire\Master\Siswa\CreateSiswa::class)->name('siswa.create');
