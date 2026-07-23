@@ -137,7 +137,31 @@ class ListJadwal extends Component
             $this->form_jam_ke = $jamKe;
         }
         
+        // Auto-fill jam mulai dan selesai jika tidak diedit
+        $this->updateDefaultTime();
+        
         $this->isModalOpen = true;
+    }
+
+    public function updatedFormHari()
+    {
+        $this->updateDefaultTime();
+    }
+
+    public function updatedFormJamKe()
+    {
+        $this->updateDefaultTime();
+    }
+
+    private function updateDefaultTime()
+    {
+        if ($this->form_hari && $this->form_jam_ke) {
+            $times = MasterJadwalPelajaran::getDefaultTime($this->form_hari, $this->form_jam_ke);
+            if ($times) {
+                $this->form_jam_mulai = $times[0];
+                $this->form_jam_selesai = $times[1];
+            }
+        }
     }
 
     public function edit(MasterJadwalPelajaran $jadwal)

@@ -36,4 +36,45 @@ class MasterJadwalPelajaran extends Model
     {
         return $this->belongsTo(MasterGuru::class, 'guru_id');
     }
+
+    /**
+     * Get default jam mulai dan selesai berdasarkan hari dan jam ke (berdasarkan dokumen JADWAL PEMBELAJARAN.docx)
+     */
+    public static function getDefaultTime($hari, $jamKe)
+    {
+        $jamKe = (int) $jamKe;
+        if ($jamKe < 1 || $jamKe > 10) return null;
+
+        $hari = strtolower($hari);
+        
+        if ($hari === 'senin') {
+            $times = [
+                1 => ['07:45', '08:15'],
+                2 => ['08:15', '08:45'], // Fix dari doc: 08.15-09.45 yg typo
+                3 => ['08:45', '09:15'],
+                4 => ['09:15', '09:45'],
+                5 => ['10:15', '10:45'], // Lewati istirahat 09.45-10.15
+                6 => ['10:45', '11:15'],
+                7 => ['11:15', '11:45'],
+                8 => ['13:00', '13:30'], // Lewati ishoma 11.45-13.00
+                9 => ['13:30', '14:00'],
+            ];
+            return $times[$jamKe] ?? null;
+        } else {
+            // Selasa, Rabu, Kamis, Jumat
+            $times = [
+                1 => ['07:15', '07:45'],
+                2 => ['07:45', '08:15'],
+                3 => ['08:15', '08:45'],
+                4 => ['08:45', '09:15'],
+                5 => ['09:15', '09:45'],
+                6 => ['10:15', '10:45'], // Lewati istirahat 09.45-10.15
+                7 => ['10:45', '11:15'],
+                8 => ['11:15', '11:45'],
+                9 => ['13:00', '13:30'], // Lewati ishoma 11.45-13.00
+                10 => ['13:30', '14:00'],
+            ];
+            return $times[$jamKe] ?? null;
+        }
+    }
 }

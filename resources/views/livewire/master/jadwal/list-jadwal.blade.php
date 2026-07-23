@@ -173,16 +173,17 @@
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
                                     <label class="block text-sm font-medium text-on-surface mb-1">Hari</label>
-                                    <select wire:model="form_hari" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
-                                        @foreach($hariList as $hari)
-                                            <option value="{{ $hari }}">{{ $hari }}</option>
+                                    <select wire:model.live="form_hari" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                        <option value="">Pilih Hari</option>
+                                        @foreach($hariList as $h)
+                                            <option value="{{ $h }}">{{ $h }}</option>
                                         @endforeach
                                     </select>
                                     @error('form_hari') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                                 </div>
                                 <div>
                                     <label class="block text-sm font-medium text-on-surface mb-1">Jam Ke</label>
-                                    <input type="number" min="1" max="10" wire:model="form_jam_ke" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                    <input type="number" min="1" max="10" wire:model.live="form_jam_ke" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow" placeholder="Contoh: 1">
                                     @error('form_jam_ke') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                                 </div>
                             </div>
@@ -192,7 +193,7 @@
                                     <label class="block text-sm font-medium text-on-surface mb-1">Jam Mulai</label>
                                     <input type="text" 
                                         x-data="{ value: @entangle('form_jam_mulai') }"
-                                        x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, defaultDate: value, onChange: function(selectedDates, dateStr) { value = dateStr; } })"
+                                        x-init="let fp = flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, defaultDate: value, onChange: function(selectedDates, dateStr) { value = dateStr; } }); $watch('value', val => fp.setDate(val));"
                                         x-model="value"
                                         class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow" 
                                         placeholder="07:00">
@@ -201,7 +202,7 @@
                                     <label class="block text-sm font-medium text-on-surface mb-1">Jam Selesai</label>
                                     <input type="text" 
                                         x-data="{ value: @entangle('form_jam_selesai') }"
-                                        x-init="flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, defaultDate: value, onChange: function(selectedDates, dateStr) { value = dateStr; } })"
+                                        x-init="let fp = flatpickr($el, { enableTime: true, noCalendar: true, dateFormat: 'H:i', time_24hr: true, defaultDate: value, onChange: function(selectedDates, dateStr) { value = dateStr; } }); $watch('value', val => fp.setDate(val));"
                                         x-model="value"
                                         class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow"
                                         placeholder="08:30">
