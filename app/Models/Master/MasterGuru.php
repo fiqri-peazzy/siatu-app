@@ -65,11 +65,7 @@ class MasterGuru extends Model
     {
         static::deleting(function ($guru) {
             if ($guru->user) {
-                if ($guru->isForceDeleting()) {
-                    $guru->user()->forceDelete();
-                } else {
-                    $guru->user()->delete();
-                }
+                $guru->user()->delete();
             }
         });
     }

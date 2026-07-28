@@ -36,11 +36,7 @@ class MasterSiswa extends Model
     {
         static::deleting(function ($siswa) {
             if ($siswa->user) {
-                if ($siswa->isForceDeleting()) {
-                    $siswa->user()->forceDelete();
-                } else {
-                    $siswa->user()->delete();
-                }
+                $siswa->user()->delete();
             }
         });
     }
