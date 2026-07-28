@@ -59,7 +59,7 @@ class DashboardGuru extends Component
                 'jam_mulai' => Carbon::parse($j->jam_mulai)->format('H:i'),
                 'jam_selesai' => Carbon::parse($j->jam_selesai)->format('H:i'),
                 'kelas' => $j->kelas ? $j->kelas->nama : '-',
-                'mapel' => $j->mapel ? $j->mapel->nama_mapel : '-',
+                'mapel' => $j->mapel ? $j->mapel->nama : '-',
                 'status' => $isFilled ? 'diisi' : 'belum_diisi',
             ];
         }

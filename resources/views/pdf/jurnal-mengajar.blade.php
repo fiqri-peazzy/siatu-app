@@ -62,7 +62,7 @@
                 <td style="text-align: center;">{{ $jurnal->jam_ke }}</td>
                 <td>
                     {{ $jurnal->kelas->nama ?? '-' }} <br>
-                    <small>{{ $jurnal->mapel->nama_mapel ?? '-' }}</small>
+                    <small>{{ $jurnal->mapel->nama ?? '-' }}</small>
                 </td>
                 <td>{{ $jurnal->materi }}</td>
                 <td>{{ $jurnal->kegiatan }}</td>

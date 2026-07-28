@@ -22,7 +22,7 @@
                         {{ \Carbon\Carbon::parse($jadwal->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwal->jam_selesai)->format('H:i') }}
                     </span>
                 </div>
-                <h3 class="font-bold text-xl leading-tight">{{ $jadwal->mapel->nama_mapel ?? '-' }}</h3>
+                <h3 class="font-bold text-xl leading-tight">{{ $jadwal->mapel->nama ?? '-' }}</h3>
                 <p class="text-indigo-200 text-sm mt-1">Kelas {{ $jadwal->kelas->nama ?? '-' }}</p>
             </div>
         </div>

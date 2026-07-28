@@ -44,7 +44,7 @@
                 <select wire:model.live="filterMapel" class="w-full bg-slate-50 border-transparent focus:bg-white focus:border-indigo-500 rounded-xl text-sm p-2">
                     <option value="">Semua Mapel</option>
                     @foreach($mapelList as $mapel)
-                        <option value="{{ $mapel->id }}">{{ $mapel->nama_mapel }}</option>
+                        <option value="{{ $mapel->id }}">{{ $mapel->nama }}</option>
                     @endforeach
                 </select>
             </div>
@@ -68,7 +68,7 @@
                 </div>
                 
                 <div>
-                    <h4 class="font-bold text-slate-800">{{ $jurnal->mapel->nama_mapel ?? '-' }}</h4>
+                    <h4 class="font-bold text-slate-800">{{ $jurnal->mapel->nama ?? '-' }}</h4>
                     <p class="text-xs text-slate-500 font-medium">Kelas {{ $jurnal->kelas->nama ?? '-' }}</p>
                 </div>
                 
