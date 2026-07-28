@@ -45,4 +45,9 @@ class MasterTendik extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function absensis()
+    {
+        return $this->hasMany(\App\Models\AbsensiTendik::class, 'tendik_id');
+    }
 }

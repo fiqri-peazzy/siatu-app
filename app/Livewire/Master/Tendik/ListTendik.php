@@ -181,6 +181,11 @@ class ListTendik extends Component
         return Excel::download(new TendikTemplateExport, 'template_import_tendik.xlsx');
     }
 
+    public function exportData()
+    {
+        return Excel::download(new \App\Exports\TendikDataExport, 'Data_Tenaga_Kependidikan_' . date('Y-m-d') . '.xlsx');
+    }
+
     public function import()
     {
         $this->validate([
