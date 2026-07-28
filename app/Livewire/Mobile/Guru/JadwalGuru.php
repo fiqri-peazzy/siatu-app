@@ -53,29 +53,58 @@ class JadwalGuru extends Component
         $currentTime = Carbon::now()->format('H:i:s');
         $sesiAktif = null;
 
-        // Process jadwal
-        $processedJadwal = $jadwalList->map(function($jadwal) use ($jurnalHariIni, $currentTime, &$sesiAktif) {
-            // Check status
+        $processedJadwal = collect();
+        $lastGroup = null;
+
+        foreach ($jadwalList as $jadwal) {
+            // Check status for this specific JP
             $status = 'mendatang';
+            $jurnalRef = null;
             if ($jadwal->hari == $this->hariIni) {
                 if (isset($jurnalHariIni[$jadwal->jam_ke]) && $jurnalHariIni[$jadwal->jam_ke]->status == 'diisi') {
                     $status = 'sudah_diisi';
+                    $jurnalRef = $jurnalHariIni[$jadwal->jam_ke];
                 } elseif ($currentTime >= $jadwal->jam_mulai) {
                     $status = 'belum_diisi';
                 }
+            }
+
+            if ($lastGroup && $lastGroup->hari == $jadwal->hari && $lastGroup->kelas_id == $jadwal->kelas_id && $lastGroup->mapel_id == $jadwal->mapel_id) {
+                // Append to previous group
+                $lastGroup->jam_selesai = $jadwal->jam_selesai;
+                
+                $ids = $lastGroup->jadwal_ids;
+                $ids[] = $jadwal->id;
+                $lastGroup->jadwal_ids = $ids;
+                
+                if ($status == 'sudah_diisi') {
+                    $lastGroup->status_jurnal = 'sudah_diisi';
+                    $lastGroup->jurnal_ref = $jurnalRef;
+                } elseif ($status == 'belum_diisi' && $lastGroup->status_jurnal == 'mendatang') {
+                    $lastGroup->status_jurnal = 'belum_diisi';
+                }
+                
+                if ($jadwal->hari == $this->hariIni && $currentTime >= $jadwal->jam_mulai && $currentTime <= $jadwal->jam_selesai) {
+                    $sesiAktif = $lastGroup;
+                }
             } else {
-                $status = 'mendatang'; // Untuk mingguan, asumsikan mendatang kecuali jika logika hari ini
+                if ($lastGroup) {
+                    $processedJadwal->push($lastGroup);
+                }
+                
+                $lastGroup = clone $jadwal;
+                $lastGroup->jadwal_ids = [$jadwal->id];
+                $lastGroup->status_jurnal = $status;
+                $lastGroup->jurnal_ref = $jurnalRef;
+                
+                if ($jadwal->hari == $this->hariIni && $currentTime >= $jadwal->jam_mulai && $currentTime <= $jadwal->jam_selesai) {
+                    $sesiAktif = $lastGroup;
+                }
             }
-
-            // Check if active session
-            if ($jadwal->hari == $this->hariIni && $currentTime >= $jadwal->jam_mulai && $currentTime <= $jadwal->jam_selesai) {
-                $sesiAktif = $jadwal;
-            }
-
-            $jadwal->status_jurnal = $status;
-            $jadwal->jurnal_ref = $jurnalHariIni[$jadwal->jam_ke] ?? null;
-            return $jadwal;
-        });
+        }
+        if ($lastGroup) {
+            $processedJadwal->push($lastGroup);
+        }
 
         if ($this->mode === 'mingguan') {
             $processedJadwal = $processedJadwal->groupBy('hari');

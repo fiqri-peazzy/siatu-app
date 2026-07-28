@@ -7,20 +7,34 @@ use App\Models\Master\MasterJadwalPelajaran;
 use App\Models\JurnalGuru;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Livewire\WithFileUploads;
 
 class FormJurnal extends Component
 {
-    public $jadwal;
+    use WithFileUploads;
+
+    public $jadwalList;
+    public $jadwal; // For displaying the first class's info
     public $materi;
     public $kegiatan;
+    public $dokumentasi = [];
 
-    public function mount(MasterJadwalPelajaran $jadwal)
+    public function mount($jadwal_ids)
     {
-        $this->jadwal = $jadwal;
+        $ids = explode(',', $jadwal_ids);
+        $this->jadwalList = MasterJadwalPelajaran::whereIn('id', $ids)->get();
+
+        if ($this->jadwalList->isEmpty()) {
+            abort(404);
+        }
+
+        $this->jadwal = $this->jadwalList->first();
         $guruId = Auth::user()->guru_id ?? Auth::user()->guru->id ?? null;
 
-        if ($jadwal->guru_id != $guruId) {
-            abort(403);
+        foreach ($this->jadwalList as $j) {
+            if ($j->guru_id != $guruId) {
+                abort(403);
+            }
         }
     }
 
@@ -29,24 +43,35 @@ class FormJurnal extends Component
         $this->validate([
             'materi' => 'required|min:5',
             'kegiatan' => 'required|min:5',
+            'dokumentasi.*' => 'image|max:5120', // max 5MB per image
         ]);
 
         $guruId = Auth::user()->guru_id ?? Auth::user()->guru->id ?? null;
         
-        JurnalGuru::updateOrCreate(
-            [
-                'guru_id' => $guruId,
-                'kelas_id' => $this->jadwal->kelas_id,
-                'mapel_id' => $this->jadwal->mapel_id,
-                'tanggal' => Carbon::today()->format('Y-m-d'),
-                'jam_ke' => $this->jadwal->jam_ke,
-            ],
-            [
-                'materi' => $this->materi,
-                'kegiatan' => $this->kegiatan,
-                'status' => 'diisi',
-            ]
-        );
+        $dokumentasiPaths = [];
+        if (!empty($this->dokumentasi)) {
+            foreach ($this->dokumentasi as $foto) {
+                $dokumentasiPaths[] = $foto->store('jurnal', 'public');
+            }
+        }
+        
+        foreach ($this->jadwalList as $j) {
+            JurnalGuru::updateOrCreate(
+                [
+                    'guru_id' => $guruId,
+                    'kelas_id' => $j->kelas_id,
+                    'mapel_id' => $j->mapel_id,
+                    'tanggal' => Carbon::today()->format('Y-m-d'),
+                    'jam_ke' => $j->jam_ke,
+                ],
+                [
+                    'materi' => $this->materi,
+                    'kegiatan' => $this->kegiatan,
+                    'dokumentasi' => $dokumentasiPaths,
+                    'status' => 'diisi',
+                ]
+            );
+        }
 
         $this->dispatch('jurnalSubmitted');
         $this->dispatch('swal:success', 'Jurnal berhasil disimpan!');

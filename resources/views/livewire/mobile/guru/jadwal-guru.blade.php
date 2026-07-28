@@ -87,7 +87,7 @@
                                     Jurnal Pelajaran #JRN-{{ \Carbon\Carbon::parse($jadwal->jurnal_ref->tanggal)->format('Ymd') }}-{{ str_pad($jadwal->jurnal_ref->id, 2, '0', STR_PAD_LEFT) }}
                                 </div>
                             @elseif($jadwal->status_jurnal === 'belum_diisi')
-                                <a href="{{ route('guru.jurnal.form', $jadwal->id) }}" class="block w-full bg-[#3B65F3] text-white text-center py-2.5 rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-1">
+                                <a href="{{ route('guru.jurnal.form', implode(',', $jadwal->jadwal_ids)) }}" class="block w-full bg-[#3B65F3] text-white text-center py-2.5 rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-1">
                                     Isi Jurnal Pelajaran
                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
                                 </a>

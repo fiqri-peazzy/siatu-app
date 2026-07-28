@@ -58,18 +58,37 @@ class DashboardGuru extends Component
 
         $this->totalTerisi = count($jurnalFilled);
 
+        $groupedJadwal = [];
+        $lastGroup = null;
+
         foreach ($jadwal as $j) {
             $isFilled = in_array($j->jam_ke, $jurnalFilled);
-            $this->jadwalHariIni[] = [
-                'id' => $j->id,
-                'jam_ke' => $j->jam_ke,
-                'jam_mulai' => Carbon::parse($j->jam_mulai)->format('H:i'),
-                'jam_selesai' => Carbon::parse($j->jam_selesai)->format('H:i'),
-                'kelas' => $j->kelas ? $j->kelas->nama : '-',
-                'mapel' => $j->mapel ? $j->mapel->nama : '-',
-                'status' => $isFilled ? 'diisi' : 'belum_diisi',
-            ];
+            
+            if ($lastGroup && $lastGroup['kelas'] == ($j->kelas->nama ?? '-') && $lastGroup['mapel'] == ($j->mapel->nama ?? '-')) {
+                // Group with previous
+                $lastGroup['jam_selesai'] = Carbon::parse($j->jam_selesai)->format('H:i');
+                if ($isFilled) $lastGroup['status'] = 'diisi';
+                $lastGroup['jadwal_ids'][] = $j->id;
+            } else {
+                if ($lastGroup) $groupedJadwal[] = $lastGroup;
+                
+                $lastGroup = [
+                    'id' => $j->id,
+                    'jadwal_ids' => [$j->id],
+                    'jam_ke' => $j->jam_ke,
+                    'jam_mulai' => Carbon::parse($j->jam_mulai)->format('H:i'),
+                    'jam_selesai' => Carbon::parse($j->jam_selesai)->format('H:i'),
+                    'kelas' => $j->kelas ? $j->kelas->nama : '-',
+                    'mapel' => $j->mapel ? $j->mapel->nama : '-',
+                    'status' => $isFilled ? 'diisi' : 'belum_diisi',
+                ];
+            }
         }
+        if ($lastGroup) {
+            $groupedJadwal[] = $lastGroup;
+        }
+
+        $this->jadwalHariIni = $groupedJadwal;
     }
 
     public function prosesAbsensiBg($lat, $lng)

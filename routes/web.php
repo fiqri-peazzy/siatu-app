@@ -173,7 +173,7 @@ Route::middleware('auth')->group(function () {
     Route::prefix('guru')->name('guru.')->middleware(['role:guru'])->group(function () {
         Route::get('/dashboard', \App\Livewire\Mobile\Guru\DashboardGuru::class)->name('dashboard');
         Route::get('/jadwal', \App\Livewire\Mobile\Guru\JadwalGuru::class)->name('jadwal');
-        Route::get('/jurnal/form/{jadwal}', \App\Livewire\Mobile\Guru\FormJurnal::class)->name('jurnal.form');
+        Route::get('/jurnal/form/{jadwal_ids}', \App\Livewire\Mobile\Guru\FormJurnal::class)->name('jurnal.form');
         Route::get('/jurnal/riwayat', \App\Livewire\Mobile\Guru\RiwayatJurnal::class)->name('jurnal.riwayat');
         Route::get('/jurnal/cetak', [\App\Http\Controllers\ExportJurnalController::class, 'cetakPdfGuru'])->name('jurnal.cetak');
         Route::get('/profil', \App\Livewire\Mobile\Guru\ProfilGuru::class)->name('profil');
