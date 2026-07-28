@@ -149,19 +149,40 @@
                         
                         <!-- Face Recognition Liveness Modal (Mobile Responsive) -->
                         <template x-teleport="body">
-                            <div x-show="showLivenessModal" style="display: none;" class="fixed inset-0 z-[9999] flex flex-col bg-slate-900 animate-fade-in">
-                                <div class="px-6 pt-12 pb-4 flex items-center justify-between z-20 relative bg-gradient-to-b from-slate-900 to-transparent">
-                                    <button type="button" @click="closeModal()" class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white backdrop-blur-md">
-                                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"></path></svg>
-                                    </button>
-                                    <span class="text-white font-bold tracking-widest uppercase text-xs">Verifikasi Liveness</span>
-                                    <div class="w-10"></div> <!-- spacer -->
+                            <div x-show="showLivenessModal" style="display: none;" class="fixed inset-0 z-[9999] flex flex-col bg-[#121A2F] animate-fade-in">
+                                <div class="px-5 pt-10 pb-4 flex items-center justify-between z-20 relative">
+                                    <div class="flex items-center gap-3">
+                                        <button type="button" @click="closeModal()" class="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors">
+                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                                        </button>
+                                        <div class="flex flex-col">
+                                            <span class="text-white font-bold text-[18px] leading-tight">Ambil Foto</span>
+                                            <span class="text-white font-bold text-[18px] leading-tight">Absen</span>
+                                        </div>
+                                    </div>
+                                    <div class="bg-white/10 rounded-full px-3 py-1.5 flex items-center gap-1.5 backdrop-blur-sm border border-white/5">
+                                        <svg class="w-3.5 h-3.5 text-rose-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
+                                        <span class="text-[10px] font-medium text-white tracking-wide">{{ $jarak ? $jarak . 'm' : '...' }} dari sekolah</span>
+                                    </div>
                                 </div>
                                 
-                                <div class="flex-1 relative w-full h-full bg-slate-900 overflow-hidden rounded-t-[3rem] shadow-[0_-10px_40px_rgb(0,0,0,0.5)]">
+                                <div class="flex justify-center items-center gap-3 mb-6 z-20 relative">
+                                    <div class="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+                                    <div class="w-10 h-[1px] bg-indigo-400/30"></div>
+                                    <div class="w-2.5 h-2.5 rounded-full bg-indigo-400 ring-4 ring-indigo-400/30"></div>
+                                    <div class="w-10 h-[1px] bg-indigo-400/30"></div>
+                                    <div class="w-1.5 h-1.5 rounded-full bg-indigo-400/30"></div>
+                                </div>
+                                
+                                <div class="flex-1 relative w-full h-full bg-[#121A2F] overflow-hidden">
                                     
-                                    <video id="webcam-video" autoplay muted playsinline class="w-full h-full object-cover transform scale-x-[-1]"></video>
-                                    <canvas id="overlay-canvas" class="absolute inset-0 w-full h-full z-10"></canvas>
+                                    <video id="webcam-video" autoplay muted playsinline class="absolute inset-0 w-full h-full object-cover transform scale-x-[-1]"></video>
+                                    
+                                    <!-- Oval Face Guide Overlay -->
+                                    <div class="absolute inset-0 z-10 pointer-events-none" style="background: radial-gradient(ellipse 75% 55% at 50% 45%, transparent 45%, #121A2F 55%);"></div>
+                                    
+                                    <!-- Dynamic Outline for Face Box -->
+                                    <canvas id="overlay-canvas" class="absolute inset-0 w-full h-full z-15 pointer-events-none"></canvas>
                                     
                                     <!-- Loading AI Overlay -->
                                     <div x-show="modelLoading" class="absolute inset-0 bg-slate-900/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-white p-6 text-center">
@@ -171,27 +192,47 @@
                                     </div>
     
                                     <!-- UI Guidance Overlay -->
-                                    <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-12 z-20 flex flex-col items-center justify-center pointer-events-none">
-                                        <div class="bg-black/60 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold text-sm border border-white/20 shadow-2xl text-center mx-4" x-transition>
-                                            <span x-show="!faceDetected">Arahkan wajah ke dalam bingkai</span>
+                                    <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-32 z-20 flex flex-col items-center justify-center pointer-events-none">
+                                        <div class="bg-[#1C2745]/90 backdrop-blur-md text-white px-6 py-3.5 rounded-2xl font-medium text-xs border border-white/5 shadow-2xl text-center mx-4 flex items-center gap-2" x-transition>
+                                            <span x-show="!faceDetected">Posisikan wajah Anda di dalam area oval</span>
                                             <span x-show="faceDetected && !blinkDetected" class="text-indigo-300">Wajah terdeteksi. Silakan berkedip!</span>
                                         </div>
-                                        <!-- Scan Line -->
-                                        <div x-show="faceDetected && !blinkDetected" class="w-2/3 h-1 bg-indigo-500 mt-6 rounded-full shadow-[0_0_15px_#6366f1] animate-[pulse_1s_ease-in-out_infinite]"></div>
                                     </div>
     
-                                    <!-- Success Overlay -->
-                                    <div x-show="verifikasiBerhasil" class="absolute inset-0 bg-emerald-500/90 backdrop-blur-md z-30 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
-                                        <div class="w-20 h-20 bg-white rounded-full flex items-center justify-center shadow-2xl mb-6 scale-up-center">
-                                            <svg class="w-10 h-10 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                                    <!-- Shutter Button Placeholder (Cosmetic as per reference) -->
+                                    <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-10 z-20 flex items-center justify-between px-10 pointer-events-none">
+                                        <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm">
+                                            <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
                                         </div>
-                                        <h3 class="font-extrabold text-3xl drop-shadow-md mb-2">Sempurna!</h3>
-                                        <p class="text-emerald-100 font-semibold drop-shadow-md text-lg">Kehadiran terenkripsi dan terkirim.</p>
+                                        <div class="w-20 h-20 rounded-full border-4 border-[#3B65F3] p-1 pointer-events-auto active:scale-95 transition-transform cursor-pointer flex items-center justify-center" @click="faceDetected && blinkDetected ? triggerSuccessCapture() : null">
+                                            <div class="w-full h-full rounded-full bg-white/20 backdrop-blur-md"></div>
+                                        </div>
+                                        <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm">
+                                            <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                                        </div>
+                                    </div>
+    
+                                    <!-- Success Overlay (Keeps matching style) -->
+                                    <div x-show="verifikasiBerhasil" class="absolute inset-0 bg-[#121A2F]/95 backdrop-blur-md z-30 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
+                                        <div class="w-24 h-24 bg-[#3B65F3] rounded-full flex items-center justify-center shadow-2xl mb-6 scale-up-center ring-8 ring-[#3B65F3]/30">
+                                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+                                        </div>
+                                        <h3 class="font-extrabold text-2xl drop-shadow-md mb-2">Absensi Berhasil!</h3>
+                                        <p class="text-indigo-200 text-sm">Menyimpan data kehadiran Anda...</p>
                                     </div>
                                 </div>
-                                @error('foto') <span class="absolute top-20 inset-x-0 text-center text-rose-500 font-bold text-sm bg-rose-100/90 py-2">{{ $message }}</span> @enderror
+                                @error('foto') <span class="absolute top-24 inset-x-0 text-center text-rose-500 font-bold text-sm bg-rose-100/90 py-2 z-50">{{ $message }}</span> @enderror
                             </div>
                         </template>
+                        
+                        <!-- Event Listener for success redirect -->
+                        <script>
+                            window.addEventListener('absensi:success', () => {
+                                setTimeout(() => {
+                                    window.location.href = "{{ route('guru.dashboard') }}";
+                                }, 1500);
+                            });
+                        </script>
                     </div>
                 </div>
                 
@@ -234,6 +275,9 @@
             isCapturing: false,
             
             init() {
+                // Auto-open camera modal as requested
+                this.openModal();
+                
                 this.lokasiDitemukan = wire.get('latitude') ? true : false;
                 if (this.lokasiDitemukan) {
                     // Fetch address
@@ -428,10 +472,17 @@
                 // Send to Livewire
                 wire.set('foto', base64Image);
                 
-                // Wait a tiny bit for UI update, then submit
-                setTimeout(() => {
-                    wire.call('submitAbsen');
-                }, 500);
+                // Wait for GPS if not yet found before submitting
+                const submitWhenReady = () => {
+                    if (this.lokasiDitemukan) {
+                        wire.call('submitAbsen');
+                    } else {
+                        // Show some status if taking too long?
+                        setTimeout(submitWhenReady, 500);
+                    }
+                };
+                
+                setTimeout(submitWhenReady, 500);
             }
         }));
     });

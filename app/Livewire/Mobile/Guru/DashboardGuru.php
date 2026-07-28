@@ -12,7 +12,8 @@ use Livewire\Component;
 class DashboardGuru extends Component
 {
     public $jadwalHariIni = [];
-    public $absensiHariIni = null;
+    public $absenMasuk = null;
+    public $absenPulang = null;
     public $totalJam = 0;
     public $totalTerisi = 0;
 
@@ -29,8 +30,14 @@ class DashboardGuru extends Component
         $tanggalSekarang = Carbon::today()->format('Y-m-d');
 
         // Get Absensi
-        $this->absensiHariIni = AbsensiGuru::where('guru_id', $guruId)
+        $this->absenMasuk = AbsensiGuru::where('guru_id', $guruId)
             ->where('tanggal', $tanggalSekarang)
+            ->where('jenis', 'masuk')
+            ->first();
+            
+        $this->absenPulang = AbsensiGuru::where('guru_id', $guruId)
+            ->where('tanggal', $tanggalSekarang)
+            ->where('jenis', 'pulang')
             ->first();
 
         // Get Jadwal
@@ -63,6 +70,59 @@ class DashboardGuru extends Component
                 'status' => $isFilled ? 'diisi' : 'belum_diisi',
             ];
         }
+    }
+
+    public function prosesAbsensiBg($lat, $lng)
+    {
+        $guruId = Auth::user()->guru_id ?? Auth::user()->guru->id ?? null;
+        if (!$guruId) return;
+
+        $tanggalSekarang = Carbon::today()->format('Y-m-d');
+        $waktuAbsen = Carbon::now();
+
+        // Refresh status
+        $this->absenMasuk = AbsensiGuru::where('guru_id', $guruId)
+            ->where('tanggal', $tanggalSekarang)
+            ->where('jenis', 'masuk')
+            ->first();
+
+        $this->absenPulang = AbsensiGuru::where('guru_id', $guruId)
+            ->where('tanggal', $tanggalSekarang)
+            ->where('jenis', 'pulang')
+            ->first();
+
+        if (!$this->absenMasuk) {
+            // Proses Absen Masuk
+            AbsensiGuru::create([
+                'guru_id' => $guruId,
+                'tanggal' => $tanggalSekarang,
+                'jenis' => 'masuk',
+                'status' => 'hadir',
+                'waktu_absen' => $waktuAbsen,
+                'latitude' => $lat,
+                'longitude' => $lng,
+            ]);
+
+            $this->dispatch('swal:success', ['Absen Masuk berhasil dicatat!']);
+        } elseif (!$this->absenPulang) {
+            // Proses Absen Pulang
+            AbsensiGuru::create([
+                'guru_id' => $guruId,
+                'tanggal' => $tanggalSekarang,
+                'jenis' => 'pulang',
+                'status' => 'hadir',
+                'waktu_absen' => $waktuAbsen,
+                'latitude' => $lat,
+                'longitude' => $lng,
+            ]);
+            
+            $this->dispatch('swal:success', ['Absen Pulang berhasil dicatat!']);
+        } else {
+            $this->dispatch('swal:error', ['Anda sudah melakukan absen masuk dan pulang hari ini.']);
+        }
+
+        // Reload data
+        $this->mount();
     }
 
     public function render()

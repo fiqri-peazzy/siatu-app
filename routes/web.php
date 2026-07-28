@@ -172,6 +172,7 @@ Route::middleware('auth')->group(function () {
     // PWA Mobile Guru
     Route::prefix('guru')->name('guru.')->middleware(['role:guru'])->group(function () {
         Route::get('/dashboard', \App\Livewire\Mobile\Guru\DashboardGuru::class)->name('dashboard');
+        Route::get('/jadwal', \App\Livewire\Mobile\Guru\JadwalGuru::class)->name('jadwal');
         Route::get('/jurnal/form/{jadwal}', \App\Livewire\Mobile\Guru\FormJurnal::class)->name('jurnal.form');
         Route::get('/jurnal/riwayat', \App\Livewire\Mobile\Guru\RiwayatJurnal::class)->name('jurnal.riwayat');
         Route::get('/jurnal/cetak', [\App\Http\Controllers\ExportJurnalController::class, 'cetakPdfGuru'])->name('jurnal.cetak');

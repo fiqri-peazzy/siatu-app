@@ -67,8 +67,8 @@
             </div>
         </div>
 
-        {{-- Submit Button (fixed bottom) --}}
-        <div class="fixed bottom-0 left-0 right-0 p-4 bg-white/95 backdrop-blur-md border-t border-line-200 max-w-md mx-auto">
+        {{-- Submit Button (Inline) --}}
+        <div class="pt-4 pb-8">
             <button type="submit"
                     class="w-full bg-signal-blue text-white font-bold py-4 rounded-2xl shadow-lg shadow-signal-blue/25 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
                 <svg wire:loading.remove wire:target="submit" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">

@@ -107,9 +107,7 @@ class FormAbsensi extends Component
 
             DB::commit();
             
-            $this->dispatch('swal:success', 'Absensi berhasil dicatat.');
-            
-            return redirect()->route('akademik.absensi.guru.riwayat');
+            $this->dispatch('absensi:success');
         } catch (\Exception $e) {
             DB::rollBack();
             $this->dispatch('swal:error', 'Gagal mencatat absen: ' . $e->getMessage());
