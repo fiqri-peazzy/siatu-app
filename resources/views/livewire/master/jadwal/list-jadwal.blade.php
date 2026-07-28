@@ -65,7 +65,12 @@
                                 {{ $slot[0] }} - {{ $slot[1] }}
                             </td>
                             @foreach($hariList as $hari)
-                                <td class="px-2 py-2 border-r border-outline-variant align-top relative group">
+                                <td class="px-2 py-2 border-r border-outline-variant align-top relative group"
+                                    x-data
+                                    @dragover.prevent="$el.classList.add('bg-primary/5')"
+                                    @dragleave.prevent="$el.classList.remove('bg-primary/5')"
+                                    @drop.prevent="$el.classList.remove('bg-primary/5'); let id = event.dataTransfer.getData('text/plain'); if(id) { $wire.duplicateSchedule(id, '{{ $hari }}', '{{ $slot[0] }}', '{{ $slot[1] }}') }"
+                                >
                                     @php
                                         // Match events that start at exactly this slot's start time
                                         $jadwalList = $this->jadwals[$hari]->filter(function($j) use ($slot) {
@@ -75,8 +80,8 @@
 
                                     @if($jadwalList->count() > 0)
                                         @foreach($jadwalList as $jadwal)
-                                            <div class="border rounded-lg p-3 text-left relative overflow-hidden mb-2 last:mb-0 hover:shadow-md transition-shadow 
-                                                {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'bg-primary/10 border-primary/20' : 'bg-secondary/10 border-secondary/20' }}">
+                                            <div draggable="true" @dragstart="event.dataTransfer.setData('text/plain', {{ $jadwal->id }})" class="cursor-move border rounded-lg p-3 text-left relative overflow-hidden mb-2 last:mb-0 hover:shadow-md transition-shadow 
+                                                {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'bg-primary/10 border-primary/20' : 'bg-secondary/10 border-secondary/20' }}" title="Drag untuk menyalin ke jam lain">
                                                 <div class="absolute top-0 left-0 w-1 h-full {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'bg-primary' : 'bg-secondary' }}"></div>
                                                 <div class="flex justify-between items-start mb-1">
                                                     <span class="font-bold {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'text-primary' : 'text-secondary' }} text-sm line-clamp-1">
@@ -251,6 +256,20 @@
                                 </select>
                                 @error('form_kategori_kegiatan') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
+
+                            @if(!$editingId && $form_kategori_kegiatan === 'pembelajaran')
+                            <div>
+                                <label class="block text-sm font-medium text-on-surface mb-1">Durasi (Jumlah JP)</label>
+                                <select wire:model="form_durasi_jp" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                    <option value="1">1 Jam Pelajaran</option>
+                                    <option value="2">2 Jam Pelajaran berurutan</option>
+                                    <option value="3">3 Jam Pelajaran berurutan</option>
+                                    <option value="4">4 Jam Pelajaran berurutan</option>
+                                </select>
+                                <p class="text-xs text-on-surface-variant mt-1">Sistem akan otomatis membuat jadwal berurutan sesuai durasi.</p>
+                                @error('form_durasi_jp') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            @endif
 
                             @if($form_kategori_kegiatan !== 'pembelajaran')
                             <div>

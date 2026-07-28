@@ -81,6 +81,21 @@ class MasterJadwalPelajaran extends Model
     }
 
     /**
+     * Get jam_ke based on hari and jam_mulai
+     */
+    public static function getJamKeByTime($hari, $jamMulai)
+    {
+        for ($i = 1; $i <= 10; $i++) {
+            $times = self::getDefaultTime($hari, $i);
+            if ($times && $times[0] === substr($jamMulai, 0, 5)) {
+                return $i;
+            }
+        }
+        return null;
+    }
+
+
+    /**
      * Get all unique time slots across the week in order.
      */
     public static function getAllTimeSlots()

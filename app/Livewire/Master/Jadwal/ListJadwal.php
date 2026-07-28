@@ -35,6 +35,7 @@ class ListJadwal extends Component
     public string $form_kategori_kegiatan = 'pembelajaran';
     public ?string $form_keterangan_kegiatan = null;
     public bool $form_is_global = false;
+    public int $form_durasi_jp = 1;
 
     public $hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
 
@@ -129,11 +130,13 @@ class ListJadwal extends Component
             $rules['form_mapel_id'] = 'required|exists:master_mapels,id';
             $rules['form_guru_id'] = 'required|exists:master_gurus,id';
             $rules['form_jam_ke'] = 'required|integer|min:1';
+            $rules['form_durasi_jp'] = 'required|integer|min:1|max:4';
         } else {
             $rules['form_kelas_id'] = 'nullable|exists:master_kelas,id';
             $rules['form_mapel_id'] = 'nullable|exists:master_mapels,id';
             $rules['form_guru_id'] = 'nullable|exists:master_gurus,id';
             $rules['form_jam_ke'] = 'nullable|integer|min:1';
+            $rules['form_durasi_jp'] = 'nullable';
         }
 
         return $rules;
@@ -144,6 +147,7 @@ class ListJadwal extends Component
         $this->resetValidation();
         $this->reset(['editingId', 'form_mapel_id', 'form_guru_id', 'form_jam_mulai', 'form_jam_selesai', 'form_jam_ke', 'form_keterangan_kegiatan']);
         
+        $this->form_durasi_jp = 1;
         $this->form_kategori_kegiatan = 'pembelajaran';
         $this->form_is_global = false;
         
@@ -273,6 +277,43 @@ class ListJadwal extends Component
             }
         }
 
+        if (!$this->editingId && $this->form_kategori_kegiatan === 'pembelajaran' && $this->form_durasi_jp > 1) {
+            $startJamKe = MasterJadwalPelajaran::getJamKeByTime($this->form_hari, substr($this->form_jam_mulai, 0, 5));
+            if ($startJamKe) {
+                for ($i = 0; $i < $this->form_durasi_jp; $i++) {
+                    $currentJamKe = $startJamKe + $i;
+                    if ($currentJamKe > 10) break;
+                    
+                    $times = MasterJadwalPelajaran::getDefaultTime($this->form_hari, $currentJamKe);
+                    if (!$times) continue;
+                    
+                    // Simple check if class already has schedule at this time
+                    $exists = MasterJadwalPelajaran::where('tahun_ajaran_id', $this->form_tahun_ajaran_id)
+                        ->where('hari', $this->form_hari)
+                        ->where('kelas_id', $this->form_kelas_id)
+                        ->where('jam_mulai', $times[0])
+                        ->exists();
+                        
+                    if (!$exists) {
+                        MasterJadwalPelajaran::create([
+                            'tahun_ajaran_id' => $this->form_tahun_ajaran_id,
+                            'kelas_id' => $this->form_kelas_id,
+                            'mapel_id' => $this->form_mapel_id,
+                            'guru_id' => $this->form_guru_id,
+                            'hari' => $this->form_hari,
+                            'jam_mulai' => $times[0],
+                            'jam_selesai' => $times[1],
+                            'jam_ke' => $currentJamKe,
+                            'kategori_kegiatan' => 'pembelajaran',
+                        ]);
+                    }
+                }
+                $this->isModalOpen = false;
+                session()->flash('success', 'Jadwal multi-JP berhasil ditambahkan.');
+                return;
+            }
+        }
+
         MasterJadwalPelajaran::updateOrCreate(
             ['id' => $this->editingId],
             [
@@ -291,6 +332,37 @@ class ListJadwal extends Component
 
         $this->isModalOpen = false;
         session()->flash('success', $this->editingId ? 'Jadwal berhasil diperbarui.' : 'Jadwal berhasil ditambahkan.');
+    }
+
+    public function duplicateSchedule($id, $targetHari, $targetJamMulai, $targetJamSelesai)
+    {
+        $jadwal = MasterJadwalPelajaran::find($id);
+        if (!$jadwal) return;
+
+        // Check if target slot is already occupied for this class
+        $exists = MasterJadwalPelajaran::where('tahun_ajaran_id', $jadwal->tahun_ajaran_id)
+            ->where('hari', $targetHari)
+            ->where('kelas_id', $jadwal->kelas_id)
+            ->where(function ($q) use ($targetJamMulai, $targetJamSelesai) {
+                $q->where(function ($q2) use ($targetJamMulai, $targetJamSelesai) {
+                    $q2->where('jam_mulai', '<', $targetJamSelesai)
+                       ->where('jam_selesai', '>', $targetJamMulai);
+                });
+            })->exists();
+
+        if ($exists) {
+            session()->flash('error', 'Gagal menyalin: Slot waktu tujuan sudah terisi jadwal lain.');
+            return;
+        }
+
+        $newJadwal = $jadwal->replicate();
+        $newJadwal->hari = $targetHari;
+        $newJadwal->jam_mulai = $targetJamMulai;
+        $newJadwal->jam_selesai = $targetJamSelesai;
+        $newJadwal->jam_ke = MasterJadwalPelajaran::getJamKeByTime($targetHari, $targetJamMulai);
+        $newJadwal->save();
+
+        session()->flash('success', 'Jadwal berhasil diduplikasi.');
     }
 
     public function delete(MasterJadwalPelajaran $jadwal)
