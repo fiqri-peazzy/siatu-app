@@ -73,34 +73,45 @@
         <nav class="fixed bottom-0 w-full z-50 glass-nav pb-safe shadow-[0_-10px_40px_rgba(0,0,0,0.04)]">
             <div class="flex justify-around items-center h-20 max-w-md mx-auto px-2">
                 
-                <!-- Absen -->
-                <a href="{{ route('akademik.absensi.guru.form') }}" 
+                <!-- Beranda (Dashboard) -->
+                <a href="{{ route('guru.dashboard') }}" 
                    class="relative flex flex-col items-center justify-center w-20 h-full group">
-                    <div class="absolute inset-0 bg-indigo-50 rounded-2xl scale-0 {{ request()->routeIs('akademik.absensi.guru.form') ? 'scale-100' : '' }} transition-transform duration-300 origin-center -z-10 m-2"></div>
-                    <svg class="w-6 h-6 mb-1 {{ request()->routeIs('akademik.absensi.guru.form') ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-400 transition-colors' }}" fill="{{ request()->routeIs('akademik.absensi.guru.form') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                    <div class="absolute inset-0 bg-indigo-50 rounded-2xl scale-0 {{ request()->routeIs('guru.dashboard') ? 'scale-100' : '' }} transition-transform duration-300 origin-center -z-10 m-2"></div>
+                    <svg class="w-6 h-6 mb-1 {{ request()->routeIs('guru.dashboard') ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-400 transition-colors' }}" fill="{{ request()->routeIs('guru.dashboard') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
                     </svg>
-                    <span class="text-[11px] font-semibold {{ request()->routeIs('akademik.absensi.guru.form') ? 'text-indigo-700' : 'text-slate-500' }}">Absen</span>
+                    <span class="text-[11px] font-semibold {{ request()->routeIs('guru.dashboard') ? 'text-indigo-700' : 'text-slate-500' }}">Beranda</span>
+                </a>
+
+                <!-- Jurnal -->
+                <a href="{{ route('guru.dashboard') }}#jurnal" 
+                   class="relative flex flex-col items-center justify-center w-20 h-full group">
+                    <div class="absolute inset-0 bg-indigo-50 rounded-2xl scale-0 transition-transform duration-300 origin-center -z-10 m-2"></div>
+                    <div class="relative">
+                        <!-- Badge for uncompleted journals will be injected via livewire or Alpine if needed, for now just static structure -->
+                        @livewire('mobile.guru.badge-jurnal')
+                    </div>
+                    <span class="text-[11px] font-semibold text-slate-500 mt-1">Jurnal</span>
                 </a>
 
                 <!-- Riwayat -->
-                <a href="{{ route('akademik.absensi.guru.riwayat') }}" 
+                <a href="{{ route('guru.jurnal.riwayat') }}" 
                    class="relative flex flex-col items-center justify-center w-20 h-full group">
-                    <div class="absolute inset-0 bg-indigo-50 rounded-2xl scale-0 {{ request()->routeIs('akademik.absensi.guru.riwayat') ? 'scale-100' : '' }} transition-transform duration-300 origin-center -z-10 m-2"></div>
-                    <svg class="w-6 h-6 mb-1 {{ request()->routeIs('akademik.absensi.guru.riwayat') ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-400 transition-colors' }}" fill="{{ request()->routeIs('akademik.absensi.guru.riwayat') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    <div class="absolute inset-0 bg-indigo-50 rounded-2xl scale-0 {{ request()->routeIs('guru.jurnal.riwayat') ? 'scale-100' : '' }} transition-transform duration-300 origin-center -z-10 m-2"></div>
+                    <svg class="w-6 h-6 mb-1 {{ request()->routeIs('guru.jurnal.riwayat') ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-400 transition-colors' }}" fill="{{ request()->routeIs('guru.jurnal.riwayat') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                     </svg>
-                    <span class="text-[11px] font-semibold {{ request()->routeIs('akademik.absensi.guru.riwayat') ? 'text-indigo-700' : 'text-slate-500' }}">Riwayat</span>
+                    <span class="text-[11px] font-semibold {{ request()->routeIs('guru.jurnal.riwayat') ? 'text-indigo-700' : 'text-slate-500' }}">Riwayat</span>
                 </a>
                 
-                <!-- Jurnal (Placeholder for next phase) -->
-                <a href="#" 
+                <!-- Profil -->
+                <a href="{{ route('guru.profil') }}" 
                    class="relative flex flex-col items-center justify-center w-20 h-full group">
-                    <svg class="w-6 h-6 mb-1 text-slate-400 group-hover:text-indigo-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    <div class="absolute inset-0 bg-indigo-50 rounded-2xl scale-0 {{ request()->routeIs('guru.profil') ? 'scale-100' : '' }} transition-transform duration-300 origin-center -z-10 m-2"></div>
+                    <svg class="w-6 h-6 mb-1 {{ request()->routeIs('guru.profil') ? 'text-indigo-600' : 'text-slate-400 group-hover:text-indigo-400 transition-colors' }}" fill="{{ request()->routeIs('guru.profil') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                     </svg>
-                    <span class="text-[11px] font-semibold text-slate-500">Jurnal</span>
+                    <span class="text-[11px] font-semibold {{ request()->routeIs('guru.profil') ? 'text-indigo-700' : 'text-slate-500' }}">Profil</span>
                 </a>
 
             </div>

@@ -56,6 +56,21 @@ class MasterGuru extends Model
     }
 
 
+    public function jadwals()
+    {
+        return $this->hasMany(MasterJadwalPelajaran::class, 'guru_id');
+    }
+
+    public function preferensiNotifikasi()
+    {
+        return $this->hasOne(\App\Models\PreferensiNotifikasiGuru::class, 'guru_id');
+    }
+
+    public function jurnals()
+    {
+        return $this->hasMany(\App\Models\JurnalGuru::class, 'guru_id');
+    }
+
     public function absensis()
     {
         return $this->hasMany(\App\Models\AbsensiGuru::class, 'guru_id');

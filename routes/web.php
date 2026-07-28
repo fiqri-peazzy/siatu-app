@@ -8,7 +8,7 @@ Route::get('/login', Login::class)->name('login')->middleware('guest');
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
         if (auth()->user()->hasRole('guru')) {
-            return redirect()->route('akademik.absensi.guru.form');
+            return redirect()->route('guru.dashboard');
         }
         return view('dashboard');
     })->name('dashboard');
@@ -161,6 +161,22 @@ Route::middleware('auth')->group(function () {
         // Monitoring (Web Dashboard)
         Route::get('/absensi/monitoring', \App\Livewire\Absensi\DashboardAbsensiHariIni::class)->name('absensi.monitoring');
         Route::get('/absensi/tendik/monitoring', \App\Livewire\Absensi\Tendik\DashboardAbsensiTendik::class)->name('absensi.tendik.monitoring');
+    });
+
+    // Supervisi
+    Route::prefix('supervisi')->name('supervisi.')->group(function () {
+        Route::get('/jurnal/realtime', \App\Livewire\Supervisi\DashboardSupervisiRealtime::class)->name('jurnal.realtime');
+        Route::get('/jurnal/export', [\App\Http\Controllers\ExportJurnalController::class, 'cetakExcel'])->name('jurnal.export');
+    });
+
+    // PWA Mobile Guru
+    Route::prefix('guru')->name('guru.')->middleware(['role:guru'])->group(function () {
+        Route::get('/dashboard', \App\Livewire\Mobile\Guru\DashboardGuru::class)->name('dashboard');
+        Route::get('/jurnal/form/{jadwal}', \App\Livewire\Mobile\Guru\FormJurnal::class)->name('jurnal.form');
+        Route::get('/jurnal/riwayat', \App\Livewire\Mobile\Guru\RiwayatJurnal::class)->name('jurnal.riwayat');
+        Route::get('/jurnal/cetak', [\App\Http\Controllers\ExportJurnalController::class, 'cetakPdfGuru'])->name('jurnal.cetak');
+        Route::get('/profil', \App\Livewire\Mobile\Guru\ProfilGuru::class)->name('profil');
+        Route::get('/pengaturan-notifikasi', \App\Livewire\Mobile\Guru\PengaturanNotifikasi::class)->name('pengaturan-notifikasi');
     });
 
     // Sistem / Pengaturan (Hanya Super Admin & Admin TU)
