@@ -10,31 +10,23 @@
         <!-- PWA Meta -->
         <link rel="icon" type="image/png" href="{{ asset('images/logo-removebg-preview.png') }}">
         <link rel="manifest" href="{{ asset('manifest.json') }}">
-        <meta name="theme-color" content="#4f46e5">
+        <meta name="theme-color" content="#0B1730">
         <link rel="apple-touch-icon" href="{{ asset('images/logo-removebg-preview.png') }}">
 
-        <!-- Fonts -->
+        <!-- Fonts: Inter (standard app font) -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <!-- Use modern geometric font (Outfit) as per web design guidelines -->
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
         <!-- Scripts & Styles -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         
         <style>
-            body { 
-                font-family: 'Outfit', sans-serif;
-                overscroll-behavior-y: none; 
-                background-color: #f8fafc;
+            body {
+                font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+                overscroll-behavior-y: none;
+                background-color: #F5F7FC;
                 -webkit-tap-highlight-color: transparent;
-            }
-            /* Glassmorphism utility */
-            .glass-nav {
-                background: rgba(255, 255, 255, 0.85);
-                backdrop-filter: blur(12px);
-                -webkit-backdrop-filter: blur(12px);
-                border-top: 1px solid rgba(255, 255, 255, 0.3);
             }
         </style>
     </head>
@@ -70,44 +62,66 @@
             {{ $slot }}
         </main>
 
-        <!-- Standard Bottom Navigation -->
-        <nav class="fixed bottom-0 w-full z-50 bg-white/95 backdrop-blur-md pb-safe border-t border-line-200">
-            <div class="flex justify-around items-center h-16 max-w-md mx-auto px-2">
+        <!-- Bottom Navigation: 5 tabs (Beranda, Jadwal, Jurnal, Riwayat, Profil) -->
+        <nav class="fixed bottom-0 w-full z-50 bg-white border-t border-line-200" style="padding-bottom: env(safe-area-inset-bottom)">
+            <div class="flex items-stretch h-16 max-w-md mx-auto">
 
-                <!-- Beranda -->
+                {{-- Beranda --}}
                 <a href="{{ route('guru.dashboard') }}"
-                   class="flex flex-col items-center justify-center w-full h-full">
-                    <svg class="w-6 h-6 mb-1 {{ request()->routeIs('guru.dashboard') ? 'text-signal-blue' : 'text-slate-400' }}" fill="{{ request()->routeIs('guru.dashboard') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                   class="flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors
+                          {{ request()->routeIs('guru.dashboard') ? 'text-signal-blue' : 'text-slate-400 hover:text-slate-600' }}">
+                    <svg class="w-6 h-6" fill="{{ request()->routeIs('guru.dashboard') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
                     </svg>
-                    <span class="text-[10px] font-medium {{ request()->routeIs('guru.dashboard') ? 'text-signal-blue' : 'text-slate-500' }}">Beranda</span>
+                    <span class="text-[10px] font-semibold">Beranda</span>
                 </a>
 
-                <!-- Jurnal -->
+                {{-- Jadwal --}}
+                <a href="{{ route('guru.dashboard') }}"
+                   class="flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                    <span class="text-[10px] font-semibold">Jadwal</span>
+                </a>
+
+                {{-- Jurnal (center with badge) --}}
                 <a href="{{ route('guru.dashboard') }}#jurnal"
-                   class="flex flex-col items-center justify-center w-full h-full">
-                    <div class="relative flex justify-center w-full">
+                   class="flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors text-slate-400 hover:text-slate-600">
+                    <div class="relative">
                         @livewire('mobile.guru.badge-jurnal')
                     </div>
-                    <span class="text-[10px] font-medium text-slate-500 mt-1">Jurnal</span>
+                    <span class="text-[10px] font-semibold">Jurnal</span>
                 </a>
 
-                <!-- Riwayat -->
+                {{-- Riwayat --}}
                 <a href="{{ route('guru.jurnal.riwayat') }}"
-                   class="flex flex-col items-center justify-center w-full h-full">
-                    <svg class="w-6 h-6 mb-1 {{ request()->routeIs('guru.jurnal.riwayat') ? 'text-signal-blue' : 'text-slate-400' }}" fill="{{ request()->routeIs('guru.jurnal.riwayat') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                   class="flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors
+                          {{ request()->routeIs('guru.jurnal.riwayat') ? 'text-signal-blue' : 'text-slate-400 hover:text-slate-600' }}">
+                    <svg class="w-6 h-6" fill="{{ request()->routeIs('guru.jurnal.riwayat') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
-                    <span class="text-[10px] font-medium {{ request()->routeIs('guru.jurnal.riwayat') ? 'text-signal-blue' : 'text-slate-500' }}">Riwayat</span>
+                    <span class="text-[10px] font-semibold">Riwayat</span>
                 </a>
 
-                <!-- Profil -->
+                {{-- Profil --}}
                 <a href="{{ route('guru.profil') }}"
-                   class="flex flex-col items-center justify-center w-full h-full">
-                    <svg class="w-6 h-6 mb-1 {{ request()->routeIs('guru.profil') ? 'text-signal-blue' : 'text-slate-400' }}" fill="{{ request()->routeIs('guru.profil') ? 'currentColor' : 'none' }}" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                    </svg>
-                    <span class="text-[10px] font-medium {{ request()->routeIs('guru.profil') ? 'text-signal-blue' : 'text-slate-500' }}">Profil</span>
+                   class="flex flex-col items-center justify-center flex-1 gap-0.5 transition-colors
+                          {{ request()->routeIs('guru.profil') ? 'text-signal-blue' : 'text-slate-400 hover:text-slate-600' }}">
+                    @if(request()->routeIs('guru.profil'))
+                        {{-- Active: pill background --}}
+                        <div class="bg-signal-blue rounded-full px-4 py-1 flex flex-col items-center gap-0.5 -mt-1">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                <path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                            </svg>
+                            <span class="text-[10px] font-bold text-white">Profil</span>
+                        </div>
+                    @else
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                        </svg>
+                        <span class="text-[10px] font-semibold">Profil</span>
+                    @endif
                 </a>
 
             </div>
