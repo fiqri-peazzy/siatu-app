@@ -53,7 +53,7 @@ class JurnalExport implements FromCollection, WithHeadings, WithMapping
             Carbon::parse($jurnal->tanggal)->format('d/m/Y'),
             $jurnal->guru->nama_guru ?? '-',
             $jurnal->mapel->nama_mapel ?? '-',
-            $jurnal->kelas->nama_kelas ?? '-',
+            $jurnal->kelas->nama ?? '-',
             $jurnal->jam_ke,
             $jurnal->materi,
             $jurnal->kegiatan,

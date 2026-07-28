@@ -61,7 +61,7 @@
                 <td>{{ \Carbon\Carbon::parse($jurnal->tanggal)->format('d/m/Y') }}</td>
                 <td style="text-align: center;">{{ $jurnal->jam_ke }}</td>
                 <td>
-                    {{ $jurnal->kelas->nama_kelas ?? '-' }} <br>
+                    {{ $jurnal->kelas->nama ?? '-' }} <br>
                     <small>{{ $jurnal->mapel->nama_mapel ?? '-' }}</small>
                 </td>
                 <td>{{ $jurnal->materi }}</td>

@@ -49,7 +49,7 @@ class RiwayatJurnal extends Component
 
         $jurnals = $query->orderBy('tanggal', 'desc')->orderBy('jam_ke', 'asc')->paginate(10);
         
-        $kelasList = MasterKelas::orderBy('nama_kelas')->get();
+        $kelasList = MasterKelas::orderBy('nama')->get();
         $mapelList = MasterMapel::orderBy('nama_mapel')->get();
 
         return view('livewire.mobile.guru.riwayat-jurnal', [

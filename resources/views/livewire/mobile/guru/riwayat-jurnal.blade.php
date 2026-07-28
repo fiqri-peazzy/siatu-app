@@ -35,7 +35,7 @@
                 <select wire:model.live="filterKelas" class="w-full bg-slate-50 border-transparent focus:bg-white focus:border-indigo-500 rounded-xl text-sm p-2">
                     <option value="">Semua Kelas</option>
                     @foreach($kelasList as $kelas)
-                        <option value="{{ $kelas->id }}">{{ $kelas->nama_kelas }}</option>
+                        <option value="{{ $kelas->id }}">{{ $kelas->nama }}</option>
                     @endforeach
                 </select>
             </div>
@@ -69,7 +69,7 @@
                 
                 <div>
                     <h4 class="font-bold text-slate-800">{{ $jurnal->mapel->nama_mapel ?? '-' }}</h4>
-                    <p class="text-xs text-slate-500 font-medium">Kelas {{ $jurnal->kelas->nama_kelas ?? '-' }}</p>
+                    <p class="text-xs text-slate-500 font-medium">Kelas {{ $jurnal->kelas->nama ?? '-' }}</p>
                 </div>
                 
                 <div class="bg-slate-50 rounded-2xl p-3 text-sm text-slate-700">

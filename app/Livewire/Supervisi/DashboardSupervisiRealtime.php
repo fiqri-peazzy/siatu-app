@@ -67,7 +67,7 @@ class DashboardSupervisiRealtime extends Component
             $this->jadwalAktif[] = [
                 'id' => $jadwal->id,
                 'guru' => $jadwal->guru->nama_guru ?? '-',
-                'kelas' => $jadwal->kelas->nama_kelas ?? '-',
+                'kelas' => $jadwal->kelas->nama ?? '-',
                 'mapel' => $jadwal->mapel->nama_mapel ?? '-',
                 'jam_ke' => $jadwal->jam_ke,
                 'jam_mulai' => Carbon::parse($jadwal->jam_mulai)->format('H:i'),

@@ -23,7 +23,7 @@
                     </span>
                 </div>
                 <h3 class="font-bold text-xl leading-tight">{{ $jadwal->mapel->nama_mapel ?? '-' }}</h3>
-                <p class="text-indigo-200 text-sm mt-1">Kelas {{ $jadwal->kelas->nama_kelas ?? '-' }}</p>
+                <p class="text-indigo-200 text-sm mt-1">Kelas {{ $jadwal->kelas->nama ?? '-' }}</p>
             </div>
         </div>
     </div>
