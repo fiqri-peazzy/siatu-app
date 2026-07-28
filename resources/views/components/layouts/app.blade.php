@@ -24,9 +24,26 @@
         <!-- Flatpickr for Time/Date Pickers -->
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+        <!-- Custom Scrollbar for Sidebar -->
+        <style>
+            .custom-scrollbar::-webkit-scrollbar {
+                width: 4px;
+            }
+            .custom-scrollbar::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .custom-scrollbar::-webkit-scrollbar-thumb {
+                background-color: rgba(156, 163, 175, 0.4);
+                border-radius: 10px;
+            }
+            .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+                background-color: rgba(156, 163, 175, 0.8);
+            }
+        </style>
     </head>
     <body class="font-sans antialiased bg-background text-on-surface">
-        <div class="min-h-screen flex overflow-hidden bg-background" x-data="{ 
+        <div class="h-screen flex overflow-hidden bg-background" x-data="{ 
             sidebarOpen: false, 
             sidebarCollapsed: localStorage.getItem('sidebarCollapsed') === 'true',
             init() {
@@ -57,9 +74,10 @@
                         Dashboard
                     </x-nav-link>
                     
-                    <div class="pt-4 pb-2 px-2" :class="{ 'lg:text-center': sidebarCollapsed }">
-                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Administrasi</span>
-                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
+                    <div class="pt-5 pb-2 px-3 flex items-center gap-2" :class="{ 'lg:justify-center': sidebarCollapsed }">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Administrasi</span>
+                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
                     </div>
                     <x-nav-link href="{{ route('administrasi.surat-masuk.index') }}" :active="request()->routeIs('administrasi.surat-masuk.*')">
                         <x-slot:icon>
@@ -74,9 +92,10 @@
                         Surat Keluar
                     </x-nav-link>
               
-                    <div class="pt-4 pb-2 px-2" :class="{ 'lg:text-center': sidebarCollapsed }">
-                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Akademik</span>
-                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
+                    <div class="pt-5 pb-2 px-3 flex items-center gap-2" :class="{ 'lg:justify-center': sidebarCollapsed }">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Akademik</span>
+                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
                     </div>
                     
                     @if(auth()->user()->hasRole('guru'))
@@ -116,9 +135,10 @@
                         Jurnal Mengajar
                     </x-nav-link>
 
-                    <div class="pt-4 pb-2 px-2" :class="{ 'lg:text-center': sidebarCollapsed }">
-                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Manajemen</span>
-                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
+                    <div class="pt-5 pb-2 px-3 flex items-center gap-2" :class="{ 'lg:justify-center': sidebarCollapsed }">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Manajemen</span>
+                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
                     </div>
                     <x-nav-link href="#">
                         <x-slot:icon>
@@ -139,9 +159,10 @@
                         Kegiatan
                     </x-nav-link>
 
-                    <div class="pt-4 pb-2 px-2" :class="{ 'lg:text-center': sidebarCollapsed }">
-                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Data Master</span>
-                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
+                    <div class="pt-5 pb-2 px-3 flex items-center gap-2" :class="{ 'lg:justify-center': sidebarCollapsed }">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Data Master</span>
+                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
                     </div>
                     <x-nav-link href="{{ route('master.tahun-ajaran') }}" :active="request()->routeIs('master.tahun-ajaran')">
                         <x-slot:icon>
@@ -194,9 +215,10 @@
                         Pengaturan Lokasi
                     </x-nav-link>
 
-                    <div class="pt-4 pb-2 px-2" :class="{ 'lg:text-center': sidebarCollapsed }">
-                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Sistem</span>
-                        <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
+                    <div class="pt-5 pb-2 px-3 flex items-center gap-2" :class="{ 'lg:justify-center': sidebarCollapsed }">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Sistem</span>
+                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
                     </div>
                     <x-nav-link href="{{ route('sistem.user') }}" :active="request()->routeIs('sistem.user')">
                         <x-slot:icon>
