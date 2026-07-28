@@ -75,20 +75,54 @@ class TendikImport implements ToCollection, WithStartRow
                 $match['nama'] = $row[1];
             }
 
-            MasterTendik::updateOrCreate(
+            // Map Jabatan from "Jenis PTK" column (index 8)
+            $jenisPtkText = strtolower(trim($row[8] ?? ''));
+            $jabatan = \App\Enums\JabatanTendik::LAINNYA->value; // default
+            foreach (\App\Enums\JabatanTendik::cases() as $case) {
+                if (str_contains($jenisPtkText, strtolower($case->value)) || str_contains($jenisPtkText, strtolower($case->name))) {
+                    $jabatan = $case->value;
+                    break;
+                }
+            }
+
+            $tendik = MasterTendik::updateOrCreate(
                 $match,
                 [
-                    'nip_nik' => $nipNik,
-                    'nama' => $row[1],
-                    'jenis_kelamin' => (strtoupper(trim($row[3] ?? '')) === 'P') ? 'P' : 'L',
-                    'tempat_lahir' => $row[4],
-                    'tanggal_lahir' => $tanggalLahir,
-                    'status_kepegawaian' => $statusPegawai,
-                    'alamat' => $alamatLengkap,
-                    'no_hp' => $row[18],
-                    'email' => $row[19] ?? null,
+                    'nip_nik'           => $nipNik,
+                    'nama'              => $row[1],
+                    'jenis_kelamin'     => (strtoupper(trim($row[3] ?? '')) === 'P') ? 'P' : 'L',
+                    'tempat_lahir'      => $row[4] ?? null,
+                    'tanggal_lahir'     => $tanggalLahir,
+                    'status_kepegawaian'=> $statusPegawai,
+                    'jabatan'           => $jabatan,
+                    'alamat'            => $alamatLengkap,
+                    'no_hp'             => $row[18] ?? null,
+                    'email'             => $row[19] ?? null,
                 ]
             );
+
+            // Cascade User Creation
+            if (!$tendik->user_id && $tendik->email) {
+                // Determine role based on 'jabatan' or status. Defaulting to staf-tu.
+                $user = \App\Models\User::firstOrCreate(
+                    ['email' => $tendik->email],
+                    [
+                        'name' => $tendik->nama,
+                        'password' => \Illuminate\Support\Facades\Hash::make('password123'), // Default password
+                        'nip' => $tendik->nip_nik,
+                        'no_hp' => $tendik->no_hp,
+                    ]
+                );
+                
+                // Assign role if it's a new user
+                if ($user->wasRecentlyCreated) {
+                    $user->assignRole('staf-tu');
+                }
+
+                $tendik->user_id = $user->id;
+                $tendik->status_akun = \App\Enums\StatusAkun::AKTIF->value;
+                $tendik->save();
+            }
         }
     }
 }

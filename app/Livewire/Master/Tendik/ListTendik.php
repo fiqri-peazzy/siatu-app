@@ -117,6 +117,7 @@ class ListTendik extends Component
         ]);
         $this->status = \App\Enums\StatusPersonil::AKTIF->value;
         $this->status_akun = \App\Enums\StatusAkun::BELUM_ADA->value;
+        $this->isImportModalOpen = false;
         $this->isModalOpen = true;
     }
 
@@ -140,7 +141,7 @@ class ListTendik extends Component
         $this->status = $tendik->status?->value ?? \App\Enums\StatusPersonil::AKTIF->value;
         $this->user_id = $tendik->user_id;
         $this->status_akun = $tendik->status_akun?->value ?? \App\Enums\StatusAkun::BELUM_ADA->value;
-        
+        $this->isImportModalOpen = false;
         $this->isModalOpen = true;
     }
 
@@ -154,10 +155,36 @@ class ListTendik extends Component
             }
         }
 
-        MasterTendik::updateOrCreate(
+        $tendik = MasterTendik::updateOrCreate(
             ['id' => $this->editingId],
             $validatedData
         );
+
+        // Cascade User Creation if doesn't have user and has email
+        if (!$tendik->user_id && $tendik->email) {
+            $user = \App\Models\User::firstOrCreate(
+                ['email' => $tendik->email],
+                [
+                    'name' => $tendik->nama,
+                    'password' => \Illuminate\Support\Facades\Hash::make('password123'), // Default password
+                    'nip' => $tendik->nip_nik,
+                    'no_hp' => $tendik->no_hp,
+                ]
+            );
+            
+            if ($user->wasRecentlyCreated) {
+                // assign role based on jabatan if needed, default to staf-tu
+                $role = 'staf-tu';
+                if ($tendik->jabatan === \App\Enums\JabatanTendik::KEPALA_SEKOLAH) {
+                    $role = 'kepala-sekolah';
+                }
+                $user->assignRole($role);
+            }
+
+            $tendik->user_id = $user->id;
+            $tendik->status_akun = \App\Enums\StatusAkun::AKTIF->value;
+            $tendik->save();
+        }
 
         $this->isModalOpen = false;
         
@@ -172,7 +199,8 @@ class ListTendik extends Component
 
     public function openImportModal()
     {
-        $this->reset('importFile');
+        $this->isModalOpen = false;
+        $this->resetValidation();
         $this->isImportModalOpen = true;
     }
 
@@ -193,10 +221,11 @@ class ListTendik extends Component
         ]);
 
         try {
-            Excel::import(new TendikImport, $this->importFile);
+            Excel::import(new TendikImport, $this->importFile->getRealPath());
             $this->isImportModalOpen = false;
             session()->flash('success', 'Data tendik berhasil diimport.');
         } catch (\Exception $e) {
+            $this->isImportModalOpen = false;
             session()->flash('error', 'Terjadi kesalahan saat import data: ' . $e->getMessage());
         }
     }
