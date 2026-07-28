@@ -15,6 +15,8 @@ class MasterJadwalPelajaran extends Model
         'jam_mulai',
         'jam_selesai',
         'jam_ke',
+        'kategori_kegiatan',
+        'keterangan_kegiatan',
     ];
 
     public function tahunAjaran()
@@ -76,5 +78,27 @@ class MasterJadwalPelajaran extends Model
             ];
             return $times[$jamKe] ?? null;
         }
+    }
+
+    /**
+     * Get all unique time slots across the week in order.
+     */
+    public static function getAllTimeSlots()
+    {
+        return [
+            ['07:00', '07:45'],
+            ['07:15', '07:45'],
+            ['07:45', '08:15'],
+            ['08:15', '08:45'],
+            ['08:45', '09:15'],
+            ['09:15', '09:45'],
+            ['09:45', '10:15'], // Istirahat
+            ['10:15', '10:45'],
+            ['10:45', '11:15'],
+            ['11:15', '11:45'],
+            ['11:45', '13:00'], // Ishoma
+            ['13:00', '13:30'],
+            ['13:30', '14:00'],
+        ];
     }
 }

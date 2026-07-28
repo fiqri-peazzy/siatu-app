@@ -49,7 +49,7 @@
                 <table class="w-full text-center text-sm border-collapse">
                     <thead class="bg-surface-container-low text-on-surface-variant font-medium border-b border-outline-variant">
                         <tr>
-                            <th class="px-4 py-3 border-r border-outline-variant w-20">Jam Ke</th>
+                            <th class="px-4 py-3 border-r border-outline-variant w-24">Waktu</th>
                             @foreach($hariList as $hari)
                                 <th class="px-4 py-3 border-r border-outline-variant min-w-[200px]">{{ $hari }}</th>
                             @endforeach
@@ -57,25 +57,35 @@
                     </thead>
                     <tbody class="divide-y divide-outline-variant">
                         @php
-                            $maxJam = 10;
+                            $timeSlots = \App\Models\Master\MasterJadwalPelajaran::getAllTimeSlots();
                         @endphp
-                        @for($i = 1; $i <= $maxJam; $i++)
+                        @foreach($timeSlots as $index => $slot)
                         <tr class="hover:bg-surface-container-lowest transition-colors">
-                            <td class="px-4 py-4 border-r border-outline-variant font-bold text-on-surface bg-surface-container-lowest">
-                                {{ $i }}
+                            <td class="px-4 py-4 border-r border-outline-variant font-medium text-on-surface bg-surface-container-lowest whitespace-nowrap">
+                                {{ $slot[0] }} - {{ $slot[1] }}
                             </td>
                             @foreach($hariList as $hari)
                                 <td class="px-2 py-2 border-r border-outline-variant align-top relative group">
                                     @php
-                                        $jadwalList = $this->jadwals[$hari]->where('jam_ke', $i);
+                                        // Match events that start at exactly this slot's start time
+                                        $jadwalList = $this->jadwals[$hari]->filter(function($j) use ($slot) {
+                                            return substr($j->jam_mulai, 0, 5) === $slot[0];
+                                        });
                                     @endphp
 
                                     @if($jadwalList->count() > 0)
                                         @foreach($jadwalList as $jadwal)
-                                            <div class="bg-primary/10 border border-primary/20 rounded-lg p-3 text-left relative overflow-hidden mb-2 last:mb-0 hover:shadow-md transition-shadow">
-                                                <div class="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                                            <div class="border rounded-lg p-3 text-left relative overflow-hidden mb-2 last:mb-0 hover:shadow-md transition-shadow 
+                                                {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'bg-primary/10 border-primary/20' : 'bg-secondary/10 border-secondary/20' }}">
+                                                <div class="absolute top-0 left-0 w-1 h-full {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'bg-primary' : 'bg-secondary' }}"></div>
                                                 <div class="flex justify-between items-start mb-1">
-                                                    <span class="font-bold text-primary text-sm line-clamp-1">{{ $jadwal->mapel->nama }}</span>
+                                                    <span class="font-bold {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'text-primary' : 'text-secondary' }} text-sm line-clamp-1">
+                                                        @if($jadwal->kategori_kegiatan === 'pembelajaran')
+                                                            {{ $jadwal->mapel->nama }}
+                                                        @else
+                                                            {{ $jadwal->keterangan_kegiatan ?: strtoupper($jadwal->kategori_kegiatan) }}
+                                                        @endif
+                                                    </span>
                                                     <div class="flex gap-1">
                                                         <button wire:click="edit({{ $jadwal->id }})" class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Edit">
                                                             <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -89,12 +99,25 @@
                                                         </button>
                                                     </div>
                                                 </div>
+                                                
+                                                @if($jadwal->guru)
                                                 <div class="text-xs text-on-surface-variant flex items-center gap-1 mb-1 line-clamp-1" title="{{ $jadwal->guru->nama }}">
                                                     <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                     </svg>
                                                     {{ $jadwal->guru->nama }}
                                                 </div>
+                                                @endif
+                                                
+                                                @if($jadwal->kelas_id === null)
+                                                <div class="text-xs text-secondary flex items-center gap-1 mb-1 line-clamp-1">
+                                                    <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                                    </svg>
+                                                    Jadwal Global
+                                                </div>
+                                                @endif
+                                                
                                                 <div class="text-xs font-medium text-on-surface flex items-center gap-1">
                                                     <svg class="w-3 h-3 text-on-surface-variant flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -105,7 +128,7 @@
                                         @endforeach
                                     @endif
                                     
-                                    <button wire:click="create('{{ $hari }}', {{ $i }})" class="opacity-0 group-hover:opacity-100 absolute inset-0 w-full h-full flex items-center justify-center bg-surface-container-low/50 text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-all {{ $jadwalList->count() > 0 ? 'hidden' : '' }}" title="Tambah Jadwal">
+                                    <button wire:click="create('{{ $hari }}', '{{ $slot[0] }}', '{{ $slot[1] }}')" class="opacity-0 group-hover:opacity-100 absolute inset-0 w-full h-full flex items-center justify-center bg-surface-container-low/50 text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-all {{ $jadwalList->count() > 0 ? 'hidden' : '' }}" title="Tambah Jadwal">
                                         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                         </svg>
@@ -113,7 +136,7 @@
                                 </td>
                             @endforeach
                         </tr>
-                        @endfor
+                        @endforeach
                     </tbody>
                 </table>
             </div>
@@ -171,7 +194,7 @@
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
-                                <div>
+                                <div class="{{ $form_kategori_kegiatan === 'pembelajaran' ? '' : 'col-span-2' }}">
                                     <label class="block text-sm font-medium text-on-surface mb-1">Hari</label>
                                     <select wire:model.live="form_hari" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
                                         <option value="">Pilih Hari</option>
@@ -181,11 +204,13 @@
                                     </select>
                                     @error('form_hari') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                                 </div>
+                                @if($form_kategori_kegiatan === 'pembelajaran')
                                 <div>
                                     <label class="block text-sm font-medium text-on-surface mb-1">Jam Ke</label>
                                     <input type="number" min="1" max="10" wire:model.live="form_jam_ke" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow" placeholder="Contoh: 1">
                                     @error('form_jam_ke') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                                 </div>
+                                @endif
                             </div>
 
                             <div class="grid grid-cols-2 gap-4">
@@ -215,6 +240,35 @@
                             </div>
 
                             <div>
+                                <label class="block text-sm font-medium text-on-surface mb-1">Kategori Kegiatan</label>
+                                <select wire:model.live="form_kategori_kegiatan" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
+                                    <option value="pembelajaran">Pembelajaran (Mata Pelajaran)</option>
+                                    <option value="upacara">Upacara Bendera</option>
+                                    <option value="istirahat">Istirahat / Shalat Dhuha</option>
+                                    <option value="ishoma">ISHOMA</option>
+                                    <option value="ekstrakurikuler">Pembinaan Ekstrakurikuler</option>
+                                    <option value="pembinaan">Pembinaan Lainnya (ORTOM, dll)</option>
+                                </select>
+                                @error('form_kategori_kegiatan') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+
+                            @if($form_kategori_kegiatan !== 'pembelajaran')
+                            <div>
+                                <label class="block text-sm font-medium text-on-surface mb-1">Keterangan Kegiatan (Opsional)</label>
+                                <input type="text" wire:model="form_keterangan_kegiatan" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow" placeholder="Contoh: Pembinaan Ekstrakurikuler Olahraga">
+                                @error('form_keterangan_kegiatan') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
+                            </div>
+                            @endif
+
+                            @if($form_kategori_kegiatan !== 'pembelajaran')
+                            <div class="flex items-center mt-2">
+                                <input id="is_global" type="checkbox" wire:model="form_is_global" class="w-4 h-4 text-primary bg-surface-container-lowest border-outline-variant rounded focus:ring-primary focus:ring-2">
+                                <label for="is_global" class="ml-2 text-sm font-medium text-on-surface">Terapkan Ke Semua Kelas (Jadwal Global)</label>
+                            </div>
+                            @endif
+
+                            @if($form_kategori_kegiatan === 'pembelajaran')
+                            <div>
                                 <label class="block text-sm font-medium text-on-surface mb-1">Mata Pelajaran</label>
                                 <select wire:model="form_mapel_id" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
                                     <option value="">-- Pilih Mata Pelajaran --</option>
@@ -224,9 +278,11 @@
                                 </select>
                                 @error('form_mapel_id') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
+                            @endif
 
+                            @if($form_kategori_kegiatan === 'pembelajaran' || in_array($form_kategori_kegiatan, ['ekstrakurikuler', 'pembinaan']))
                             <div>
-                                <label class="block text-sm font-medium text-on-surface mb-1">Guru Pengajar</label>
+                                <label class="block text-sm font-medium text-on-surface mb-1">Guru Pengajar / Pembina</label>
                                 <select wire:model="form_guru_id" class="w-full px-4 py-2 rounded-lg border border-outline-variant bg-surface-container-lowest text-on-surface focus:ring-2 focus:ring-primary focus:border-primary focus:outline-none transition-shadow">
                                     <option value="">-- Pilih Guru --</option>
                                     @foreach($this->gurus as $guru)
@@ -235,6 +291,7 @@
                                 </select>
                                 @error('form_guru_id') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                             </div>
+                            @endif
                             
                             @error('conflict') 
                             <div class="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">
