@@ -268,13 +268,6 @@ class ListJadwal extends Component
                     'form_jam_mulai' => 'Guru ini sudah memiliki jadwal mengajar di kelas lain pada waktu tersebut.',
                 ]);
             }
-
-            // Rule 2: Same class cannot have different subjects at the same time
-            if (!$this->form_is_global && $conflict->kelas_id == $this->form_kelas_id) {
-                throw ValidationException::withMessages([
-                    'form_jam_mulai' => 'Kelas ini sudah memiliki jadwal pelajaran lain pada waktu tersebut.',
-                ]);
-            }
         }
 
         if (!$this->editingId && $this->form_kategori_kegiatan === 'pembelajaran' && $this->form_durasi_jp > 1) {
@@ -287,10 +280,11 @@ class ListJadwal extends Component
                     $times = MasterJadwalPelajaran::getDefaultTime($this->form_hari, $currentJamKe);
                     if (!$times) continue;
                     
-                    // Simple check if class already has schedule at this time
+                    // Simple check if same subject already exists at this time to prevent exact duplicates
                     $exists = MasterJadwalPelajaran::where('tahun_ajaran_id', $this->form_tahun_ajaran_id)
                         ->where('hari', $this->form_hari)
                         ->where('kelas_id', $this->form_kelas_id)
+                        ->where('mapel_id', $this->form_mapel_id)
                         ->where('jam_mulai', $times[0])
                         ->exists();
                         
@@ -339,19 +333,34 @@ class ListJadwal extends Component
         $jadwal = MasterJadwalPelajaran::find($id);
         if (!$jadwal) return;
 
-        // Check if target slot is already occupied for this class
-        $exists = MasterJadwalPelajaran::where('tahun_ajaran_id', $jadwal->tahun_ajaran_id)
+        // Check teacher conflict only
+        if ($jadwal->guru_id) {
+            $teacherConflict = MasterJadwalPelajaran::where('tahun_ajaran_id', $jadwal->tahun_ajaran_id)
+                ->where('hari', $targetHari)
+                ->where('guru_id', $jadwal->guru_id)
+                ->where(function ($q) use ($targetJamMulai, $targetJamSelesai) {
+                    $q->where(function ($q2) use ($targetJamMulai, $targetJamSelesai) {
+                        $q2->where('jam_mulai', '<', $targetJamSelesai)
+                           ->where('jam_selesai', '>', $targetJamMulai);
+                    });
+                })->exists();
+
+            if ($teacherConflict) {
+                session()->flash('error', 'Gagal menyalin: Guru sudah memiliki jadwal di kelas lain pada waktu tersebut.');
+                return;
+            }
+        }
+
+        // Check if EXACT same subject already exists to prevent duplicate identical cards
+        $exactDuplicate = MasterJadwalPelajaran::where('tahun_ajaran_id', $jadwal->tahun_ajaran_id)
             ->where('hari', $targetHari)
             ->where('kelas_id', $jadwal->kelas_id)
-            ->where(function ($q) use ($targetJamMulai, $targetJamSelesai) {
-                $q->where(function ($q2) use ($targetJamMulai, $targetJamSelesai) {
-                    $q2->where('jam_mulai', '<', $targetJamSelesai)
-                       ->where('jam_selesai', '>', $targetJamMulai);
-                });
-            })->exists();
-
-        if ($exists) {
-            session()->flash('error', 'Gagal menyalin: Slot waktu tujuan sudah terisi jadwal lain.');
+            ->where('mapel_id', $jadwal->mapel_id)
+            ->where('jam_mulai', $targetJamMulai)
+            ->exists();
+            
+        if ($exactDuplicate) {
+            session()->flash('error', 'Gagal menyalin: Jadwal mata pelajaran tersebut sudah ada di slot ini.');
             return;
         }
 
