@@ -1,252 +1,84 @@
-<div class="animate-fade-in-up pb-8">
+<div x-data="absensiLiveness($wire)" class="fixed inset-0 z-[9999] flex flex-col bg-[#121A2F] animate-fade-in" style="height: 100dvh;">
     
-    <!-- User Greeting Card -->
-    <div class="bg-white rounded-[2rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] mb-6 border border-slate-100/50 relative overflow-hidden">
-        <div class="absolute top-0 right-0 w-32 h-32 bg-indigo-50 rounded-bl-[4rem] -mr-10 -mt-10 opacity-70 z-0"></div>
+    <!-- Top Bar -->
+    <div class="px-5 pt-10 pb-4 flex items-center justify-between z-20 relative">
+        <div class="flex items-center gap-3">
+            <button type="button" @click="closeModalAndGoBack()" class="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            </button>
+            <div class="flex flex-col">
+                <span class="text-white font-bold text-[18px] leading-tight">Ambil Foto</span>
+                <span class="text-white font-bold text-[18px] leading-tight">Absen</span>
+            </div>
+        </div>
+        <div class="bg-white/10 rounded-full px-3 py-1.5 flex items-center gap-1.5 backdrop-blur-sm border border-white/5">
+            <svg class="w-3.5 h-3.5 text-rose-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
+            <span class="text-[10px] font-medium text-white tracking-wide" x-text="jarakTeks">...</span>
+        </div>
+    </div>
+    
+    <!-- Stepper Dots -->
+    <div class="flex justify-center items-center gap-3 mb-6 z-20 relative">
+        <div class="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
+        <div class="w-10 h-[1px] bg-indigo-400/30"></div>
+        <div class="w-2.5 h-2.5 rounded-full bg-indigo-400 ring-4 ring-indigo-400/30"></div>
+        <div class="w-10 h-[1px] bg-indigo-400/30"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-indigo-400/30"></div>
+    </div>
+    
+    <!-- Camera Area -->
+    <div class="flex-1 relative w-full h-full bg-[#121A2F] overflow-hidden">
         
-        <div class="relative z-10 flex items-start justify-between">
-            <div>
-                <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-widest mb-1">Selamat datang kembali</p>
-                <h2 class="text-xl font-extrabold text-slate-800">{{ auth()->user()->name }}</h2>
-                <p class="text-xs font-semibold text-indigo-600 mt-1 bg-indigo-50 inline-block px-2.5 py-1 rounded-full">{{ auth()->user()->guru?->jabatan ?? 'Guru' }}</p>
-            </div>
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center shadow-inner">
-                <span class="text-xl font-extrabold text-indigo-600">{{ substr(auth()->user()->name, 0, 1) }}</span>
-            </div>
+        <video x-ref="videoEl" autoplay muted playsinline class="absolute inset-0 z-0 w-full h-full object-cover transform scale-x-[-1]"></video>
+        
+        <!-- Solid Oval Face Guide Overlay -->
+        <div class="absolute inset-0 z-10 pointer-events-none flex items-center justify-center overflow-hidden">
+            <div class="w-[280px] h-[380px] rounded-[50%] border-4 border-[#3B65F3] shadow-[0_0_0_9999px_rgba(18,26,47,0.95)]"></div>
         </div>
         
-        <div class="mt-6 bg-slate-50/80 rounded-[1.25rem] p-4 flex items-center justify-between border border-slate-100/80 backdrop-blur-sm">
-            <div>
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Hari Ini</p>
-                <p class="text-sm font-bold text-slate-700">{{ \Carbon\Carbon::now()->translatedFormat('l, d F Y') }}</p>
+        <!-- Dynamic Outline for Face Box -->
+        <canvas x-ref="canvasEl" class="absolute inset-0 w-full h-full z-15 pointer-events-none"></canvas>
+        
+        <!-- Loading GPS / AI Overlay -->
+        <div x-show="modelLoading || loadingLokasi" class="absolute inset-0 bg-slate-900/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-white p-6 text-center">
+            <svg class="animate-spin w-12 h-12 text-indigo-500 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <p class="font-extrabold text-xl mb-2" x-text="loadingLokasi ? 'Melacak Lokasi...' : 'Memuat AI Model...'"></p>
+            <p class="text-sm text-slate-400 max-w-[250px]" x-text="loadingLokasi ? 'Mencari sinyal GPS akurasi tinggi.' : 'Sistem sedang mengkalibrasi neural network wajah Anda.'"></p>
+        </div>
+
+        <!-- UI Guidance Overlay -->
+        <div x-show="!modelLoading && !loadingLokasi && !verifikasiBerhasil" class="absolute inset-x-0 bottom-32 z-20 flex flex-col items-center justify-center pointer-events-none">
+            <div class="bg-[#1C2745]/90 backdrop-blur-md text-white px-6 py-3.5 rounded-2xl font-medium text-xs border border-white/5 shadow-2xl text-center mx-4 flex items-center gap-2" x-transition>
+                <span x-show="!faceDetected">Posisikan wajah Anda di dalam area oval</span>
+                <span x-show="faceDetected && !blinkDetected" class="text-indigo-300">Wajah terdeteksi. Silakan berkedip!</span>
             </div>
-            <div class="text-right">
-                <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Jam Aktif</p>
-                <p class="text-sm font-extrabold text-indigo-600" x-data="{ time: new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit', second:'2-digit'}) }" x-init="setInterval(() => time = new Date().toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit', second:'2-digit'}), 1000)" x-text="time"></p>
+        </div>
+
+        <!-- Error GPS Overlay -->
+        <div x-show="errorLokasi" style="display: none;" class="absolute inset-0 bg-rose-900/95 backdrop-blur-md z-40 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
+            <div class="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center shadow-2xl mb-6 ring-8 ring-rose-500/30">
+                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
             </div>
+            <h3 class="font-extrabold text-2xl drop-shadow-md mb-2">Lokasi Tidak Valid</h3>
+            <p class="text-rose-200 text-sm max-w-[280px] mb-8" x-text="pesanErrorLokasi"></p>
+            <button type="button" @click="closeModalAndGoBack()" class="bg-white text-rose-600 px-6 py-3 rounded-full font-bold text-sm shadow-lg active:scale-95 transition-all">
+                Kembali
+            </button>
+        </div>
+
+        <!-- Success Overlay -->
+        <div x-show="verifikasiBerhasil" style="display: none;" class="absolute inset-0 bg-[#121A2F]/95 backdrop-blur-md z-30 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
+            <div class="w-24 h-24 bg-[#3B65F3] rounded-full flex items-center justify-center shadow-2xl mb-6 scale-up-center ring-8 ring-[#3B65F3]/30">
+                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+            </div>
+            <h3 class="font-extrabold text-2xl drop-shadow-md mb-2">Absensi Berhasil!</h3>
+            <p class="text-indigo-200 text-sm">Menyimpan data kehadiran Anda...</p>
         </div>
     </div>
-
-    <!-- Status Absensi Hari Ini -->
-    <div class="grid grid-cols-2 gap-4 mb-8">
-        <!-- Card Absen Masuk -->
-        <div class="bg-white rounded-[2rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/50 flex flex-col relative overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] {{ $absenMasuk ? 'border-indigo-100 bg-gradient-to-b from-white to-indigo-50/40' : '' }}">
-            @if($absenMasuk) <div class="absolute -right-6 -top-6 w-24 h-24 rounded-full bg-emerald-50 opacity-80 z-0"></div> @endif
-            
-            <div class="relative z-10 w-10 h-10 rounded-[1.15rem] flex items-center justify-center mb-4 {{ $absenMasuk ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-50 text-slate-400 border border-slate-100' }}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"></path></svg>
-            </div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Absen Masuk</p>
-            
-            @if($absenMasuk)
-                <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ \Carbon\Carbon::parse($absenMasuk->waktu_absen)->format('H:i') }}</p>
-                <div class="mt-2 flex items-center">
-                    <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full {{ $absenMasuk->status === 'hadir' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700' }}">
-                        <span class="w-1.5 h-1.5 rounded-full {{ $absenMasuk->status === 'hadir' ? 'bg-emerald-500' : 'bg-rose-500' }}"></span>
-                        {{ strtoupper($absenMasuk->status) }}
-                    </span>
-                </div>
-            @else
-                <p class="text-lg font-bold text-slate-300 italic mt-auto tracking-tight">Belum Absen</p>
-            @endif
-        </div>
-
-        <!-- Card Absen Pulang -->
-        <div class="bg-white rounded-[2rem] p-5 shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-slate-100/50 flex flex-col relative overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.32,0.72,0,1)] {{ $absenPulang ? 'border-emerald-100 bg-gradient-to-b from-white to-emerald-50/40' : '' }}">
-            <div class="relative z-10 w-10 h-10 rounded-[1.15rem] flex items-center justify-center mb-4 {{ $absenPulang ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-50 text-slate-400 border border-slate-100' }}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-            </div>
-            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Absen Pulang</p>
-            
-            @if($absenPulang)
-                <p class="text-2xl font-extrabold text-slate-800 tracking-tight">{{ \Carbon\Carbon::parse($absenPulang->waktu_absen)->format('H:i') }}</p>
-                <div class="mt-2 flex items-center">
-                    <span class="inline-flex items-center gap-1.5 text-[10px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700">
-                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                        SELESAI
-                    </span>
-                </div>
-            @else
-                <p class="text-lg font-bold text-slate-300 italic mt-auto tracking-tight">Belum Absen</p>
-            @endif
-        </div>
-    </div>
-
-    <!-- Live Liveness & Geolocation Section -->
-    <div class="bg-white rounded-[2.5rem] p-2 ring-1 ring-slate-100 shadow-[0_8px_40px_rgb(0,0,0,0.06)]">
-        <div class="bg-slate-50/50 rounded-[calc(2.5rem-8px)] p-6 sm:p-8 relative overflow-hidden">
-            
-            @if(!$absenMasuk || !$absenPulang)
-                <div class="text-center mb-8">
-                    <span class="rounded-full px-3 py-1 text-[9px] uppercase tracking-[0.2em] font-bold text-indigo-500 bg-indigo-50 ring-1 ring-indigo-500/20 mb-3 inline-block">Proses Autentikasi</span>
-                    <h3 class="text-2xl font-extrabold text-slate-800 tracking-tight mb-2">
-                        {{ !$absenMasuk ? 'Absensi Masuk' : 'Absensi Pulang' }}
-                    </h3>
-                  
-                </div>
-                
-                <div x-data="absensiLiveness($wire)" class="space-y-6 relative z-10">
-
-                    <!-- Location Tracking State -->
-                    <div x-show="!lokasiDitemukan" class="flex flex-col items-center justify-center p-6 bg-white rounded-[2rem] border border-slate-100 shadow-sm text-center">
-                        <div class="w-16 h-16 rounded-full bg-indigo-50 flex items-center justify-center mb-4 text-indigo-500 relative">
-                            <span x-show="loadingLokasi" class="absolute inset-0 rounded-full border-2 border-indigo-200 border-t-indigo-500 animate-spin"></span>
-                            <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
-                        </div>
-                        <h4 class="font-bold text-slate-800 text-lg mb-1" x-text="loadingLokasi ? 'Mencari Sinyal GPS...' : 'GPS Belum Aktif'"></h4>
-                        <p class="text-xs text-slate-500 mb-6" x-text="loadingLokasi ? 'Mohon tunggu, memastikan Anda di area sekolah.' : 'Tekan tombol di bawah untuk melacak lokasi Anda.'"></p>
-                        
-                        <button type="button" @click="mulaiLacakLokasi()" x-show="!loadingLokasi"
-                                class="w-full bg-slate-900 text-white rounded-full py-3.5 font-bold text-sm shadow-[0_8px_20px_rgb(0,0,0,0.15)] active:scale-95 transition-all">
-                            Lacak Lokasi Sekarang
-                        </button>
-                    </div>
-
-                    <!-- Geolocation Success -->
-                    <div x-show="lokasiDitemukan" style="display: none;" class="animate-fade-in-up">
-                        <div class="bg-white rounded-[1.5rem] p-4 mb-6 border border-emerald-100 shadow-sm flex flex-col gap-3">
-                            <div class="flex items-start gap-3 border-b border-slate-100 pb-3">
-                                <div class="bg-emerald-100 text-emerald-600 rounded-[1rem] w-10 h-10 flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold text-emerald-800">Sinyal GPS Terkunci</p>
-                                    <p class="text-[11px] text-emerald-600/80 font-medium mt-0.5 flex items-center gap-1">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                                        Akurasi Tinggi
-                                    </p>
-                                </div>
-                            </div>
-                            <div class="px-2">
-                                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Estimasi Lokasi Anda</p>
-                                <p class="text-xs font-semibold text-slate-700 leading-relaxed" x-text="alamatDetail">Memuat alamat rinci...</p>
-                            </div>
-                        </div>
-                        
-                        @if($pesanErrorLokasi)
-                            <div class="bg-rose-50 border border-rose-100 rounded-[1.5rem] p-4 mb-6 flex items-start gap-3">
-                                <div class="bg-rose-100 text-rose-600 rounded-[1rem] w-10 h-10 flex items-center justify-center shrink-0">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path></svg>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-bold text-rose-800">Di Luar Area</p>
-                                    <p class="text-xs text-rose-600 mt-0.5 font-medium">{{ $pesanErrorLokasi }}</p>
-                                </div>
-                            </div>
-                        @else
-                            @if($dalamRadius)
-                            <div class="mb-4">
-                                <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 pl-1">Catatan Tambahan (Opsional)</label>
-                                <textarea wire:model="keterangan" rows="2" placeholder="Cth: Lupa bawa jas lab..." class="w-full rounded-2xl border-0 ring-1 ring-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-shadow resize-none shadow-sm placeholder:text-slate-300"></textarea>
-                                @error('keterangan') <span class="text-rose-500 font-bold text-xs mt-2 block pl-1">{{ $message }}</span> @enderror
-                            </div>
-                            <button type="button" @click="openModal()" class="w-full bg-indigo-600 text-white rounded-full py-4 font-bold text-sm shadow-[0_8px_20px_rgba(99,102,241,0.25)] hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                                Lanjutkan ke Presensi Wajah
-                            </button>
-                            @endif
-                        @endif
-                        
-                        <!-- Face Recognition Liveness Modal (Mobile Responsive) -->
-                        <template x-teleport="body">
-                            <div x-show="showLivenessModal" style="display: none;" class="fixed inset-0 z-[9999] flex flex-col bg-[#121A2F] animate-fade-in">
-                                <div class="px-5 pt-10 pb-4 flex items-center justify-between z-20 relative">
-                                    <div class="flex items-center gap-3">
-                                        <button type="button" @click="closeModal()" class="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors">
-                                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                                        </button>
-                                        <div class="flex flex-col">
-                                            <span class="text-white font-bold text-[18px] leading-tight">Ambil Foto</span>
-                                            <span class="text-white font-bold text-[18px] leading-tight">Absen</span>
-                                        </div>
-                                    </div>
-                                    <div class="bg-white/10 rounded-full px-3 py-1.5 flex items-center gap-1.5 backdrop-blur-sm border border-white/5">
-                                        <svg class="w-3.5 h-3.5 text-rose-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
-                                        <span class="text-[10px] font-medium text-white tracking-wide">{{ $jarak ? $jarak . 'm' : '...' }} dari sekolah</span>
-                                    </div>
-                                </div>
-                                
-                                <div class="flex justify-center items-center gap-3 mb-6 z-20 relative">
-                                    <div class="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
-                                    <div class="w-10 h-[1px] bg-indigo-400/30"></div>
-                                    <div class="w-2.5 h-2.5 rounded-full bg-indigo-400 ring-4 ring-indigo-400/30"></div>
-                                    <div class="w-10 h-[1px] bg-indigo-400/30"></div>
-                                    <div class="w-1.5 h-1.5 rounded-full bg-indigo-400/30"></div>
-                                </div>
-                                
-                                <div class="flex-1 relative w-full h-full bg-[#121A2F] overflow-hidden">
-                                    
-                                    <video id="webcam-video" autoplay muted playsinline class="absolute inset-0 w-full h-full object-cover transform scale-x-[-1]"></video>
-                                    
-                                    <!-- Oval Face Guide Overlay -->
-                                    <div class="absolute inset-0 z-10 pointer-events-none" style="background: radial-gradient(ellipse 75% 55% at 50% 45%, transparent 45%, #121A2F 55%);"></div>
-                                    
-                                    <!-- Dynamic Outline for Face Box -->
-                                    <canvas id="overlay-canvas" class="absolute inset-0 w-full h-full z-15 pointer-events-none"></canvas>
-                                    
-                                    <!-- Loading AI Overlay -->
-                                    <div x-show="modelLoading" class="absolute inset-0 bg-slate-900/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-white p-6 text-center">
-                                        <svg class="animate-spin w-12 h-12 text-indigo-500 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                                        <p class="font-extrabold text-xl mb-2">Memuat AI Model...</p>
-                                        <p class="text-sm text-slate-400 max-w-[250px]">Sistem sedang mengkalibrasi neural network wajah Anda.</p>
-                                    </div>
     
-                                    <!-- UI Guidance Overlay -->
-                                    <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-32 z-20 flex flex-col items-center justify-center pointer-events-none">
-                                        <div class="bg-[#1C2745]/90 backdrop-blur-md text-white px-6 py-3.5 rounded-2xl font-medium text-xs border border-white/5 shadow-2xl text-center mx-4 flex items-center gap-2" x-transition>
-                                            <span x-show="!faceDetected">Posisikan wajah Anda di dalam area oval</span>
-                                            <span x-show="faceDetected && !blinkDetected" class="text-indigo-300">Wajah terdeteksi. Silakan berkedip!</span>
-                                        </div>
-                                    </div>
-    
-                                    <!-- Shutter Button Placeholder (Cosmetic as per reference) -->
-                                    <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-10 z-20 flex items-center justify-between px-10 pointer-events-none">
-                                        <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm">
-                                            <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                                        </div>
-                                        <div class="w-20 h-20 rounded-full border-4 border-[#3B65F3] p-1 pointer-events-auto active:scale-95 transition-transform cursor-pointer flex items-center justify-center" @click="faceDetected && blinkDetected ? triggerSuccessCapture() : null">
-                                            <div class="w-full h-full rounded-full bg-white/20 backdrop-blur-md"></div>
-                                        </div>
-                                        <div class="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center backdrop-blur-sm">
-                                            <svg class="w-5 h-5 text-white/50" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                                        </div>
-                                    </div>
-    
-                                    <!-- Success Overlay (Keeps matching style) -->
-                                    <div x-show="verifikasiBerhasil" class="absolute inset-0 bg-[#121A2F]/95 backdrop-blur-md z-30 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
-                                        <div class="w-24 h-24 bg-[#3B65F3] rounded-full flex items-center justify-center shadow-2xl mb-6 scale-up-center ring-8 ring-[#3B65F3]/30">
-                                            <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-                                        </div>
-                                        <h3 class="font-extrabold text-2xl drop-shadow-md mb-2">Absensi Berhasil!</h3>
-                                        <p class="text-indigo-200 text-sm">Menyimpan data kehadiran Anda...</p>
-                                    </div>
-                                </div>
-                                @error('foto') <span class="absolute top-24 inset-x-0 text-center text-rose-500 font-bold text-sm bg-rose-100/90 py-2 z-50">{{ $message }}</span> @enderror
-                            </div>
-                        </template>
-                        
-                        <!-- Event Listener for success redirect -->
-                        <script>
-                            window.addEventListener('absensi:success', () => {
-                                setTimeout(() => {
-                                    window.location.href = "{{ route('guru.dashboard') }}";
-                                }, 1500);
-                            });
-                        </script>
-                    </div>
-                </div>
-                
-            @else
-                <div class="text-center py-10">
-                    <div class="w-24 h-24 bg-emerald-50 rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-inner ring-1 ring-emerald-100/50">
-                        <svg class="w-10 h-10 text-emerald-500 drop-shadow-sm" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                    </div>
-                    <h3 class="text-2xl font-extrabold text-slate-800 mb-2 tracking-tight">Tugas Selesai!</h3>
-                    <p class="text-sm text-slate-500 font-medium leading-relaxed max-w-[250px] mx-auto">Anda sudah melengkapi absensi masuk dan pulang hari ini. Selamat beristirahat.</p>
-                </div>
-            @endif
-        </div>
-    </div>
+    @error('foto') <div class="absolute top-24 inset-x-4 bg-rose-500/90 backdrop-blur-sm text-white rounded-xl p-4 shadow-xl z-50 text-center font-medium text-sm">{{ $message }}</div> @enderror
+    @error('latitude') <div class="absolute top-24 inset-x-4 bg-rose-500/90 backdrop-blur-sm text-white rounded-xl p-4 shadow-xl z-50 text-center font-medium text-sm">Lokasi GPS tidak valid. Pastikan GPS aktif.</div> @enderror
+    @error('keterangan') <div class="absolute top-24 inset-x-4 bg-rose-500/90 backdrop-blur-sm text-white rounded-xl p-4 shadow-xl z-50 text-center font-medium text-sm">{{ $message }}</div> @enderror
 
     <!-- Load face-api.js from CDN -->
     @assets
@@ -256,12 +88,10 @@
     <script>
     document.addEventListener('alpine:init', () => {
         Alpine.data('absensiLiveness', (wire) => ({
-            lokasiDitemukan: false,
-            loadingLokasi: false,
-            alamatDetail: 'Sedang melacak alamat...',
-            
-            // Modal States
-            showLivenessModal: false,
+            loadingLokasi: true,
+            errorLokasi: false,
+            pesanErrorLokasi: '',
+            jarakTeks: 'Mencari...',
             
             // Face AI States
             modelLoading: true,
@@ -274,31 +104,18 @@
             blinkHistory: [],
             isCapturing: false,
             
-            init() {
-                // Auto-open camera modal as requested
-                this.openModal();
-                
-                this.lokasiDitemukan = wire.get('latitude') ? true : false;
-                if (this.lokasiDitemukan) {
-                    // Fetch address
-                    this.fetchAddress(wire.get('latitude'), wire.get('longitude'));
-                    wire.call('cekLokasi');
-                } else {
-                    this.mulaiLacakLokasi();
-                }
-            },
-            
-            openModal() {
-                this.showLivenessModal = true;
+            async init() {
+                // Initialize both AI and GPS concurrently
                 this.initFaceApi();
+                this.mulaiLacakLokasi();
             },
             
-            closeModal() {
-                this.showLivenessModal = false;
+            closeModalAndGoBack() {
                 if (this.stream) {
                     this.stream.getTracks().forEach(track => track.stop());
                 }
                 if (this.detectionInterval) clearInterval(this.detectionInterval);
+                window.location.href = "{{ route('guru.dashboard') }}";
             },
             
             mulaiLacakLokasi() {
@@ -310,181 +127,192 @@
                             const lon = position.coords.longitude;
                             wire.set('latitude', lat);
                             wire.set('longitude', lon);
-                            this.lokasiDitemukan = true;
-                            this.loadingLokasi = false;
                             
-                            this.fetchAddress(lat, lon);
-                            
-                            // Validasi Jarak di Backend
-                            await wire.call('cekLokasi');
+                            try {
+                                // Validasi Jarak di Backend
+                                const result = await wire.cekLokasi();
+                                // if cekLokasi fails, Livewire might throw or return.
+                                // We rely on Livewire property updates or dispatch events.
+                                // Let's check Livewire properties if possible, or wait for Livewire to dispatch
+                                this.loadingLokasi = false;
+                            } catch (e) {
+                                this.loadingLokasi = false;
+                                this.errorLokasi = true;
+                                this.pesanErrorLokasi = "Gagal memvalidasi lokasi dengan server.";
+                            }
                         },
                         (error) => {
                             this.loadingLokasi = false;
-                        let msg = 'Gagal mendapatkan lokasi.';
-                        if (error.code == 1) msg = 'Akses lokasi ditolak. Aktifkan GPS dan izinkan browser mengakses lokasi.';
-                        else if (error.code == 2) msg = 'Posisi tidak tersedia.';
-                        else if (error.code == 3) msg = 'Waktu habis.';
-                        Swal.fire('Error GPS', msg, 'error');
-                    },
-                    { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
-                );
-            } else {
-                this.loadingLokasi = false;
-                Swal.fire('Error', 'Perangkat tidak mendukung GPS.', 'error');
-            }
-        },
-
-        async fetchAddress(lat, lon) {
-            if (!lat || !lon) return;
-            try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
-                const data = await response.json();
-                if (data && data.display_name) {
-                    this.alamatDetail = data.display_name;
-                }
-            } catch (e) {
-                this.alamatDetail = `Koordinat: ${lat.toFixed(5)}, ${lon.toFixed(5)} (Gagal memuat alamat)`;
-            }
-        },
-
-        async initFaceApi() {
-            this.videoEl = document.getElementById('webcam-video');
-            try {
-                // Load tiny face detector and landmarks models from CDN
-                const modelUrl = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl)
-                ]);
-                this.modelLoading = false;
-                this.startVideo();
-            } catch (err) {
-                console.error(err);
-                Swal.fire('Error AI', 'Gagal memuat model deteksi wajah. Periksa koneksi internet.', 'error');
-            }
-        },
-
-        async startVideo() {
-            try {
-                this.stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
-                });
-                this.videoEl.srcObject = this.stream;
-                
-                this.videoEl.addEventListener('play', () => {
-                    this.startDetection();
-                });
-            } catch (err) {
-                console.error(err);
-                Swal.fire('Error Kamera', 'Gagal mengakses kamera depan.', 'error');
-            }
-        },
-
-        startDetection() {
-            const canvas = document.getElementById('overlay-canvas');
-            const displaySize = { width: this.videoEl.clientWidth, height: this.videoEl.clientHeight };
-            faceapi.matchDimensions(canvas, displaySize);
-
-            this.detectionInterval = setInterval(async () => {
-                if (this.verifikasiBerhasil || this.isCapturing) return;
-
-                const detections = await faceapi.detectSingleFace(this.videoEl, new faceapi.TinyFaceDetectorOptions())
-                    .withFaceLandmarks();
-
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                if (detections) {
-                    this.faceDetected = true;
-                    
-                    // Draw box slightly to show it's tracking
-                    const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                    
-                    // Optional: draw mesh. faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-                    // Draw a custom box
-                    const box = resizedDetections.detection.box;
-                    ctx.strokeStyle = '#6366f1'; // Indigo-500
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(box.x, box.y, box.width, box.height);
-
-                    // Liveness Detection (Blink - Eye Aspect Ratio)
-                    const landmarks = detections.landmarks;
-                    const leftEye = landmarks.getLeftEye();
-                    const rightEye = landmarks.getRightEye();
-                    
-                    const leftEAR = this.calculateEAR(leftEye);
-                    const rightEAR = this.calculateEAR(rightEye);
-                    const avgEAR = (leftEAR + rightEAR) / 2;
-
-                    // Push to history
-                    this.blinkHistory.push(avgEAR);
-                    if (this.blinkHistory.length > 5) this.blinkHistory.shift();
-
-                    // Detect blink (drops below 0.28 and then goes up)
-                    // Loosened threshold for easier detection on mobile cameras
-                    const isBlinking = avgEAR < 0.28;
-                    const wasNotBlinking = this.blinkHistory[0] > 0.30;
-
-                    if (isBlinking && wasNotBlinking) {
-                        this.isCapturing = true;
-                        this.blinkDetected = true;
-                        // Delay 600ms to allow user to open their eyes fully before capturing
-                        setTimeout(() => {
-                            this.triggerSuccessCapture();
-                        }, 600);
-                    }
-
+                            this.errorLokasi = true;
+                            let msg = 'Gagal mendapatkan lokasi.';
+                            if (error.code == 1) msg = 'Akses lokasi ditolak. Aktifkan GPS dan izinkan browser mengakses lokasi.';
+                            else if (error.code == 2) msg = 'Posisi tidak tersedia.';
+                            else if (error.code == 3) msg = 'Waktu habis.';
+                            this.pesanErrorLokasi = msg;
+                        },
+                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                    );
                 } else {
-                    this.faceDetected = false;
-                    // Reset history if face is lost
-                    this.blinkHistory = [];
+                    this.loadingLokasi = false;
+                    this.errorLokasi = true;
+                    this.pesanErrorLokasi = 'Perangkat tidak mendukung GPS.';
                 }
-            }, 80);
-        },
+            },
 
-        calculateEAR(eye) {
-            // Euclidean distances
-            const v1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
-            const v2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
-            const h = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
-            return (v1 + v2) / (2.0 * h);
-        },
+            async initFaceApi() {
+                this.videoEl = this.$refs.videoEl;
+                try {
+                    const modelUrl = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
+                    await Promise.all([
+                        faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl),
+                        faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl)
+                    ]);
+                    this.modelLoading = false;
+                    this.startVideo();
+                } catch (err) {
+                    console.error(err);
+                    Swal.fire('Error AI', 'Gagal memuat model deteksi wajah. Periksa koneksi internet.', 'error');
+                }
+            },
+
+            async startVideo() {
+                try {
+                    this.stream = await navigator.mediaDevices.getUserMedia({ 
+                        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
+                    });
+                    this.videoEl.srcObject = this.stream;
+                    
+                    this.videoEl.addEventListener('play', () => {
+                        this.startDetection();
+                    });
+                    
+                    await this.videoEl.play();
+                } catch (err) {
+                    console.warn("Kamera depan (user) gagal, mencoba fallback ke kamera default...", err);
+                    try {
+                        this.stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        this.videoEl.srcObject = this.stream;
+                        
+                        this.videoEl.addEventListener('play', () => {
+                            this.startDetection();
+                        });
+                        
+                        await this.videoEl.play();
+                    } catch (fallbackErr) {
+                        console.error("Kamera tetap gagal diakses:", fallbackErr);
+                        Swal.fire({
+                            title: 'Kamera Diblokir/Tidak Ditemukan',
+                            html: 'Gagal mengakses kamera. Silakan cek:<br>1. <b>Izin kamera</b> di browser (klik ikon gembok dekat URL)<br>2. Pastikan kamera <b>tidak sedang dipakai</b> oleh aplikasi lain.',
+                            icon: 'error',
+                            confirmButtonText: 'Kembali'
+                        }).then(() => {
+                            this.closeModalAndGoBack();
+                        });
+                    }
+                }
+            },
+
+            startDetection() {
+                const canvas = this.$refs.canvasEl;
+                const displaySize = { width: this.videoEl.clientWidth, height: this.videoEl.clientHeight };
+                faceapi.matchDimensions(canvas, displaySize);
+
+                this.detectionInterval = setInterval(async () => {
+                    if (this.verifikasiBerhasil || this.isCapturing) return;
+
+                    const detections = await faceapi.detectSingleFace(this.videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
+
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+                    if (detections) {
+                        this.faceDetected = true;
+                        
+                        const resizedDetections = faceapi.resizeResults(detections, displaySize);
+                        const box = resizedDetections.detection.box;
+                        ctx.strokeStyle = '#6366f1';
+                        ctx.lineWidth = 2;
+                        ctx.strokeRect(box.x, box.y, box.width, box.height);
+
+                        const landmarks = detections.landmarks;
+                        const leftEye = landmarks.getLeftEye();
+                        const rightEye = landmarks.getRightEye();
+                        
+                        const leftEAR = this.calculateEAR(leftEye);
+                        const rightEAR = this.calculateEAR(rightEye);
+                        const avgEAR = (leftEAR + rightEAR) / 2;
+
+                        this.blinkHistory.push(avgEAR);
+                        if (this.blinkHistory.length > 5) this.blinkHistory.shift();
+
+                        const isBlinking = avgEAR < 0.28;
+                        const wasNotBlinking = this.blinkHistory[0] > 0.30;
+
+                        if (isBlinking && wasNotBlinking) {
+                            if (!this.errorLokasi && !this.loadingLokasi) {
+                                this.isCapturing = true;
+                                this.blinkDetected = true;
+                                setTimeout(() => {
+                                    this.triggerSuccessCapture();
+                                }, 600);
+                            }
+                        }
+                    } else {
+                        this.faceDetected = false;
+                        this.blinkHistory = [];
+                    }
+                }, 80);
+            },
+
+            calculateEAR(eye) {
+                const v1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
+                const v2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
+                const h = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
+                return (v1 + v2) / (2.0 * h);
+            },
 
             triggerSuccessCapture() {
-                this.blinkDetected = true;
                 this.verifikasiBerhasil = true;
                 clearInterval(this.detectionInterval);
                 
-                // Capture frame from video
                 const canvas = document.createElement('canvas');
                 canvas.width = this.videoEl.videoWidth;
                 canvas.height = this.videoEl.videoHeight;
                 const ctx = canvas.getContext('2d');
                 
-                // Draw image directly (without mirroring) to prevent out-of-bounds black canvas bug
                 ctx.drawImage(this.videoEl, 0, 0, canvas.width, canvas.height);
-                
                 const base64Image = canvas.toDataURL('image/jpeg', 0.8);
                 
-                // Stop camera
                 this.stream.getTracks().forEach(track => track.stop());
                 
-                // Send to Livewire
                 wire.set('foto', base64Image);
-                
-                // Wait for GPS if not yet found before submitting
-                const submitWhenReady = () => {
-                    if (this.lokasiDitemukan) {
-                        wire.call('submitAbsen');
-                    } else {
-                        // Show some status if taking too long?
-                        setTimeout(submitWhenReady, 500);
-                    }
-                };
-                
-                setTimeout(submitWhenReady, 500);
+                wire.call('submitAbsen');
             }
         }));
+    });
+    
+    // Catch Livewire events for distance updates or errors
+    window.addEventListener('jarak-updated', (event) => {
+        let jarak = event.detail[0].jarak;
+        let pwaElement = document.querySelector('[x-data="absensiLiveness"]');
+        if(pwaElement && pwaElement.__x) {
+            pwaElement.__x.$data.jarakTeks = jarak + 'm';
+        }
+    });
+
+    window.addEventListener('lokasi-error', (event) => {
+        let errorMsg = event.detail[0].message;
+        let pwaElement = document.querySelector('[x-data="absensiLiveness"]');
+        if(pwaElement && pwaElement.__x) {
+            pwaElement.__x.$data.errorLokasi = true;
+            pwaElement.__x.$data.pesanErrorLokasi = errorMsg;
+        }
+    });
+
+    window.addEventListener('absensi:success', () => {
+        setTimeout(() => {
+            window.location.href = "{{ route('guru.dashboard') }}";
+        }, 1500);
     });
     </script>
 </div>
