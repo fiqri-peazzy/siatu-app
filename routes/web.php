@@ -160,6 +160,7 @@ Route::middleware('auth')->group(function () {
         
         // Monitoring (Web Dashboard)
         Route::get('/absensi/monitoring', \App\Livewire\Absensi\DashboardAbsensiHariIni::class)->name('absensi.monitoring');
+        Route::get('/absensi/tendik/monitoring', \App\Livewire\Absensi\Tendik\DashboardAbsensiTendik::class)->name('absensi.tendik.monitoring');
     });
 
     // Sistem / Pengaturan (Hanya Super Admin & Admin TU)
