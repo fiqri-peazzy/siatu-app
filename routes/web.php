@@ -150,8 +150,15 @@ Route::middleware('auth')->group(function () {
 
     // Akademik / Absensi
     Route::prefix('akademik')->name('akademik.')->group(function () {
+        // Guru
         Route::get('/absensi/absen-sekarang', \App\Livewire\Absensi\Guru\FormAbsensi::class)->name('absensi.guru.form');
         Route::get('/absensi/riwayat', \App\Livewire\Absensi\Guru\RiwayatAbsensi::class)->name('absensi.guru.riwayat');
+        
+        // Tendik (Staf/Admin)
+        Route::get('/absensi/tendik/absen-sekarang', \App\Livewire\Absensi\Tendik\FormAbsensi::class)->name('absensi.tendik.form');
+        Route::get('/absensi/tendik/riwayat', \App\Livewire\Absensi\Tendik\RiwayatAbsensi::class)->name('absensi.tendik.riwayat');
+        
+        // Monitoring (Web Dashboard)
         Route::get('/absensi/monitoring', \App\Livewire\Absensi\DashboardAbsensiHariIni::class)->name('absensi.monitoring');
     });
 

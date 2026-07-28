@@ -92,4 +92,33 @@ class AbsensiService
 
         return $absen;
     }
+    public function catatAbsenTendik(array $data, mixed $foto = null): \App\Models\AbsensiTendik
+    {
+        $absen = \App\Models\AbsensiTendik::create($data);
+
+        if ($foto) {
+            $path = '';
+            $folder = 'absensi_tendik/' . date('Y/m');
+            
+            if ($foto instanceof \Illuminate\Http\UploadedFile) {
+                $path = $foto->store($folder, 'public');
+            } elseif (is_string($foto) && str_starts_with($foto, 'data:image')) {
+                // Decode base64
+                $image_parts = explode(";base64,", $foto);
+                $image_type_aux = explode("image/", $image_parts[0]);
+                $image_type = $image_type_aux[1];
+                $image_base64 = base64_decode($image_parts[1]);
+                $filename = uniqid() . '.' . $image_type;
+                $path = $folder . '/' . $filename;
+                
+                \Illuminate\Support\Facades\Storage::disk('public')->put($path, $image_base64);
+            }
+
+            if ($path) {
+                $absen->update(['foto_path' => $path]);
+            }
+        }
+
+        return $absen;
+    }
 }

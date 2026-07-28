@@ -60,7 +60,28 @@
             </div>
         </div>
 
-        </div>
+        {{-- Tombol Navigasi Portal Absensi Mobile (Double Portal) --}}
+        @if(auth()->user()->hasRole(['guru', 'staf-tu', 'admin-tu', 'kepala-sekolah', 'super-admin']))
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl p-6 shadow-lg relative overflow-hidden mt-6">
+                <!-- Background decoration -->
+                <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-white opacity-10 rounded-full blur-xl"></div>
+                <div class="absolute bottom-0 right-10 w-24 h-24 bg-white opacity-10 rounded-full blur-lg"></div>
+                
+                <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h3 class="text-xl font-bold text-white mb-1 tracking-tight">Portal Absensi Anda</h3>
+                        <p class="text-indigo-100 text-sm">Rekam presensi kehadiran harian (wajah & lokasi) Anda langsung melalui portal khusus ini.</p>
+                    </div>
+                    @php
+                        $absenRoute = auth()->user()->hasRole('guru') ? route('akademik.absensi.guru.form') : route('akademik.absensi.tendik.form');
+                    @endphp
+                    <a href="{{ $absenRoute }}" class="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white text-indigo-600 font-bold rounded-lg shadow-sm hover:bg-indigo-50 transition-colors shrink-0 whitespace-nowrap">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path><path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                        Mulai Absen Sekarang
+                    </a>
+                </div>
+            </div>
+        @endif
 
         {{-- Widget: Pending Approval (Kepsek) --}}
         @if(auth()->user()->hasRole('kepala-sekolah'))
