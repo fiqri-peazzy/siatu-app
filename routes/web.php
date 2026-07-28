@@ -166,6 +166,7 @@ Route::middleware('auth')->group(function () {
     // Supervisi
     Route::prefix('supervisi')->name('supervisi.')->group(function () {
         Route::get('/jurnal/realtime', \App\Livewire\Supervisi\DashboardSupervisiRealtime::class)->name('jurnal.realtime');
+        Route::get('/jurnal/rekapan', \App\Livewire\Supervisi\RekapanJurnal::class)->name('jurnal.rekapan');
         Route::get('/jurnal/export', [\App\Http\Controllers\ExportJurnalController::class, 'cetakExcel'])->name('jurnal.export');
     });
 

@@ -13,6 +13,11 @@ class JurnalGuru extends Model
         'dokumentasi' => 'array',
     ];
 
+    public function guru()
+    {
+        return $this->belongsTo(Master\MasterGuru::class, 'guru_id');
+    }
+
     public function kelas()
     {
         return $this->belongsTo(Master\MasterKelas::class, 'kelas_id');
