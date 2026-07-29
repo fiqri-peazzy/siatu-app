@@ -36,10 +36,10 @@
         <tr>
             <td width="15%">Nama Guru</td>
             <td width="2%">:</td>
-            <td width="40%">{{ $guru->nama_guru ?? '-' }}</td>
+            <td width="40%">{{ $guru->nama ?? '-' }}</td>
             <td width="15%">Bulan/Tahun</td>
             <td width="2%">:</td>
-            <td width="26%">{{ \Carbon\Carbon::create()->month($bulan)->locale('id')->isoFormat('MMMM') }} {{ $tahun }}</td>
+            <td width="26%">{{ \Carbon\Carbon::create()->month((int)$bulan)->locale('id')->isoFormat('MMMM') }} {{ $tahun }}</td>
         </tr>
     </table>
 
@@ -80,7 +80,7 @@
             <p>Gorontalo, {{ \Carbon\Carbon::now()->locale('id')->isoFormat('D MMMM YYYY') }}</p>
             <p>Guru Mata Pelajaran,</p>
             <br><br><br>
-            <p style="font-weight: bold; text-decoration: underline;">{{ $guru->nama_guru ?? '_______________________' }}</p>
+            <p style="font-weight: bold; text-decoration: underline;">{{ $guru->nama ?? '_______________________' }}</p>
             <p>NBM. {{ $guru->nbm ?? '-' }}</p>
         </div>
         <div style="clear: both;"></div>

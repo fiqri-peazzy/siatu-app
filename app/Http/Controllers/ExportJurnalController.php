@@ -36,7 +36,7 @@ class ExportJurnalController extends Controller
             'tahun' => $tahun,
         ]);
 
-        return $pdf->stream('Jurnal_Mengajar_' . $guru->nama_guru . '_' . $bulan . '_' . $tahun . '.pdf');
+        return $pdf->stream('Jurnal_Mengajar_' . $guru->nama . '_' . $bulan . '_' . $tahun . '.pdf');
     }
 
     public function cetakExcel(Request $request)
