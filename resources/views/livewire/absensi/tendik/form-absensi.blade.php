@@ -170,14 +170,19 @@
                                         <p class="text-sm text-slate-400 max-w-[250px]">Sistem sedang mengkalibrasi neural network wajah Anda.</p>
                                     </div>
     
-                                    <!-- UI Guidance Overlay -->
-                                    <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-12 z-20 flex flex-col items-center justify-center pointer-events-none">
-                                        <div class="bg-black/60 backdrop-blur-md text-white px-6 py-3 rounded-full font-bold text-sm border border-white/20 shadow-2xl text-center mx-4" x-transition>
-                                            <span x-show="!faceDetected">Arahkan wajah ke dalam bingkai</span>
-                                            <span x-show="faceDetected && !blinkDetected" class="text-indigo-300">Wajah terdeteksi. Silakan berkedip!</span>
-                                        </div>
-                                        <!-- Scan Line -->
-                                        <div x-show="faceDetected && !blinkDetected" class="w-2/3 h-1 bg-indigo-500 mt-6 rounded-full shadow-[0_0_15px_#6366f1] animate-[pulse_1s_ease-in-out_infinite]"></div>
+                                    <!-- Manual Capture Button -->
+                                    <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-12 z-20 flex flex-col items-center justify-center">
+                                        <button type="button" 
+                                                @click="triggerSuccessCapture()" 
+                                                :disabled="isCapturing"
+                                                class="relative group focus:outline-none focus:ring-4 focus:ring-indigo-500/30 rounded-full transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                            <!-- Outer ring -->
+                                            <div class="absolute inset-0 bg-white/20 rounded-full backdrop-blur-sm group-hover:bg-white/30 transition-colors"></div>
+                                            <div class="w-20 h-20 border-[3px] border-white rounded-full flex items-center justify-center p-1.5">
+                                                <!-- Inner button -->
+                                                <div class="w-full h-full bg-white rounded-full group-hover:scale-95 transition-transform duration-300"></div>
+                                            </div>
+                                        </button>
                                     </div>
     
                                     <!-- Success Overlay -->
@@ -206,11 +211,6 @@
             @endif
         </div>
     </div>
-
-    <!-- Load face-api.js from CDN -->
-    @assets
-    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.min.js"></script>
-    @endassets
 
     <script>
     document.addEventListener('alpine:init', () => {
@@ -246,7 +246,7 @@
             
             openModal() {
                 this.showLivenessModal = true;
-                this.initFaceApi();
+                this.initCamera();
             },
             
             closeModal() {
@@ -303,21 +303,10 @@
             }
         },
 
-        async initFaceApi() {
+        async initCamera() {
             this.videoEl = document.getElementById('webcam-video');
-            try {
-                // Load tiny face detector and landmarks models from CDN
-                const modelUrl = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-                await Promise.all([
-                    faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl),
-                    faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl)
-                ]);
-                this.modelLoading = false;
-                this.startVideo();
-            } catch (err) {
-                console.error(err);
-                Swal.fire('Error AI', 'Gagal memuat model deteksi wajah. Periksa koneksi internet.', 'error');
-            }
+            this.modelLoading = false; // We don't load AI anymore
+            this.startVideo();
         },
 
         async startVideo() {
@@ -326,114 +315,41 @@
                     video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
                 });
                 this.videoEl.srcObject = this.stream;
-                
-                this.videoEl.addEventListener('play', () => {
-                    this.startDetection();
-                });
             } catch (err) {
                 console.error(err);
                 Swal.fire('Error Kamera', 'Gagal mengakses kamera depan.', 'error');
             }
         },
 
-        startDetection() {
-            const canvas = document.getElementById('overlay-canvas');
-            const displaySize = { width: this.videoEl.clientWidth, height: this.videoEl.clientHeight };
-            faceapi.matchDimensions(canvas, displaySize);
-
-            this.detectionInterval = setInterval(async () => {
-                if (this.verifikasiBerhasil || this.isCapturing) return;
-
-                const detections = await faceapi.detectSingleFace(this.videoEl, new faceapi.TinyFaceDetectorOptions())
-                    .withFaceLandmarks();
-
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                if (detections) {
-                    this.faceDetected = true;
-                    
-                    // Draw box slightly to show it's tracking
-                    const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                    
-                    // Optional: draw mesh. faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
-                    // Draw a custom box
-                    const box = resizedDetections.detection.box;
-                    ctx.strokeStyle = '#6366f1'; // Indigo-500
-                    ctx.lineWidth = 2;
-                    ctx.strokeRect(box.x, box.y, box.width, box.height);
-
-                    // Liveness Detection (Blink - Eye Aspect Ratio)
-                    const landmarks = detections.landmarks;
-                    const leftEye = landmarks.getLeftEye();
-                    const rightEye = landmarks.getRightEye();
-                    
-                    const leftEAR = this.calculateEAR(leftEye);
-                    const rightEAR = this.calculateEAR(rightEye);
-                    const avgEAR = (leftEAR + rightEAR) / 2;
-
-                    // Push to history
-                    this.blinkHistory.push(avgEAR);
-                    if (this.blinkHistory.length > 5) this.blinkHistory.shift();
-
-                    // Detect blink (drops below 0.28 and then goes up)
-                    // Loosened threshold for easier detection on mobile cameras
-                    const isBlinking = avgEAR < 0.28;
-                    const wasNotBlinking = this.blinkHistory[0] > 0.30;
-
-                    if (isBlinking && wasNotBlinking) {
-                        this.isCapturing = true;
-                        this.blinkDetected = true;
-                        // Delay 600ms to allow user to open their eyes fully before capturing
-                        setTimeout(() => {
-                            this.triggerSuccessCapture();
-                        }, 600);
-                    }
-
-                } else {
-                    this.faceDetected = false;
-                    // Reset history if face is lost
-                    this.blinkHistory = [];
-                }
-            }, 80);
-        },
-
-        calculateEAR(eye) {
-            // Euclidean distances
-            const v1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
-            const v2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
-            const h = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
-            return (v1 + v2) / (2.0 * h);
-        },
-
-            triggerSuccessCapture() {
-                this.blinkDetected = true;
-                this.verifikasiBerhasil = true;
-                clearInterval(this.detectionInterval);
-                
-                // Capture frame from video
-                const canvas = document.createElement('canvas');
-                canvas.width = this.videoEl.videoWidth;
-                canvas.height = this.videoEl.videoHeight;
-                const ctx = canvas.getContext('2d');
-                
-                // Draw image directly (without mirroring) to prevent out-of-bounds black canvas bug
-                ctx.drawImage(this.videoEl, 0, 0, canvas.width, canvas.height);
-                
-                const base64Image = canvas.toDataURL('image/jpeg', 0.8);
-                
-                // Stop camera
-                this.stream.getTracks().forEach(track => track.stop());
-                
-                // Send to Livewire
-                wire.set('foto', base64Image);
-                
-                // Wait a tiny bit for UI update, then submit
-                setTimeout(() => {
-                    wire.call('submitAbsen');
-                }, 500);
-            }
-        }));
-    });
-    </script>
+        triggerSuccessCapture() {
+            this.isCapturing = true;
+            this.verifikasiBerhasil = true;
+            
+            // Capture frame from video
+            const canvas = document.createElement('canvas');
+            canvas.width = this.videoEl.videoWidth;
+            canvas.height = this.videoEl.videoHeight;
+            const ctx = canvas.getContext('2d');
+            
+            // Flip horizontal so it acts like a mirror
+            ctx.translate(canvas.width, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(this.videoEl, 0, 0, canvas.width, canvas.height);
+            
+            const base64Image = canvas.toDataURL('image/jpeg', 0.8);
+            
+            // Send to Livewire
+            wire.set('foto', base64Image);
+            
+            // Wait a tiny bit for UI update, then submit
+            setTimeout(() => {
+                wire.call('submitAbsen').catch(err => {
+                    this.isCapturing = false;
+                    this.verifikasiBerhasil = false;
+                });
+            }, 500);
+        }
+    }));
+});
+</script>
 </div>

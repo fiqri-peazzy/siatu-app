@@ -1,4 +1,10 @@
-<div x-data="absensiLiveness($wire)" class="fixed inset-0 z-[9999] flex flex-col bg-[#121A2F] animate-fade-in" style="height: 100dvh;">
+<div x-data="absensiLiveness($wire)" 
+     @jarak-updated.window="jarakTeks = Math.round($event.detail.jarak ?? $event.detail[0].jarak) + 'm'"
+     @lokasi-error.window="handleLokasiError($event)"
+     @validation-error.window="handleValidationError($event)"
+     @swal:error.window="handleSwalError($event)"
+     @absensi:success.window="handleSuccess()"
+     class="fixed inset-0 z-[9999] flex flex-col bg-[#121A2F] animate-fade-in" style="height: 100dvh;">
     
     <!-- Top Bar -->
     <div class="px-5 pt-10 pb-4 flex items-center justify-between z-20 relative">
@@ -27,31 +33,30 @@
     </div>
     
     <!-- Camera Area -->
-    <div class="flex-1 relative w-full h-full bg-[#121A2F] overflow-hidden">
+    <div class="flex-1 relative w-full h-full bg-[#121A2F] overflow-hidden flex flex-col justify-end">
         
         <video x-ref="videoEl" autoplay muted playsinline class="absolute inset-0 z-0 w-full h-full object-cover transform scale-x-[-1]"></video>
         
-        <!-- Solid Oval Face Guide Overlay -->
-        <div class="absolute inset-0 z-10 pointer-events-none flex items-center justify-center overflow-hidden">
-            <div class="w-[280px] h-[380px] rounded-[50%] border-4 border-[#3B65F3] shadow-[0_0_0_9999px_rgba(18,26,47,0.95)]"></div>
-        </div>
-        
-        <!-- Dynamic Outline for Face Box -->
-        <canvas x-ref="canvasEl" class="absolute inset-0 w-full h-full z-15 pointer-events-none"></canvas>
-        
-        <!-- Loading GPS / AI Overlay -->
-        <div x-show="modelLoading || loadingLokasi" class="absolute inset-0 bg-slate-900/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-white p-6 text-center">
+        <!-- Loading GPS Overlay -->
+        <div x-show="loadingLokasi" class="absolute inset-0 bg-slate-900/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-white p-6 text-center">
             <svg class="animate-spin w-12 h-12 text-indigo-500 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <p class="font-extrabold text-xl mb-2" x-text="loadingLokasi ? 'Melacak Lokasi...' : 'Memuat AI Model...'"></p>
-            <p class="text-sm text-slate-400 max-w-[250px]" x-text="loadingLokasi ? 'Mencari sinyal GPS akurasi tinggi.' : 'Sistem sedang mengkalibrasi neural network wajah Anda.'"></p>
+            <p class="font-extrabold text-xl mb-2" x-text="loadingTitle"></p>
+            <p class="text-sm text-slate-400 max-w-[250px]" x-text="loadingSubtitle"></p>
         </div>
 
-        <!-- UI Guidance Overlay -->
-        <div x-show="!modelLoading && !loadingLokasi && !verifikasiBerhasil" class="absolute inset-x-0 bottom-32 z-20 flex flex-col items-center justify-center pointer-events-none">
-            <div class="bg-[#1C2745]/90 backdrop-blur-md text-white px-6 py-3.5 rounded-2xl font-medium text-xs border border-white/5 shadow-2xl text-center mx-4 flex items-center gap-2" x-transition>
-                <span x-show="!faceDetected">Posisikan wajah Anda di dalam area oval</span>
-                <span x-show="faceDetected && !blinkDetected" class="text-indigo-300">Wajah terdeteksi. Silakan berkedip!</span>
-            </div>
+        <!-- Manual Capture Button -->
+        <div x-show="!loadingLokasi && !errorLokasi && !verifikasiBerhasil" class="relative z-30 pb-12 pt-8 w-full flex justify-center bg-gradient-to-t from-[#121A2F] to-transparent">
+            <button type="button" 
+                    @click="triggerSuccessCapture()" 
+                    :disabled="isCapturing"
+                    class="relative group focus:outline-none focus:ring-4 focus:ring-indigo-500/30 rounded-full transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                <!-- Outer ring -->
+                <div class="absolute inset-0 bg-white/20 rounded-full backdrop-blur-sm group-hover:bg-white/30 transition-colors"></div>
+                <div class="w-20 h-20 border-[3px] border-white rounded-full flex items-center justify-center p-1.5">
+                    <!-- Inner button -->
+                    <div class="w-full h-full bg-white rounded-full group-hover:scale-95 transition-transform duration-300"></div>
+                </div>
+            </button>
         </div>
 
         <!-- Error GPS Overlay -->
@@ -82,31 +87,41 @@
 
     <!-- Load face-api.js from CDN -->
     @assets
-    <script src="https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.12/dist/face-api.min.js"></script>
     @endassets
 
-    <script>
-    document.addEventListener('alpine:init', () => {
+    <script type="module">
+        document.addEventListener('alpine:init', () => {
         Alpine.data('absensiLiveness', (wire) => ({
             loadingLokasi: true,
             errorLokasi: false,
             pesanErrorLokasi: '',
             jarakTeks: 'Mencari...',
             
+            // Dynamic texts for loading screen
+            loadingTitle: 'Melacak Lokasi...',
+            loadingSubtitle: 'Mencari sinyal GPS akurasi tinggi.',
+            
             // Face AI States
             modelLoading: true,
-            faceDetected: false,
-            blinkDetected: false,
-            verifikasiBerhasil: false,
             stream: null,
             videoEl: null,
             detectionInterval: null,
+            
+            // Liveness State Machine
+            livenessState: 'no_face', // no_face, steady_face, ready_to_blink, blink_closing, success
+            livenessText: 'Mencari Wajah...',
             blinkHistory: [],
+            baselineEAR: 0,
+            blinkStartTime: 0,
+            
             isCapturing: false,
+            verifikasiBerhasil: false,
             
             async init() {
-                // Initialize both AI and GPS concurrently
-                this.initFaceApi();
+                this.loadingTitle = 'Menyiapkan Sistem...';
+                this.loadingSubtitle = 'Mohon tunggu sebentar.';
+                
+                this.initCamera();
                 this.mulaiLacakLokasi();
             },
             
@@ -120,6 +135,8 @@
             
             mulaiLacakLokasi() {
                 this.loadingLokasi = true;
+                this.loadingTitle = 'Melacak Lokasi...';
+                this.loadingSubtitle = 'Mencari sinyal GPS akurasi tinggi.';
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         async (position) => {
@@ -129,11 +146,7 @@
                             wire.set('longitude', lon);
                             
                             try {
-                                // Validasi Jarak di Backend
                                 const result = await wire.cekLokasi();
-                                // if cekLokasi fails, Livewire might throw or return.
-                                // We rely on Livewire property updates or dispatch events.
-                                // Let's check Livewire properties if possible, or wait for Livewire to dispatch
                                 this.loadingLokasi = false;
                             } catch (e) {
                                 this.loadingLokasi = false;
@@ -159,20 +172,12 @@
                 }
             },
 
-            async initFaceApi() {
-                this.videoEl = this.$refs.videoEl;
-                try {
-                    const modelUrl = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api/model/';
-                    await Promise.all([
-                        faceapi.nets.tinyFaceDetector.loadFromUri(modelUrl),
-                        faceapi.nets.faceLandmark68Net.loadFromUri(modelUrl)
-                    ]);
-                    this.modelLoading = false;
-                    this.startVideo();
-                } catch (err) {
-                    console.error(err);
-                    Swal.fire('Error AI', 'Gagal memuat model deteksi wajah. Periksa koneksi internet.', 'error');
-                }
+            async initCamera() {
+                // Determine initial loading text (GPS loading takes precedence)
+                this.loadingTitle = 'Menyiapkan Kamera...';
+                this.loadingSubtitle = 'Mohon tunggu sebentar.';
+                
+                await this.startVideo();
             },
 
             async startVideo() {
@@ -180,24 +185,20 @@
                     this.stream = await navigator.mediaDevices.getUserMedia({ 
                         video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
                     });
+                    this.videoEl = this.$refs.videoEl;
                     this.videoEl.srcObject = this.stream;
                     
-                    this.videoEl.addEventListener('play', () => {
-                        this.startDetection();
-                    });
-                    
                     await this.videoEl.play();
+                    this.modelLoading = false; // We use modelLoading flag for initial camera load now
                 } catch (err) {
                     console.warn("Kamera depan (user) gagal, mencoba fallback ke kamera default...", err);
                     try {
                         this.stream = await navigator.mediaDevices.getUserMedia({ video: true });
+                        this.videoEl = this.$refs.videoEl;
                         this.videoEl.srcObject = this.stream;
                         
-                        this.videoEl.addEventListener('play', () => {
-                            this.startDetection();
-                        });
-                        
                         await this.videoEl.play();
+                        this.modelLoading = false;
                     } catch (fallbackErr) {
                         console.error("Kamera tetap gagal diakses:", fallbackErr);
                         Swal.fire({
@@ -212,67 +213,13 @@
                 }
             },
 
-            startDetection() {
-                const canvas = this.$refs.canvasEl;
-                const displaySize = { width: this.videoEl.clientWidth, height: this.videoEl.clientHeight };
-                faceapi.matchDimensions(canvas, displaySize);
-
-                this.detectionInterval = setInterval(async () => {
-                    if (this.verifikasiBerhasil || this.isCapturing) return;
-
-                    const detections = await faceapi.detectSingleFace(this.videoEl, new faceapi.TinyFaceDetectorOptions()).withFaceLandmarks();
-
-                    const ctx = canvas.getContext('2d');
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                    if (detections) {
-                        this.faceDetected = true;
-                        
-                        const resizedDetections = faceapi.resizeResults(detections, displaySize);
-                        const box = resizedDetections.detection.box;
-                        ctx.strokeStyle = '#6366f1';
-                        ctx.lineWidth = 2;
-                        ctx.strokeRect(box.x, box.y, box.width, box.height);
-
-                        const landmarks = detections.landmarks;
-                        const leftEye = landmarks.getLeftEye();
-                        const rightEye = landmarks.getRightEye();
-                        
-                        const leftEAR = this.calculateEAR(leftEye);
-                        const rightEAR = this.calculateEAR(rightEye);
-                        const avgEAR = (leftEAR + rightEAR) / 2;
-
-                        this.blinkHistory.push(avgEAR);
-                        if (this.blinkHistory.length > 5) this.blinkHistory.shift();
-
-                        const isBlinking = avgEAR < 0.28;
-                        const wasNotBlinking = this.blinkHistory[0] > 0.30;
-
-                        if (isBlinking && wasNotBlinking) {
-                            if (!this.errorLokasi && !this.loadingLokasi) {
-                                this.isCapturing = true;
-                                this.blinkDetected = true;
-                                setTimeout(() => {
-                                    this.triggerSuccessCapture();
-                                }, 600);
-                            }
-                        }
-                    } else {
-                        this.faceDetected = false;
-                        this.blinkHistory = [];
-                    }
-                }, 80);
-            },
-
-            calculateEAR(eye) {
-                const v1 = Math.hypot(eye[1].x - eye[5].x, eye[1].y - eye[5].y);
-                const v2 = Math.hypot(eye[2].x - eye[4].x, eye[2].y - eye[4].y);
-                const h = Math.hypot(eye[0].x - eye[3].x, eye[0].y - eye[3].y);
-                return (v1 + v2) / (2.0 * h);
-            },
-
             triggerSuccessCapture() {
-                this.verifikasiBerhasil = true;
+                // Show loading state while submitting to backend
+                this.isCapturing = true;
+                this.loadingLokasi = true;
+                this.loadingTitle = 'Menyimpan Absensi...';
+                this.loadingSubtitle = 'Mohon tunggu, sedang mengirim data...';
+                
                 clearInterval(this.detectionInterval);
                 
                 const canvas = document.createElement('canvas');
@@ -280,39 +227,54 @@
                 canvas.height = this.videoEl.videoHeight;
                 const ctx = canvas.getContext('2d');
                 
+                // Flip horizontally so the captured photo matches the mirror preview
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
                 ctx.drawImage(this.videoEl, 0, 0, canvas.width, canvas.height);
+                
                 const base64Image = canvas.toDataURL('image/jpeg', 0.8);
                 
-                this.stream.getTracks().forEach(track => track.stop());
-                
                 wire.set('foto', base64Image);
-                wire.call('submitAbsen');
+                wire.call('submitAbsen').catch(err => {
+                    // Catch Livewire JS exceptions (like validation failure)
+                    this.loadingLokasi = false;
+                    this.errorLokasi = true;
+                    this.pesanErrorLokasi = "Validasi gagal. Pastikan GPS aktif dan wajah terlihat jelas.";
+                    this.isCapturing = false;
+                });
+            },
+            
+            handleLokasiError(event) {
+                let errorMsg = event.detail.message ?? (event.detail[0] && event.detail[0].message);
+                if (errorMsg) {
+                    this.loadingLokasi = false;
+                    this.errorLokasi = true;
+                    this.pesanErrorLokasi = errorMsg;
+                }
+            },
+            
+            handleValidationError(event) {
+                let messages = event.detail.messages ?? (event.detail[0] && event.detail[0].messages);
+                let errorMsg = Array.isArray(messages) ? messages.join(', ') : "Data absen tidak lengkap atau tidak valid.";
+                this.loadingLokasi = false;
+                this.errorLokasi = true;
+                this.pesanErrorLokasi = errorMsg;
+                this.isCapturing = false;
+            },
+            
+            handleSwalError(event) {
+                this.loadingLokasi = false;
+                this.isCapturing = false;
+            },
+            
+            handleSuccess() {
+                this.loadingLokasi = false;
+                this.verifikasiBerhasil = true;
+                setTimeout(() => {
+                    window.location.href = "{{ route('guru.dashboard') }}";
+                }, 1500);
             }
         }));
-    });
-    
-    // Catch Livewire events for distance updates or errors
-    window.addEventListener('jarak-updated', (event) => {
-        let jarak = event.detail[0].jarak;
-        let pwaElement = document.querySelector('[x-data="absensiLiveness"]');
-        if(pwaElement && pwaElement.__x) {
-            pwaElement.__x.$data.jarakTeks = jarak + 'm';
-        }
-    });
-
-    window.addEventListener('lokasi-error', (event) => {
-        let errorMsg = event.detail[0].message;
-        let pwaElement = document.querySelector('[x-data="absensiLiveness"]');
-        if(pwaElement && pwaElement.__x) {
-            pwaElement.__x.$data.errorLokasi = true;
-            pwaElement.__x.$data.pesanErrorLokasi = errorMsg;
-        }
-    });
-
-    window.addEventListener('absensi:success', () => {
-        setTimeout(() => {
-            window.location.href = "{{ route('guru.dashboard') }}";
-        }, 1500);
     });
     </script>
 </div>

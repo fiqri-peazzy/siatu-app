@@ -273,6 +273,27 @@
                 });
             </script>
         @endif
+        
+        <script type="module">
+            document.addEventListener('DOMContentLoaded', function () {
+                window.addEventListener('swal:success', event => {
+                    let msg = event.detail.message ?? (event.detail[0] && event.detail[0].message) ?? event.detail[0] ?? event.detail;
+                    if (window.showAppAlert) window.showAppAlert.success(msg);
+                });
+                window.addEventListener('swal:error', event => {
+                    let msg = event.detail.message ?? (event.detail[0] && event.detail[0].message) ?? event.detail[0] ?? event.detail;
+                    if (window.showAppAlert) window.showAppAlert.error(msg);
+                });
+                window.addEventListener('swal:warning', event => {
+                    let msg = event.detail.message ?? (event.detail[0] && event.detail[0].message) ?? event.detail[0] ?? event.detail;
+                    if (window.showAppAlert) window.showAppAlert.warning(msg);
+                });
+                window.addEventListener('swal:info', event => {
+                    let msg = event.detail.message ?? (event.detail[0] && event.detail[0].message) ?? event.detail[0] ?? event.detail;
+                    if (window.showAppAlert) window.showAppAlert.info(msg);
+                });
+            });
+        </script>
 
     </body>
 </html>

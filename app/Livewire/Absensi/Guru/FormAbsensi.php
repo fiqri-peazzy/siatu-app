@@ -52,9 +52,12 @@ class FormAbsensi extends Component
         $validasi = $service->validasiLokasi((float) $this->latitude, (float) $this->longitude);
         $this->jarak = $validasi['jarak'];
         
+        $this->dispatch('jarak-updated', ['jarak' => $this->jarak]);
+        
         if (!$validasi['valid']) {
             $this->dalamRadius = false;
             $this->pesanErrorLokasi = "Anda berada di luar area absen. Jarak Anda: {$this->jarak} meter (Maks: {$validasi['radius_maks']} meter).";
+            $this->dispatch('lokasi-error', ['message' => $this->pesanErrorLokasi]);
             return false;
         }
 
@@ -65,11 +68,20 @@ class FormAbsensi extends Component
 
     public function submitAbsen(AbsensiService $service)
     {
-        $this->validate([
+        $validator = \Illuminate\Support\Facades\Validator::make([
+            'latitude' => $this->latitude,
+            'longitude' => $this->longitude,
+            'foto' => $this->foto,
+        ], [
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
-            'foto' => 'required|string', // Base64 string
+            'foto' => 'required|string',
         ]);
+
+        if ($validator->fails()) {
+            $this->dispatch('validation-error', ['messages' => $validator->errors()->all()]);
+            return;
+        }
 
         $jenis = $this->absenMasuk ? \App\Enums\JenisAbsenGuru::PULANG->value : \App\Enums\JenisAbsenGuru::MASUK->value;
 
