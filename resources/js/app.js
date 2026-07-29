@@ -21,10 +21,10 @@ window.showAppAlert = {
             showConfirmButton: true,
             confirmButtonText: 'Tutup',
             customClass: {
-                popup: 'rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(18,26,47,0.15)] border border-line-200 max-w-[320px] w-full',
-                confirmButton: 'w-full bg-navy-deep text-white font-bold py-3.5 rounded-xl hover:bg-navy-mid transition-colors active:scale-95 mx-6 mb-6',
-                actions: 'w-full px-6 pb-6 m-0 mt-6',
-                htmlContainer: 'm-0 p-0'
+                popup: 'rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(18,26,47,0.15)] border border-line-200 !max-w-[320px] !w-full',
+                confirmButton: '!w-full !block bg-navy-deep text-white font-bold py-3.5 rounded-xl hover:bg-navy-mid transition-colors active:scale-95',
+                actions: '!w-full !px-8 !pb-8 !m-0 !mt-6 !flex !flex-col',
+                htmlContainer: '!m-0 !p-0'
             }
         });
     },
@@ -45,10 +45,10 @@ window.showAppAlert = {
             showConfirmButton: true,
             confirmButtonText: 'Tutup',
             customClass: {
-                popup: 'rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(18,26,47,0.15)] border border-line-200 max-w-[320px] w-full',
-                confirmButton: 'w-full bg-danger-coral text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity active:scale-95 mx-6 mb-6',
-                actions: 'w-full px-6 pb-6 m-0 mt-6',
-                htmlContainer: 'm-0 p-0'
+                popup: 'rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(18,26,47,0.15)] border border-line-200 !max-w-[320px] !w-full',
+                confirmButton: '!w-full !block bg-danger-coral text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity active:scale-95',
+                actions: '!w-full !px-8 !pb-8 !m-0 !mt-6 !flex !flex-col',
+                htmlContainer: '!m-0 !p-0'
             }
         });
     },
@@ -70,11 +70,11 @@ window.showAppAlert = {
             confirmButtonText: 'Ya, Lanjutkan',
             cancelButtonText: 'Batal',
             customClass: {
-                popup: 'rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(18,26,47,0.15)] border border-line-200 max-w-[340px] w-full',
-                confirmButton: 'w-full bg-navy-deep text-white font-bold py-3.5 rounded-xl hover:bg-navy-mid transition-colors active:scale-95 mb-3',
-                cancelButton: 'w-full bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors active:scale-95',
-                actions: 'w-full flex-col px-6 pb-6 m-0 mt-6',
-                htmlContainer: 'm-0 p-0'
+                popup: 'rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(18,26,47,0.15)] border border-line-200 !max-w-[340px] !w-full',
+                confirmButton: '!w-full !block bg-navy-deep text-white font-bold py-3.5 rounded-xl hover:bg-navy-mid transition-colors active:scale-95 mb-3',
+                cancelButton: '!w-full !block bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors active:scale-95 m-0',
+                actions: '!w-full !flex !flex-col !px-8 !pb-8 !m-0 !mt-6',
+                htmlContainer: '!m-0 !p-0'
             }
         });
     }

@@ -25,7 +25,7 @@
                                     },
                                     (err) => {
                                         this.loading = false;
-                                        Swal.fire('Gagal', 'Tidak dapat mengambil lokasi. Pastikan GPS aktif.', 'error');
+                                        window.showAppAlert.error('Tidak dapat mengambil lokasi. Pastikan GPS aktif.');
                                     },
                                     { enableHighAccuracy: true }
                                 );

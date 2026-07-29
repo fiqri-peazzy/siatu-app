@@ -280,13 +280,13 @@
                         if (error.code == 1) msg = 'Akses lokasi ditolak. Aktifkan GPS dan izinkan browser mengakses lokasi.';
                         else if (error.code == 2) msg = 'Posisi tidak tersedia.';
                         else if (error.code == 3) msg = 'Waktu habis.';
-                        Swal.fire('Error GPS', msg, 'error');
+                        window.showAppAlert.error(msg);
                     },
                     { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
                 );
             } else {
                 this.loadingLokasi = false;
-                Swal.fire('Error', 'Perangkat tidak mendukung GPS.', 'error');
+                window.showAppAlert.error('Perangkat tidak mendukung GPS.');
             }
         },
 
@@ -317,7 +317,7 @@
                 this.videoEl.srcObject = this.stream;
             } catch (err) {
                 console.error(err);
-                Swal.fire('Error Kamera', 'Gagal mengakses kamera depan.', 'error');
+                window.showAppAlert.error('Gagal mengakses kamera depan.');
             }
         },
 
