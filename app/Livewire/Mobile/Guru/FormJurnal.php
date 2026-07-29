@@ -19,6 +19,7 @@ class FormJurnal extends Component
 
     public $jadwalList;
     public $jadwal; // For displaying the first class's info
+    public $kd_cp;
     public $materi;
     public $kegiatan;
     public $dokumentasi = [];
@@ -97,6 +98,7 @@ class FormJurnal extends Component
     public function submit()
     {
         $this->validate([
+            'kd_cp' => 'nullable|string',
             'materi' => 'required|min:5',
             'kegiatan' => 'required|min:5',
             'dokumentasi.*' => 'image|max:5120',
@@ -167,6 +169,7 @@ class FormJurnal extends Component
                         'jam_ke' => $j->jam_ke,
                     ],
                     [
+                        'kd_cp' => $this->kd_cp,
                         'materi' => $this->materi,
                         'kegiatan' => $this->kegiatan,
                         'dokumentasi' => $dokumentasiPaths,

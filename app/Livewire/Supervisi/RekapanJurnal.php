@@ -14,33 +14,36 @@ class RekapanJurnal extends Component
 
     public $search = '';
     public $filterGuru = '';
-    public $filterBulan = '';
-    public $filterTahun = '';
-    public $filterStatus = '';
+    public $tanggalMulai = '';
+    public $tanggalSelesai = '';
+    public $filterMapel = '';
+    public $filterKelas = '';
 
     public $detailJurnal = null;
 
     protected $queryString = [
         'search' => ['except' => ''],
         'filterGuru' => ['except' => ''],
-        'filterBulan' => ['except' => ''],
-        'filterTahun' => ['except' => ''],
-        'filterStatus' => ['except' => ''],
+        'tanggalMulai' => ['except' => ''],
+        'tanggalSelesai' => ['except' => ''],
+        'filterMapel' => ['except' => ''],
+        'filterKelas' => ['except' => ''],
     ];
 
     public function updatingSearch() { $this->resetPage(); }
     public function updatingFilterGuru() { $this->resetPage(); }
-    public function updatingFilterBulan() { $this->resetPage(); }
-    public function updatingFilterTahun() { $this->resetPage(); }
-    public function updatingFilterStatus() { $this->resetPage(); }
+    public function updatingTanggalMulai() { $this->resetPage(); }
+    public function updatingTanggalSelesai() { $this->resetPage(); }
+    public function updatingFilterMapel() { $this->resetPage(); }
+    public function updatingFilterKelas() { $this->resetPage(); }
 
     public function mount()
     {
-        if (!$this->filterBulan) {
-            $this->filterBulan = date('m');
+        if (!$this->tanggalMulai) {
+            $this->tanggalMulai = date('Y-m-d');
         }
-        if (!$this->filterTahun) {
-            $this->filterTahun = date('Y');
+        if (!$this->tanggalSelesai) {
+            $this->tanggalSelesai = date('Y-m-d');
         }
     }
 
@@ -84,6 +87,7 @@ class RekapanJurnal extends Component
             $query->where(function($q) {
                 $q->where('materi', 'like', '%' . $this->search . '%')
                   ->orWhere('kegiatan', 'like', '%' . $this->search . '%')
+                  ->orWhere('kd_cp', 'like', '%' . $this->search . '%')
                   ->orWhereHas('guru', function($q) {
                       $q->where('nama', 'like', '%' . $this->search . '%');
                   })
@@ -100,16 +104,16 @@ class RekapanJurnal extends Component
             $query->where('guru_id', $this->filterGuru);
         }
 
-        if ($this->filterBulan) {
-            $query->whereMonth('tanggal', $this->filterBulan);
+        if ($this->filterMapel) {
+            $query->where('mapel_id', $this->filterMapel);
         }
 
-        if ($this->filterTahun) {
-            $query->whereYear('tanggal', $this->filterTahun);
+        if ($this->filterKelas) {
+            $query->where('kelas_id', $this->filterKelas);
         }
 
-        if ($this->filterStatus) {
-            $query->where('status', $this->filterStatus);
+        if ($this->tanggalMulai && $this->tanggalSelesai) {
+            $query->whereBetween('tanggal', [$this->tanggalMulai, $this->tanggalSelesai]);
         }
 
         $allJurnals = $query->get();
@@ -151,7 +155,7 @@ class RekapanJurnal extends Component
 
         // Manual Pagination
         $page = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
-        $perPage = 15;
+        $perPage = 10;
         $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
             $grouped->forPage($page, $perPage),
             $grouped->count(),
@@ -163,6 +167,8 @@ class RekapanJurnal extends Component
         return view('livewire.supervisi.rekapan-jurnal', [
             'jurnals' => $paginated,
             'gurus' => MasterGuru::orderBy('nama')->get(),
+            'mapels' => \App\Models\Master\MasterMapel::orderBy('nama')->get(),
+            'kelasList' => \App\Models\Master\MasterKelas::orderBy('nama')->get(),
         ])->layout('components.layouts.app');
     }
 }

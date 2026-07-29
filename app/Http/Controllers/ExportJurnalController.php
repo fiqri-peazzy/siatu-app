@@ -41,12 +41,15 @@ class ExportJurnalController extends Controller
 
     public function cetakExcel(Request $request)
     {
-        $bulan = $request->query('bulan', Carbon::now()->format('m'));
-        $tahun = $request->query('tahun', Carbon::now()->format('Y'));
+        $start_date = $request->query('start_date', Carbon::now()->format('Y-m-d'));
+        $end_date = $request->query('end_date', Carbon::now()->format('Y-m-d'));
+        $guru_id = $request->query('guru');
+        $mapel_id = $request->query('mapel');
+        $kelas_id = $request->query('kelas');
 
         return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\JurnalExport($bulan, $tahun), 
-            'Rekap_Jurnal_Mengajar_' . $bulan . '_' . $tahun . '.xlsx'
+            new \App\Exports\JurnalExport($start_date, $end_date, $guru_id, $mapel_id, $kelas_id), 
+            'Rekap_Jurnal_Mengajar_' . $start_date . '_sd_' . $end_date . '.xlsx'
         );
     }
 }

@@ -25,6 +25,20 @@
     {{-- ── Form ── --}}
     <form wire:submit.prevent="submit" class="space-y-4">
 
+        {{-- KD / CP (Opsional) --}}
+        <div class="bg-white rounded-2xl border border-line-200 shadow-sm overflow-hidden">
+            <div class="flex items-center gap-2 px-4 pt-4 pb-2">
+                <svg class="w-4 h-4 text-signal-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+                <label class="text-[10px] font-bold text-signal-blue uppercase tracking-[0.1em]">KD / CP (Opsional)</label>
+            </div>
+            <textarea wire:model.defer="kd_cp" rows="2"
+                      class="w-full px-4 pb-4 text-sm text-ink-900 bg-transparent outline-none resize-none placeholder:text-slate-400"
+                      placeholder="Tuliskan Kompetensi Dasar atau Capaian Pembelajaran..."></textarea>
+            @error('kd_cp') <p class="px-4 pb-3 text-xs text-danger-coral">{{ $message }}</p> @enderror
+        </div>
+
         {{-- Materi Pembelajaran --}}
         <div class="bg-white rounded-2xl border border-line-200 shadow-sm overflow-hidden">
             <div class="flex items-center gap-2 px-4 pt-4 pb-2">
