@@ -16,4 +16,11 @@ class MasterMapel extends Model
         'jam',
         'kurikulum',
     ];
+
+    public function peminatanSiswas()
+    {
+        return $this->belongsToMany(MasterSiswa::class, 'peminatan_siswas', 'mapel_id', 'siswa_id')
+                    ->withPivot('tahun_ajaran_id')
+                    ->withTimestamps();
+    }
 }

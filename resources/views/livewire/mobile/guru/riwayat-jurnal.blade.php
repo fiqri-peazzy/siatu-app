@@ -72,6 +72,26 @@
                         
                         @if($jurnal->status == 'diisi')
                             <p class="text-sm text-slate-700 leading-relaxed">{{ Str::limit($jurnal->materi, 80) }}</p>
+                            
+                            {{-- Attendance Stats --}}
+                            <div class="mt-3 flex gap-2 border-t border-slate-100 pt-3">
+                                <div class="flex-1 text-center bg-slate-50 rounded-lg py-1">
+                                    <p class="text-[10px] text-slate-400 font-medium">Hadir</p>
+                                    <p class="text-xs font-bold text-green-600">{{ collect($jurnal->jurnal_ids)->map(fn($id) => \App\Models\JurnalGuru::find($id)->jumlah_hadir ?? 0)->sum() }}</p>
+                                </div>
+                                <div class="flex-1 text-center bg-slate-50 rounded-lg py-1">
+                                    <p class="text-[10px] text-slate-400 font-medium">Izin</p>
+                                    <p class="text-xs font-bold text-blue-600">{{ collect($jurnal->jurnal_ids)->map(fn($id) => \App\Models\JurnalGuru::find($id)->jumlah_izin ?? 0)->sum() }}</p>
+                                </div>
+                                <div class="flex-1 text-center bg-slate-50 rounded-lg py-1">
+                                    <p class="text-[10px] text-slate-400 font-medium">Sakit</p>
+                                    <p class="text-xs font-bold text-yellow-600">{{ collect($jurnal->jurnal_ids)->map(fn($id) => \App\Models\JurnalGuru::find($id)->jumlah_sakit ?? 0)->sum() }}</p>
+                                </div>
+                                <div class="flex-1 text-center bg-slate-50 rounded-lg py-1">
+                                    <p class="text-[10px] text-slate-400 font-medium">Alfa</p>
+                                    <p class="text-xs font-bold text-red-600">{{ collect($jurnal->jurnal_ids)->map(fn($id) => \App\Models\JurnalGuru::find($id)->jumlah_alfa ?? 0)->sum() }}</p>
+                                </div>
+                            </div>
                         @else
                             <p class="text-sm text-slate-500 italic leading-relaxed">Belum ada ringkasan materi yang disimpan.</p>
                         @endif

@@ -87,6 +87,54 @@
             @error('dokumentasi.*') <p class="mt-2 text-xs text-danger-coral">{{ $message }}</p> @enderror
         </div>
 
+        {{-- Absensi Siswa --}}
+        <div class="bg-white rounded-2xl border border-line-200 shadow-sm overflow-hidden">
+            <div class="flex items-center justify-between px-4 pt-4 pb-2 border-b border-line-200">
+                <div class="flex items-center gap-2">
+                    <svg class="w-4 h-4 text-signal-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                    </svg>
+                    <label class="text-[10px] font-bold text-signal-blue uppercase tracking-[0.1em]">Kehadiran Siswa</label>
+                </div>
+                <div class="flex gap-2">
+                    <button type="button" wire:click="setSemuaAbsensi('hadir')" class="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded">Semua Hadir</button>
+                </div>
+            </div>
+            
+            <div class="divide-y divide-line-200 max-h-80 overflow-y-auto">
+                @forelse($siswas as $siswa)
+                <div class="p-3 flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-semibold text-ink-900">{{ $siswa->nama }}</p>
+                        <p class="text-[10px] text-slate-500">{{ $siswa->nisn ?? $siswa->nis }}</p>
+                    </div>
+                    <div class="flex gap-1">
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.defer="absensi.{{ $siswa->id }}" value="hadir" class="peer sr-only">
+                            <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-green-500 peer-checked:text-white peer-checked:border-green-500 transition-colors">H</span>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.defer="absensi.{{ $siswa->id }}" value="izin" class="peer sr-only">
+                            <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition-colors">I</span>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.defer="absensi.{{ $siswa->id }}" value="sakit" class="peer sr-only">
+                            <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-yellow-500 peer-checked:text-white peer-checked:border-yellow-500 transition-colors">S</span>
+                        </label>
+                        <label class="cursor-pointer">
+                            <input type="radio" wire:model.defer="absensi.{{ $siswa->id }}" value="alfa" class="peer sr-only">
+                            <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500 transition-colors">A</span>
+                        </label>
+                    </div>
+                </div>
+                @empty
+                <div class="p-4 text-center text-xs text-slate-500">
+                    Tidak ada data siswa untuk jadwal ini.
+                </div>
+                @endforelse
+            </div>
+        </div>
+
         {{-- Submit Button (Inline) --}}
         <div class="pt-4 pb-8">
             <button type="submit"

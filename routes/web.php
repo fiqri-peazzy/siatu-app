@@ -150,6 +150,9 @@ Route::middleware('auth')->group(function () {
 
     // Akademik / Absensi
     Route::prefix('akademik')->name('akademik.')->group(function () {
+        // Peminatan Admin
+        Route::get('/peminatan', \App\Livewire\Akademik\Peminatan\AssignPeminatan::class)->name('peminatan.index');
+
         // Guru
         Route::get('/absensi/absen-sekarang', \App\Livewire\Absensi\Guru\FormAbsensi::class)->name('absensi.guru.form');
         Route::get('/absensi/riwayat', \App\Livewire\Absensi\Guru\RiwayatAbsensi::class)->name('absensi.guru.riwayat');

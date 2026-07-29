@@ -40,4 +40,11 @@ class MasterSiswa extends Model
             }
         });
     }
+
+    public function peminatanMapels()
+    {
+        return $this->belongsToMany(MasterMapel::class, 'peminatan_siswas', 'siswa_id', 'mapel_id')
+                    ->withPivot('tahun_ajaran_id')
+                    ->withTimestamps();
+    }
 }
