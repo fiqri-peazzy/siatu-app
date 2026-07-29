@@ -98,8 +98,13 @@
                             <p class="text-sm font-semibold text-on-surface">{{ $jurnal->kelas->nama ?? '-' }}</p>
                             <p class="text-xs text-on-surface-variant">{{ $jurnal->mapel->nama ?? '-' }}</p>
                         </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-center">
-                            <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-surface-container text-on-surface-variant font-bold text-xs">{{ $jurnal->jam_ke }}</span>
+                        <td class="px-6 py-4 text-center">
+                            @if($jurnal->jam_mulai == $jurnal->jam_selesai)
+                                <span class="inline-flex items-center justify-center w-6 h-6 rounded-md bg-surface-container text-on-surface-variant font-bold text-xs">{{ $jurnal->jam_mulai }}</span>
+                            @else
+                                <span class="inline-flex items-center justify-center px-2 h-6 rounded-md bg-surface-container text-on-surface-variant font-bold text-xs">{{ $jurnal->jam_mulai }}-{{ $jurnal->jam_selesai }}</span>
+                            @endif
+                            <div class="text-[10px] font-semibold text-primary mt-1">{{ $jurnal->total_jp }} JP</div>
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-center">
                             @if($jurnal->status == 'diisi')
@@ -109,7 +114,7 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-right">
-                            <button wire:click="showDetail({{ $jurnal->id }})" class="inline-flex items-center justify-center p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors" title="Lihat Detail">
+                            <button wire:click="showDetail('{{ json_encode($jurnal->jurnal_ids) }}')" class="inline-flex items-center justify-center p-2 rounded-lg text-primary hover:bg-primary/10 transition-colors" title="Lihat Detail">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
                             </button>
                         </td>
@@ -159,7 +164,10 @@
             <div class="p-6 border-b border-surface-container-high flex items-start justify-between">
                 <div>
                     <h3 class="text-xl font-bold text-on-surface">Detail Jurnal Mengajar</h3>
-                    <p class="text-sm text-on-surface-variant mt-1">{{ $detailJurnal->tanggal->format('l, d F Y') }} &middot; Jam ke-{{ $detailJurnal->jam_ke }}</p>
+                    <p class="text-sm text-on-surface-variant mt-1">{{ $detailJurnal->tanggal->format('l, d F Y') }} &middot; 
+                        Jam ke-{{ $detailJurnal->jam_mulai == $detailJurnal->jam_selesai ? $detailJurnal->jam_mulai : $detailJurnal->jam_mulai . '-' . $detailJurnal->jam_selesai }} 
+                        <span class="font-bold text-primary ml-1">({{ $detailJurnal->total_jp }} JP)</span>
+                    </p>
                 </div>
                 <button @click="$wire.closeDetail()" class="w-8 h-8 flex items-center justify-center rounded-full bg-surface-container hover:bg-surface-container-high text-on-surface transition-colors">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>

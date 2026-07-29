@@ -47,7 +47,49 @@ class RiwayatJurnal extends Component
             $query->where('mapel_id', $this->filterMapel);
         }
 
-        $jurnals = $query->orderBy('tanggal', 'desc')->orderBy('jam_ke', 'asc')->paginate(10);
+        $allJurnals = $query->orderBy('tanggal', 'desc')->orderBy('jam_ke', 'asc')->get();
+
+        $grouped = collect();
+        $lastGroup = null;
+
+        foreach ($allJurnals as $j) {
+            if ($lastGroup && 
+                $lastGroup->kelas_id == $j->kelas_id && 
+                $lastGroup->mapel_id == $j->mapel_id && 
+                $lastGroup->tanggal->isSameDay($j->tanggal) && 
+                $lastGroup->jam_selesai + 1 == $j->jam_ke) {
+                
+                $lastGroup->jam_selesai = $j->jam_ke;
+                $lastGroup->total_jp++;
+                $ids = $lastGroup->jurnal_ids;
+                $ids[] = $j->id;
+                $lastGroup->jurnal_ids = $ids;
+            } else {
+                if ($lastGroup) {
+                    $grouped->push($lastGroup);
+                }
+                
+                $lastGroup = clone $j;
+                $lastGroup->jam_mulai = $j->jam_ke;
+                $lastGroup->jam_selesai = $j->jam_ke;
+                $lastGroup->total_jp = 1;
+                $lastGroup->jurnal_ids = [$j->id];
+            }
+        }
+        
+        if ($lastGroup) {
+            $grouped->push($lastGroup);
+        }
+
+        $page = \Illuminate\Pagination\Paginator::resolveCurrentPage() ?: 1;
+        $perPage = 10;
+        $jurnals = new \Illuminate\Pagination\LengthAwarePaginator(
+            $grouped->forPage($page, $perPage),
+            $grouped->count(),
+            $perPage,
+            $page,
+            ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
+        );
         
         $kelasList = MasterKelas::orderBy('nama')->get();
         $mapelList = MasterMapel::orderBy('nama')->get();

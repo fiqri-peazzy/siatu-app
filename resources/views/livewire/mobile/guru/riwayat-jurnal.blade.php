@@ -53,7 +53,9 @@
                         <h4 class="text-[11px] font-bold text-[#3B65F3] uppercase tracking-widest">
                             {{ \Carbon\Carbon::parse($jurnal->tanggal)->locale('id')->isoFormat('dddd, D MMM YYYY') }}
                         </h4>
-                        <p class="text-[10px] font-semibold text-slate-400 font-mono mt-0.5">07:30 - 09:00</p>
+                        <p class="text-[10px] font-semibold text-slate-400 mt-0.5">
+                            Jam ke-{{ $jurnal->jam_mulai == $jurnal->jam_selesai ? $jurnal->jam_mulai : $jurnal->jam_mulai . ' s/d ' . $jurnal->jam_selesai }} &middot; <span class="font-bold text-[#3B65F3]">{{ $jurnal->total_jp }} JP</span>
+                        </p>
                     </div>
 
                     {{-- Card --}}
