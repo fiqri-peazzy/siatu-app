@@ -39,7 +39,9 @@
                     <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="Logo" class="w-9 h-9 object-contain drop-shadow-sm">
                     <div class="flex flex-col justify-center">
                         <h1 class="font-bold text-white leading-tight tracking-tight text-[15px] uppercase">SMAMGO</h1>
-                        <span class="text-[9px] font-semibold text-sky-300 uppercase tracking-[0.1em]">Guru Portal</span>
+                        <span class="text-[9px] font-semibold text-sky-300 uppercase tracking-[0.1em]">
+                            {{ auth()->user()->hasRole('guru') ? 'Guru Portal' : 'Staf Portal' }}
+                        </span>
                     </div>
                 </div>
 
@@ -67,7 +69,8 @@
         <nav id="bottom-nav" class="fixed bottom-0 w-full z-50 bg-[#121A2F]" style="padding-bottom: env(safe-area-inset-bottom)">
             <div class="flex items-stretch h-16 max-w-md mx-auto">
 
-                {{-- Beranda --}}
+            @if(auth()->user()->hasRole('guru'))
+                {{-- Beranda (Guru) --}}
                 <a href="{{ route('guru.dashboard') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
                     @if(request()->routeIs('guru.dashboard'))
@@ -85,7 +88,7 @@
                     @endif
                 </a>
 
-                {{-- Jadwal --}}
+                {{-- Jadwal (Guru) --}}
                 <a href="{{ route('guru.jadwal') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
                     @if(request()->routeIs('guru.jadwal'))
@@ -103,7 +106,7 @@
                     @endif
                 </a>
 
-                {{-- Jurnal --}}
+                {{-- Jurnal (Guru) --}}
                 <a href="{{ route('guru.jurnal.riwayat') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
                     @if(request()->routeIs('guru.jurnal.riwayat'))
@@ -121,7 +124,7 @@
                     @endif
                 </a>
 
-                {{-- Riwayat --}}
+                {{-- Riwayat (Guru) --}}
                 <a href="{{ route('akademik.absensi.guru.riwayat') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
                     @if(request()->routeIs('akademik.absensi.guru.riwayat'))
@@ -139,7 +142,7 @@
                     @endif
                 </a>
 
-                {{-- Profil --}}
+                {{-- Profil (Guru) --}}
                 <a href="{{ route('guru.profil') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors">
                     @if(request()->routeIs('guru.profil'))
@@ -156,6 +159,73 @@
                         <span class="text-[10px] font-medium text-[#5E6A82] leading-none">Profil</span>
                     @endif
                 </a>
+            @else
+                {{-- Tendik / Selain Guru --}}
+                {{-- Beranda --}}
+                <a href="{{ route('dashboard') }}"
+                   class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
+                    @if(request()->routeIs('dashboard'))
+                        <div class="bg-[#3B65F3] rounded-xl px-4 py-1.5 flex flex-col items-center gap-0.5 mt-2">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" stroke="none" viewBox="0 0 24 24">
+                                <path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z" />
+                            </svg>
+                            <span class="text-[10px] font-bold text-white leading-none mt-1">Beranda</span>
+                        </div>
+                    @else
+                        <svg class="w-6 h-6 text-[#5E6A82]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                        </svg>
+                        <span class="text-[10px] font-medium text-[#5E6A82] leading-none">Beranda</span>
+                    @endif
+                </a>
+
+                {{-- Absen --}}
+                <a href="{{ route('akademik.absensi.tendik.form') }}"
+                   class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
+                    @if(request()->routeIs('akademik.absensi.tendik.form'))
+                        <div class="bg-[#3B65F3] rounded-xl px-4 py-1.5 flex flex-col items-center gap-0.5 mt-2">
+                            <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                            <span class="text-[10px] font-bold text-white leading-none mt-1">Absen</span>
+                        </div>
+                    @else
+                        <svg class="w-6 h-6 text-[#5E6A82]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                        </svg>
+                        <span class="text-[10px] font-medium text-[#5E6A82] leading-none">Absen</span>
+                    @endif
+                </a>
+
+                {{-- Riwayat --}}
+                <a href="{{ route('akademik.absensi.tendik.riwayat') }}"
+                   class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
+                    @if(request()->routeIs('akademik.absensi.tendik.riwayat'))
+                        <div class="bg-[#3B65F3] rounded-xl px-4 py-1.5 flex flex-col items-center gap-0.5 mt-2">
+                            <svg class="w-5 h-5 text-white" fill="currentColor" stroke="none" viewBox="0 0 24 24">
+                                <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="text-[10px] font-bold text-white leading-none mt-1">Riwayat</span>
+                        </div>
+                    @else
+                        <svg class="w-6 h-6 text-[#5E6A82]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <span class="text-[10px] font-medium text-[#5E6A82] leading-none">Riwayat</span>
+                    @endif
+                </a>
+                
+                {{-- Profil (Tendik / Non-Guru) - using profile page link placeholder or reuse --}}
+                {{-- Currently Tendik doesn't have a dedicated PWA profile page, we'll link to dashboard or profile if any --}}
+                <a href="#" class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative opacity-50 cursor-not-allowed">
+                    <svg class="w-6 h-6 text-[#5E6A82]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                    </svg>
+                    <span class="text-[10px] font-medium text-[#5E6A82] leading-none">Profil</span>
+                </a>
+            @endif
 
             </div>
         </nav>
