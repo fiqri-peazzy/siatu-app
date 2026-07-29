@@ -28,15 +28,32 @@ class SiswaImport implements ToCollection, WithStartRow
                 continue;
             }
 
-            // Find or create Kelas based on Rombel (index 42)
+            // Smart Match Kelas based on Rombel (index 42) vs MasterKelas
             $kelasId = null;
             if (!empty($row[42]) && $tahunAjaranId) {
-                $namaKelas = trim($row[42]);
-                $kelas = MasterKelas::firstOrCreate(
-                    ['nama' => $namaKelas, 'tahun_ajaran_id' => $tahunAjaranId],
-                    ['tingkat' => $namaKelas, 'jurusan' => '-']
-                );
-                $kelasId = $kelas->id;
+                $rombelExcel = trim($row[42]);
+                
+                // Cari berdasarkan tingkat atau nama yang sama persis
+                $kelas = \App\Models\Master\MasterKelas::where('tahun_ajaran_id', $tahunAjaranId)
+                    ->where(function ($query) use ($rombelExcel) {
+                        $query->where('tingkat', $rombelExcel)
+                              ->orWhere('nama', $rombelExcel)
+                              ->orWhere('nama', 'like', '%' . $rombelExcel . '%');
+                    })
+                    ->first();
+                
+                if ($kelas) {
+                    $kelasId = $kelas->id;
+                } else {
+                    // Jika tidak ketemu sama sekali, buat baru agar data tidak hilang
+                    $kelas = \App\Models\Master\MasterKelas::create([
+                        'nama' => 'Kelas ' . $rombelExcel,
+                        'tingkat' => $rombelExcel,
+                        'jurusan' => '-',
+                        'tahun_ajaran_id' => $tahunAjaranId
+                    ]);
+                    $kelasId = $kelas->id;
+                }
             }
 
             // Parse Date

@@ -11,34 +11,111 @@ use Illuminate\Support\Facades\DB;
 
 class AssignPeminatan extends Component
 {
+    public $viewMode = 'index'; // 'index' or 'manage'
+    public $activeTab = 'peserta'; // 'peserta' or 'assign'
+
     public $tahun_ajaran_id;
     public $mapel_id;
     public $kelas_id;
+    public $selectedMapel = null;
 
     public $mapels = [];
     public $kelasList = [];
     public $tahunAjarans = [];
     
-    public $siswas = [];
-    public $selectedSiswas = []; // Checkboxes
+    public $siswas = []; // For assign tab
+    public $selectedSiswas = []; // Checkboxes for assign tab
+    
+    public $pesertaMapel = []; // For peserta tab
+    public $mapelWithCounts = []; // For index tab
 
     public function mount()
     {
         $this->tahunAjarans = MasterTahunAjaran::orderBy('mulai', 'desc')->get();
-        $this->mapels = MasterMapel::orderBy('nama', 'asc')->get();
         $this->kelasList = MasterKelas::orderBy('nama', 'asc')->get();
 
         $activeTa = $this->tahunAjarans->firstWhere('is_active', true);
         if ($activeTa) {
             $this->tahun_ajaran_id = $activeTa->id;
         }
+        
+        $this->loadMapelWithCounts();
     }
 
     public function updated($propertyName)
     {
-        if (in_array($propertyName, ['tahun_ajaran_id', 'mapel_id', 'kelas_id'])) {
-            $this->loadSiswas();
+        if ($propertyName === 'tahun_ajaran_id') {
+            if ($this->viewMode === 'index') {
+                $this->loadMapelWithCounts();
+            } else {
+                $this->loadPeserta();
+                $this->loadSiswas();
+            }
         }
+        
+        if (in_array($propertyName, ['kelas_id', 'activeTab'])) {
+            if ($this->activeTab == 'assign') {
+                $this->loadSiswas();
+            } else {
+                $this->loadPeserta();
+            }
+        }
+    }
+
+    public function loadMapelWithCounts()
+    {
+        if ($this->tahun_ajaran_id) {
+            $this->mapelWithCounts = MasterMapel::withCount(['peminatanSiswas' => function($query) {
+                $query->where('peminatan_siswas.tahun_ajaran_id', $this->tahun_ajaran_id);
+            }])->orderBy('nama', 'asc')->get();
+        } else {
+            $this->mapelWithCounts = [];
+        }
+    }
+
+    public function manageMapel($id)
+    {
+        $this->mapel_id = $id;
+        $this->selectedMapel = MasterMapel::find($id);
+        $this->viewMode = 'manage';
+        $this->activeTab = 'peserta';
+        $this->loadPeserta();
+    }
+
+    public function backToIndex()
+    {
+        $this->viewMode = 'index';
+        $this->mapel_id = null;
+        $this->selectedMapel = null;
+        $this->loadMapelWithCounts();
+    }
+
+    public function loadPeserta()
+    {
+        if ($this->mapel_id && $this->tahun_ajaran_id) {
+            $this->pesertaMapel = MasterSiswa::whereHas('peminatanMapels', function($q) {
+                    $q->where('mapel_id', $this->mapel_id)
+                      ->where('tahun_ajaran_id', $this->tahun_ajaran_id);
+                })
+                ->with('kelas')
+                ->orderBy('kelas_id')
+                ->orderBy('nama')
+                ->get();
+        } else {
+            $this->pesertaMapel = [];
+        }
+    }
+
+    public function removePeserta($siswaId)
+    {
+        DB::table('peminatan_siswas')
+            ->where('mapel_id', $this->mapel_id)
+            ->where('tahun_ajaran_id', $this->tahun_ajaran_id)
+            ->where('siswa_id', $siswaId)
+            ->delete();
+            
+        $this->loadPeserta();
+        session()->flash('success', 'Siswa berhasil dihapus dari peminatan ini.');
     }
 
     public function loadSiswas()
@@ -119,6 +196,6 @@ class AssignPeminatan extends Component
     public function render()
     {
         return view('livewire.akademik.peminatan.assign-peminatan')
-            ->layout('layouts.app'); // Ensure this is the correct layout
+            ->layout('components.layouts.app'); // Changed to use component layout properly if needed, but 'layouts.app' was originally there. Wait, I will use components.layouts.app
     }
 }
