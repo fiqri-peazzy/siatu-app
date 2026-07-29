@@ -1,4 +1,4 @@
-<div class="space-y-6 pb-12">
+<div class="space-y-6 pb-12" x-data="{ modalDataPribadi: false, modalPassword: false }" @swal:success.window="modalDataPribadi = false; modalPassword = false">
 
     {{-- ── Profile Hero ── --}}
     <div class="mt-2 flex flex-col items-center text-center">
@@ -59,7 +59,7 @@
     <div class="bg-white rounded-2xl border border-line-200 shadow-sm overflow-hidden divide-y divide-line-200">
 
         {{-- Data Pribadi --}}
-        <button onclick="document.getElementById('modal-data-pribadi').classList.toggle('hidden')"
+        <button @click="modalDataPribadi = true" type="button"
                 class="w-full flex items-center gap-4 p-4 hover:bg-paper transition-colors active:bg-paper group">
             <div class="w-9 h-9 rounded-xl bg-signal-blue/10 flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-signal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -87,7 +87,7 @@
         </a>
 
         {{-- Ganti Password --}}
-        <button onclick="document.getElementById('modal-password').classList.toggle('hidden')"
+        <button @click="modalPassword = true" type="button"
                 class="w-full flex items-center gap-4 p-4 hover:bg-paper transition-colors active:bg-paper group">
             <div class="w-9 h-9 rounded-xl bg-signal-blue/10 flex items-center justify-center flex-shrink-0">
                 <svg class="w-5 h-5 text-signal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
@@ -122,10 +122,22 @@
     <p class="text-center text-[11px] text-slate-400 font-mono">Versi Aplikasi 2.4.0-build.82</p>
 
     {{-- ── Modal: Data Pribadi ── --}}
-    <div id="modal-data-pribadi" class="hidden fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onclick="this.classList.add('hidden')">
-        <div class="bg-white rounded-t-3xl w-full max-w-md p-6 shadow-2xl" onclick="event.stopPropagation()">
+    <div x-show="modalDataPribadi" style="display: none;" class="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 backdrop-blur-sm" @click="modalDataPribadi = false" x-transition.opacity>
+        <div class="bg-white rounded-t-3xl w-full max-w-md p-6 shadow-2xl" @click.stop 
+             x-show="modalDataPribadi" 
+             x-transition:enter="transition ease-out duration-300" 
+             x-transition:enter-start="translate-y-full" 
+             x-transition:enter-end="translate-y-0" 
+             x-transition:leave="transition ease-in duration-200" 
+             x-transition:leave-start="translate-y-0" 
+             x-transition:leave-end="translate-y-full">
             <div class="w-10 h-1 bg-line-200 rounded-full mx-auto mb-6"></div>
-            <h3 class="font-bold text-ink-900 text-lg mb-5">Data Pribadi</h3>
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="font-bold text-ink-900 text-lg">Data Pribadi</h3>
+                <button type="button" @click="modalDataPribadi = false" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
             <form wire:submit.prevent="updateProfil" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1.5">No. HP / WhatsApp</label>
@@ -148,10 +160,22 @@
     </div>
 
     {{-- ── Modal: Ganti Password ── --}}
-    <div id="modal-password" class="hidden fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm" onclick="this.classList.add('hidden')">
-        <div class="bg-white rounded-t-3xl w-full max-w-md p-6 shadow-2xl" onclick="event.stopPropagation()">
+    <div x-show="modalPassword" style="display: none;" class="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 backdrop-blur-sm" @click="modalPassword = false" x-transition.opacity>
+        <div class="bg-white rounded-t-3xl w-full max-w-md p-6 shadow-2xl" @click.stop 
+             x-show="modalPassword" 
+             x-transition:enter="transition ease-out duration-300" 
+             x-transition:enter-start="translate-y-full" 
+             x-transition:enter-end="translate-y-0" 
+             x-transition:leave="transition ease-in duration-200" 
+             x-transition:leave-start="translate-y-0" 
+             x-transition:leave-end="translate-y-full">
             <div class="w-10 h-1 bg-line-200 rounded-full mx-auto mb-6"></div>
-            <h3 class="font-bold text-ink-900 text-lg mb-5">Ganti Password</h3>
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="font-bold text-ink-900 text-lg">Ganti Password</h3>
+                <button type="button" @click="modalPassword = false" class="text-slate-400 hover:text-slate-600">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
             <form wire:submit.prevent="updatePassword" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold text-slate-600 mb-1.5">Password Lama</label>

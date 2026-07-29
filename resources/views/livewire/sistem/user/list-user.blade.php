@@ -80,7 +80,7 @@
                             </td>
                             <td class="px-6 py-4 text-right font-medium">
                                 <button wire:click="edit({{ $u->id }})" class="text-primary hover:text-primary-container mr-3 transition-colors">Edit</button>
-                                <button wire:click="delete({{ $u->id }})" wire:confirm="Yakin ingin menghapus pengguna ini?" class="text-error hover:text-error/80 transition-colors">Hapus</button>
+                                <button wire:click="delete({{ $u->id }})" wire:swal-confirm="Yakin ingin menghapus pengguna ini?" class="text-error hover:text-error/80 transition-colors">Hapus</button>
                             </td>
                         </tr>
                     @empty

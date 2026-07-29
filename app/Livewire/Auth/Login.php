@@ -28,7 +28,7 @@ class Login extends Component
             session()->regenerate();
             
             if (Auth::user()->hasRole('guru')) {
-                return redirect()->intended(route('akademik.absensi.guru.form'));
+                return redirect()->intended(route('guru.dashboard'));
             }
             
             return redirect()->intended(route('dashboard'));

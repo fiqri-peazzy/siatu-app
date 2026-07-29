@@ -3,46 +3,100 @@ import Swal from 'sweetalert2';
 import 'sweetalert2/dist/sweetalert2.min.css';
 window.Swal = Swal;
 
+window.showAppAlert = {
+    success: (message) => {
+        return Swal.fire({
+            html: `
+                <div class="flex flex-col items-center pt-4">
+                    <div class="w-20 h-20 bg-success-teal/10 rounded-full flex items-center justify-center mb-5 border-4 border-success-teal/20">
+                        <svg class="w-10 h-10 text-success-teal" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-ink-900 mb-2">Berhasil!</h3>
+                    <p class="text-sm text-slate-500 font-medium text-center px-4">${message}</p>
+                </div>
+            `,
+            buttonsStyling: false,
+            showConfirmButton: true,
+            confirmButtonText: 'Tutup',
+            customClass: {
+                popup: 'rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(18,26,47,0.15)] border border-line-200 max-w-[320px] w-full',
+                confirmButton: 'w-full bg-navy-deep text-white font-bold py-3.5 rounded-xl hover:bg-navy-mid transition-colors active:scale-95 mx-6 mb-6',
+                actions: 'w-full px-6 pb-6 m-0 mt-6',
+                htmlContainer: 'm-0 p-0'
+            }
+        });
+    },
+    error: (message) => {
+        return Swal.fire({
+            html: `
+                <div class="flex flex-col items-center pt-4">
+                    <div class="w-20 h-20 bg-danger-coral/10 rounded-full flex items-center justify-center mb-5 border-4 border-danger-coral/20">
+                        <svg class="w-10 h-10 text-danger-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-ink-900 mb-2">Terjadi Kesalahan</h3>
+                    <p class="text-sm text-slate-500 font-medium text-center px-4">${message}</p>
+                </div>
+            `,
+            buttonsStyling: false,
+            showConfirmButton: true,
+            confirmButtonText: 'Tutup',
+            customClass: {
+                popup: 'rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(18,26,47,0.15)] border border-line-200 max-w-[320px] w-full',
+                confirmButton: 'w-full bg-danger-coral text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity active:scale-95 mx-6 mb-6',
+                actions: 'w-full px-6 pb-6 m-0 mt-6',
+                htmlContainer: 'm-0 p-0'
+            }
+        });
+    },
+    confirm: (message) => {
+        return Swal.fire({
+            html: `
+                <div class="flex flex-col items-center pt-4">
+                    <div class="w-20 h-20 bg-warning-amber/10 rounded-full flex items-center justify-center mb-5 border-4 border-warning-amber/20">
+                        <svg class="w-10 h-10 text-warning-amber" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                    </div>
+                    <h3 class="text-xl font-bold text-ink-900 mb-2">Konfirmasi</h3>
+                    <p class="text-sm text-slate-500 font-medium text-center px-4">${message}</p>
+                </div>
+            `,
+            buttonsStyling: false,
+            showCancelButton: true,
+            confirmButtonText: 'Ya, Lanjutkan',
+            cancelButtonText: 'Batal',
+            customClass: {
+                popup: 'rounded-[2rem] bg-white shadow-[0_20px_60px_rgba(18,26,47,0.15)] border border-line-200 max-w-[340px] w-full',
+                confirmButton: 'w-full bg-navy-deep text-white font-bold py-3.5 rounded-xl hover:bg-navy-mid transition-colors active:scale-95 mb-3',
+                cancelButton: 'w-full bg-slate-100 text-slate-600 font-bold py-3.5 rounded-xl hover:bg-slate-200 transition-colors active:scale-95',
+                actions: 'w-full flex-col px-6 pb-6 m-0 mt-6',
+                htmlContainer: 'm-0 p-0'
+            }
+        });
+    }
+};
+
 document.addEventListener('livewire:initialized', () => {
-    // Override default wire:confirm
-    Livewire.directive('confirm', ({ el, directive, component, cleanup }) => {
+    // Custom SweetAlert Confirm Directive
+    Livewire.directive('swal-confirm', ({ el, directive, component, cleanup }) => {
         let content = directive.expression;
-        
         let onClick = e => {
             e.preventDefault();
             e.stopImmediatePropagation();
             
-            Swal.fire({
-                title: 'Konfirmasi',
-                text: content,
-                icon: 'warning',
-                showCancelButton: true,
-                confirmButtonColor: '#4f46e5', // Tailwind Indigo 600
-                cancelButtonColor: '#d1d5db',  // Tailwind Gray 300
-                confirmButtonText: 'Ya, Lanjutkan',
-                cancelButtonText: 'Batal',
-                buttonsStyling: false,
-                customClass: {
-                    popup: 'rounded-[2rem] p-6 bg-white shadow-[0_10px_40px_rgb(0,0,0,0.1)] border border-slate-100',
-                    title: 'text-2xl font-extrabold text-slate-800 mb-2',
-                    htmlContainer: 'text-sm font-medium text-slate-500 mb-6',
-                    confirmButton: 'w-full bg-slate-900 text-white rounded-full py-3.5 font-bold text-sm shadow-[0_8px_20px_rgb(0,0,0,0.15)] active:scale-95 transition-all mb-3',
-                    cancelButton: 'w-full bg-slate-100 text-slate-600 rounded-full py-3.5 font-bold text-sm hover:bg-slate-200 active:scale-95 transition-all',
-                    actions: 'w-full flex-col'
-                }
-            }).then((result) => {
+            window.showAppAlert.confirm(content).then((result) => {
                 if (result.isConfirmed) {
-                    // Remove the directive to avoid infinite loop when triggering click manually
-                    el.removeAttribute('wire:confirm');
+                    el.removeEventListener('click', onClick, true);
                     el.click();
-                    // Put it back
-                    el.setAttribute('wire:confirm', content);
+                    el.addEventListener('click', onClick, true);
                 }
             });
         };
-
         el.addEventListener('click', onClick, true);
-
         cleanup(() => {
             el.removeEventListener('click', onClick, true);
         });
@@ -51,35 +105,11 @@ document.addEventListener('livewire:initialized', () => {
     // Listen for Livewire events for SweetAlert
     Livewire.on('swal:success', (data) => {
         let message = Array.isArray(data) ? data[0] : data;
-        Swal.fire({
-            title: 'Berhasil!',
-            text: message,
-            icon: 'success',
-            buttonsStyling: false,
-            customClass: {
-                popup: 'rounded-[2rem] p-6 bg-white shadow-[0_10px_40px_rgb(0,0,0,0.1)] border border-slate-100',
-                title: 'text-2xl font-extrabold text-slate-800 mb-2',
-                htmlContainer: 'text-sm font-medium text-slate-500 mb-6',
-                confirmButton: 'w-full bg-indigo-500 text-white rounded-full py-3.5 font-bold text-sm shadow-[0_8px_20px_rgb(99,102,241,0.3)] active:scale-95 transition-all',
-                icon: 'border-0'
-            }
-        });
+        window.showAppAlert.success(message);
     });
 
     Livewire.on('swal:error', (data) => {
         let message = Array.isArray(data) ? data[0] : data;
-        Swal.fire({
-            title: 'Gagal!',
-            text: message,
-            icon: 'error',
-            buttonsStyling: false,
-            customClass: {
-                popup: 'rounded-[2rem] p-6 bg-white shadow-[0_10px_40px_rgb(0,0,0,0.1)] border border-slate-100',
-                title: 'text-2xl font-extrabold text-slate-800 mb-2',
-                htmlContainer: 'text-sm font-medium text-slate-500 mb-6',
-                confirmButton: 'w-full bg-rose-500 text-white rounded-full py-3.5 font-bold text-sm shadow-[0_8px_20px_rgb(244,63,94,0.3)] active:scale-95 transition-all',
-                icon: 'border-0'
-            }
-        });
+        window.showAppAlert.error(message);
     });
 });

@@ -230,42 +230,7 @@
             </div>
         </nav>
 
-        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-        <script>
-            // Custom SweetAlert Styling for Mobile
-            const Toast = Swal.mixin({
-                toast: true,
-                position: 'top',
-                showConfirmButton: false,
-                timer: 3000,
-                timerProgressBar: true,
-                customClass: {
-                    popup: 'rounded-2xl shadow-xl border border-slate-100 p-2',
-                    title: 'font-outfit font-semibold text-sm',
-                }
-            });
 
-            window.addEventListener('swal:success', event => {
-                Toast.fire({
-                    icon: 'success',
-                    title: event.detail[0]
-                });
-            });
-
-            window.addEventListener('swal:error', event => {
-                Swal.fire({
-                    title: 'Gagal!',
-                    text: event.detail[0],
-                    icon: 'error',
-                    confirmButtonColor: '#4f46e5',
-                    customClass: {
-                        popup: 'rounded-3xl',
-                        confirmButton: 'rounded-xl w-full py-3 text-base font-semibold',
-                        title: 'font-outfit font-bold text-slate-800'
-                    }
-                });
-            });
-        </script>
         
         <!-- PWA Service Worker Registration -->
         <script>

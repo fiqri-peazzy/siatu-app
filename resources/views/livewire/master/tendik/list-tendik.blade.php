@@ -82,7 +82,7 @@
                         </td>
                         <td class="px-6 py-4 text-right">
                             <button wire:click="edit({{ $tendik->id }})" class="text-primary hover:text-primary-container font-medium mr-3">Edit</button>
-                            <button wire:click="delete({{ $tendik->id }})" wire:confirm="Yakin ingin menghapus data ini?" class="text-red-600 hover:text-red-800 font-medium">Hapus</button>
+                            <button wire:click="delete({{ $tendik->id }})" wire:swal-confirm="Yakin ingin menghapus data ini?" class="text-red-600 hover:text-red-800 font-medium">Hapus</button>
                         </td>
                     </tr>
                     @empty

@@ -328,16 +328,9 @@
         @if (session()->has('success'))
             <script type="module">
                 document.addEventListener('DOMContentLoaded', function () {
-                    window.Swal.fire({
-                        title: 'Berhasil!',
-                        text: "{{ session('success') }}",
-                        icon: 'success',
-                        confirmButtonColor: '#4f46e5',
-                        customClass: {
-                            popup: 'rounded-xl',
-                            confirmButton: 'rounded-md shadow-sm'
-                        }
-                    });
+                    if (window.showAppAlert) {
+                        window.showAppAlert.success("{{ session('success') }}");
+                    }
                 });
             </script>
         @endif
@@ -345,16 +338,9 @@
         @if (session()->has('error'))
             <script type="module">
                 document.addEventListener('DOMContentLoaded', function () {
-                    window.Swal.fire({
-                        title: 'Error!',
-                        text: "{{ session('error') }}",
-                        icon: 'error',
-                        confirmButtonColor: '#ef4444',
-                        customClass: {
-                            popup: 'rounded-xl',
-                            confirmButton: 'rounded-md shadow-sm bg-red-500'
-                        }
-                    });
+                    if (window.showAppAlert) {
+                        window.showAppAlert.error("{{ session('error') }}");
+                    }
                 });
             </script>
         @endif

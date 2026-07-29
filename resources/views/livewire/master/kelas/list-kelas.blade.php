@@ -62,7 +62,7 @@
                         <td class="px-6 py-4">{{ $k->tahunAjaran->nama ?? '-' }} ({{ $k->tahunAjaran->semester ?? '-' }})</td>
                         <td class="px-6 py-4 text-right">
                             <button wire:click="edit({{ $k->id }})" class="text-primary hover:text-primary-container font-medium mr-3">Edit</button>
-                            <button wire:click="delete({{ $k->id }})" wire:confirm="Yakin ingin menghapus kelas ini?" class="text-red-600 hover:text-red-800 font-medium">Hapus</button>
+                            <button wire:click="delete({{ $k->id }})" wire:swal-confirm="Yakin ingin menghapus kelas ini?" class="text-red-600 hover:text-red-800 font-medium">Hapus</button>
                         </td>
                     </tr>
                     @empty

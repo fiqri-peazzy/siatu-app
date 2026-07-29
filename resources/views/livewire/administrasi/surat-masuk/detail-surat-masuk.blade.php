@@ -10,7 +10,7 @@
             </a>
             @can('dispose', $surat)
             @if($surat->status->value !== 'selesai')
-            <button type="button" wire:click="tandaiSelesai" wire:confirm="Yakin ingin menandai disposisi ini selesai / ditindaklanjuti?" class="inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700">
+            <button type="button" wire:click="tandaiSelesai" wire:swal-confirm="Yakin ingin menandai disposisi ini selesai / ditindaklanjuti?" class="inline-flex items-center justify-center rounded-md border border-transparent bg-green-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-green-700">
                 Tandai Selesai
             </button>
             <button type="button" wire:click="openDisposisiModal" class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-indigo-700">
