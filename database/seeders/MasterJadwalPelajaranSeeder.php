@@ -28,7 +28,6 @@ class MasterJadwalPelajaranSeeder extends Seeder
 
         // Ensure we have some teachers
         if (MasterGuru::count() == 0) {
-            // Seed a dummy teacher
             MasterGuru::create(['nama' => 'Guru Dummy', 'nip' => '123456789']);
         }
         $gurus = MasterGuru::pluck('id')->toArray();
@@ -100,7 +99,7 @@ EOD;
         $lines = explode("\n", $rawData);
         $currentHari = '';
 
-        // Class Mapping. Strictly use the 3 main classes.
+        // Class Mapping
         $kelasNames = ['Kelas X', 'Kelas XI', 'Kelas XII'];
         $kelasIds = [];
         foreach ($kelasNames as $nama) {
@@ -111,16 +110,16 @@ EOD;
             $kelasIds[] = $k->id;
         }
 
+        // Cache to assign the same guru to the same subject in the same class consistently
+        $guruSubjectCache = [];
+
         foreach ($lines as $line) {
             $line = trim($line);
             if (empty($line) || str_starts_with($line, 'Hari')) {
                 continue;
             }
 
-            // Split by tab
             $parts = explode("\t", $line);
-            
-            // Clean up parts
             $parts = array_map('trim', $parts);
 
             // Handle Hari
@@ -137,30 +136,25 @@ EOD;
             $subjectStartIndex = 0;
 
             if (!empty($parts[0]) && preg_match('/^[0-9]/', $parts[0])) {
-                // e.g. 07.45-08.15
                 $timePart = $parts[0];
                 $jpPart = $parts[1] ?? '';
                 $subjectStartIndex = 2;
             } else if (!empty($parts[1]) && preg_match('/^[0-9]/', $parts[1])) {
-                // e.g. SENIN 07.00-07.45
                 $timePart = $parts[1];
                 $jpPart = $parts[2] ?? '';
                 $subjectStartIndex = 3;
             } else {
-                continue; // Can't parse time
+                continue; 
             }
 
-            // Parse Time (e.g. 07.00-07.45 or 09.45.10.15)
-            // Fix weird formats like 09.45.10.15 to 09.45-10.15
+            // Parse Time
             if (strpos($timePart, '-') === false && strlen($timePart) >= 11) {
                 $timePart = substr($timePart, 0, 5) . '-' . substr($timePart, 6);
             }
             $timePart = str_replace('.', ':', $timePart);
             $timeParts = explode('-', $timePart);
-            if (count($timeParts) < 2) {
-                // try replacing last : with -
-                continue;
-            }
+            if (count($timeParts) < 2) continue;
+            
             $jamMulai = trim($timeParts[0]) . ':00';
             $jamSelesai = trim($timeParts[1]) . ':00';
 
@@ -171,78 +165,104 @@ EOD;
                 $jamKe = $jamMap[$jpPart] ?? null;
             }
 
-            $kategoriKegiatan = 'pembelajaran';
-            $keterangan = '';
+            $subjects = array_slice($parts, $subjectStartIndex);
+            // Filter out purely empty strings to handle trailing/intermediate missing data gracefully
+            $subjects = array_values(array_filter($subjects, fn($s) => $s !== ''));
+
+            if (count($subjects) === 0) {
+                continue; // Skip blank slots
+            }
+
+            // Check if global event
+            $firstSubjectUpper = strtoupper($subjects[0]);
             $isGlobal = false;
-            if (isset($parts[$subjectStartIndex])) {
-                $checkStr = strtoupper($parts[$subjectStartIndex]);
-                if (str_contains($checkStr, 'UPACARA')) {
-                    $kategoriKegiatan = 'upacara';
-                    $isGlobal = true;
-                } else if (str_contains($checkStr, 'ISTIRAHAT') || str_contains($checkStr, 'DHUHA')) {
-                    $kategoriKegiatan = 'istirahat';
-                    $isGlobal = true;
-                } else if (str_contains($checkStr, 'ISHOMA')) {
-                    $kategoriKegiatan = 'ishoma';
-                    $isGlobal = true;
-                } else if (str_contains($checkStr, 'EKSTRAKURIKULER')) {
-                    $kategoriKegiatan = 'ekstrakurikuler';
-                    $isGlobal = true;
-                    $keterangan = $parts[$subjectStartIndex];
-                } else if (str_contains($checkStr, 'PEMBINAAN')) {
-                    $kategoriKegiatan = 'pembinaan';
-                    $isGlobal = true;
-                    $keterangan = $parts[$subjectStartIndex];
-                }
+            $kategoriKegiatan = 'pembelajaran';
+            
+            if (str_contains($firstSubjectUpper, 'UPACARA')) {
+                $kategoriKegiatan = 'upacara';
+                $isGlobal = true;
+            } else if (str_contains($firstSubjectUpper, 'ISTIRAHAT') || str_contains($firstSubjectUpper, 'DHUHA')) {
+                $kategoriKegiatan = 'istirahat';
+                $isGlobal = true;
+            } else if (str_contains($firstSubjectUpper, 'ISHOMA')) {
+                $kategoriKegiatan = 'ishoma';
+                $isGlobal = true;
+            } else if (str_contains($firstSubjectUpper, 'EKSTRAKURIKULER')) {
+                $kategoriKegiatan = 'ekstrakurikuler';
+                $isGlobal = true;
+            } else if (str_contains($firstSubjectUpper, 'PEMBINAAN')) {
+                $kategoriKegiatan = 'pembinaan';
+                $isGlobal = true;
             }
 
             if ($isGlobal) {
                 MasterJadwalPelajaran::create([
                     'tahun_ajaran_id' => $tahunAjaranId,
-                    'kelas_id' => null, // Global
+                    'kelas_id' => null, 
                     'kategori_kegiatan' => $kategoriKegiatan,
-                    'keterangan_kegiatan' => $keterangan ?: null,
+                    'keterangan_kegiatan' => count($subjects) > 0 ? $subjects[0] : null,
                     'hari' => $currentHari,
                     'jam_mulai' => $jamMulai,
                     'jam_selesai' => $jamSelesai,
                     'jam_ke' => null,
                 ]);
+                continue;
+            }
+
+            // Figure out class mapping based on number of subjects parsed
+            $mapping = [];
+            $numSubjects = count($subjects);
+            
+            if ($numSubjects == 5) {
+                // Split classes for X and XI, full for XII
+                $mapping = [0 => $kelasIds[0], 1 => $kelasIds[0], 2 => $kelasIds[1], 3 => $kelasIds[1], 4 => $kelasIds[2]];
+            } else if ($numSubjects == 4) {
+                // Split classes for X and XI, missing XII
+                $mapping = [0 => $kelasIds[0], 1 => $kelasIds[0], 2 => $kelasIds[1], 3 => $kelasIds[1]];
+            } else if ($numSubjects == 3) {
+                // One subject per class
+                $mapping = [0 => $kelasIds[0], 1 => $kelasIds[1], 2 => $kelasIds[2]];
+            } else if ($numSubjects == 2) {
+                // One subject per class, missing XII
+                $mapping = [0 => $kelasIds[0], 1 => $kelasIds[1]];
             } else {
-                // Subjects
-                $colIndex = 0;
-                for ($i = $subjectStartIndex; $i < count($parts); $i++) {
-                    if ($colIndex >= count($kelasIds)) {
-                        break; // Ignore extra subjects beyond the 3 main classes
-                    }
-                    $subjectName = trim($parts[$i]);
-                    if (!empty($subjectName)) {
-                        $subjectName = str_replace('*', '', $subjectName);
-                        // Ensure Mapel exists
-                        $mapel = MasterMapel::firstOrCreate(
-                            ['nama' => $subjectName],
-                            ['kode' => Str::upper(Str::slug($subjectName))]
-                        );
-
-                        // Random guru
-                        $randomGuruId = !empty($gurus) ? $gurus[array_rand($gurus)] : null;
-                        
-                        // Map to class
-                        $kelasId = $kelasIds[$colIndex] ?? $kelasIds[0];
-
-                        MasterJadwalPelajaran::create([
-                            'tahun_ajaran_id' => $tahunAjaranId,
-                            'kelas_id' => $kelasId,
-                            'mapel_id' => $mapel->id,
-                            'guru_id' => $randomGuruId,
-                            'kategori_kegiatan' => 'pembelajaran',
-                            'hari' => $currentHari,
-                            'jam_mulai' => $jamMulai,
-                            'jam_selesai' => $jamSelesai,
-                            'jam_ke' => $jamKe,
-                        ]);
-                    }
-                    $colIndex++;
+                // Fallback (just map to available sequentially)
+                foreach ($subjects as $idx => $s) {
+                    $mapping[$idx] = $kelasIds[$idx] ?? $kelasIds[0];
                 }
+            }
+
+            foreach ($subjects as $idx => $subjectName) {
+                $subjectName = str_replace('*', '', $subjectName);
+                if (empty($subjectName)) continue;
+
+                $kelasId = $mapping[$idx] ?? $kelasIds[0];
+
+                // Ensure Mapel exists
+                $mapel = MasterMapel::firstOrCreate(
+                    ['nama' => $subjectName],
+                    ['kode' => Str::upper(Str::slug($subjectName))]
+                );
+
+                // Ensure consistent Guru per Mapel per Kelas
+                $cacheKey = $mapel->id . '_' . $kelasId;
+                if (!isset($guruSubjectCache[$cacheKey])) {
+                    $guruSubjectCache[$cacheKey] = !empty($gurus) ? $gurus[array_rand($gurus)] : null;
+                }
+                
+                $guruId = $guruSubjectCache[$cacheKey];
+
+                MasterJadwalPelajaran::create([
+                    'tahun_ajaran_id' => $tahunAjaranId,
+                    'kelas_id' => $kelasId,
+                    'mapel_id' => $mapel->id,
+                    'guru_id' => $guruId,
+                    'kategori_kegiatan' => 'pembelajaran',
+                    'hari' => $currentHari,
+                    'jam_mulai' => $jamMulai,
+                    'jam_selesai' => $jamSelesai,
+                    'jam_ke' => $jamKe,
+                ]);
             }
         }
     }

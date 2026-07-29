@@ -74,7 +74,7 @@ class FormJurnal extends Component
         }
 
         $this->dispatch('jurnalSubmitted');
-        $this->dispatch('swal:success', 'Jurnal berhasil disimpan!');
+        session()->flash('success', 'Jurnal berhasil disimpan!');
         
         return redirect()->route('guru.dashboard');
     }

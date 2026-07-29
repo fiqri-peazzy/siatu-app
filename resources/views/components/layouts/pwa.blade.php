@@ -252,5 +252,27 @@
                 });
             }
         </script>
+        
+        <!-- Handle Session Flashes with SweetAlert2 -->
+        @if (session()->has('success'))
+            <script type="module">
+                document.addEventListener('DOMContentLoaded', function () {
+                    if (window.showAppAlert) {
+                        window.showAppAlert.success("{{ session('success') }}");
+                    }
+                });
+            </script>
+        @endif
+
+        @if (session()->has('error'))
+            <script type="module">
+                document.addEventListener('DOMContentLoaded', function () {
+                    if (window.showAppAlert) {
+                        window.showAppAlert.error("{{ session('error') }}");
+                    }
+                });
+            </script>
+        @endif
+
     </body>
 </html>

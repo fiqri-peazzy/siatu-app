@@ -49,9 +49,9 @@
                 <table class="w-full text-center text-sm border-collapse">
                     <thead class="bg-surface-container-low text-on-surface-variant font-medium border-b border-outline-variant">
                         <tr>
-                            <th class="px-4 py-3 border-r border-outline-variant w-24">Waktu</th>
+                            <th class="px-4 py-3 border-r border-outline-variant w-28 sticky left-0 z-10 bg-surface-container-low">Waktu</th>
                             @foreach($hariList as $hari)
-                                <th class="px-4 py-3 border-r border-outline-variant min-w-[200px]">{{ $hari }}</th>
+                                <th class="px-4 py-3 border-r border-outline-variant min-w-[240px]">{{ $hari }}</th>
                             @endforeach
                         </tr>
                     </thead>
@@ -61,11 +61,11 @@
                         @endphp
                         @foreach($timeSlots as $index => $slot)
                         <tr class="hover:bg-surface-container-lowest transition-colors">
-                            <td class="px-4 py-4 border-r border-outline-variant font-medium text-on-surface bg-surface-container-lowest whitespace-nowrap">
+                            <td class="px-4 py-4 border-r border-outline-variant font-medium text-on-surface bg-surface-container-lowest whitespace-nowrap sticky left-0 z-10">
                                 {{ $slot[0] }} - {{ $slot[1] }}
                             </td>
                             @foreach($hariList as $hari)
-                                <td class="px-2 py-2 border-r border-outline-variant align-top relative group"
+                                <td class="px-3 py-3 border-r border-outline-variant align-top relative group"
                                     x-data
                                     @dragover.prevent="$el.classList.add('bg-primary/5')"
                                     @dragleave.prevent="$el.classList.remove('bg-primary/5')"
@@ -79,27 +79,27 @@
                                     @endphp
 
                                     @if($jadwalList->count() > 0)
-                                        <div class="{{ $jadwalList->count() > 1 ? 'grid grid-cols-2 gap-2' : 'flex flex-col gap-2' }}">
+                                        <div class="flex flex-col gap-3">
                                             @foreach($jadwalList as $jadwal)
-                                                <div draggable="true" @dragstart="event.dataTransfer.setData('text/plain', {{ $jadwal->id }})" class="cursor-move border rounded-lg p-3 text-left relative overflow-hidden hover:shadow-md transition-shadow 
-                                                    {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'bg-primary/10 border-primary/20' : 'bg-secondary/10 border-secondary/20' }}" title="Drag untuk menyalin ke jam lain">
-                                                    <div class="absolute top-0 left-0 w-1 h-full {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'bg-primary' : 'bg-secondary' }}"></div>
-                                                    <div class="flex justify-between items-start mb-1">
-                                                        <span class="font-bold {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'text-primary' : 'text-secondary' }} text-sm line-clamp-1">
+                                                <div draggable="true" @dragstart="event.dataTransfer.setData('text/plain', {{ $jadwal->id }})" class="cursor-move border rounded-xl p-3 text-left relative overflow-hidden hover:shadow-md transition-all 
+                                                    {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'bg-primary/5 border-primary/30 hover:border-primary/60' : 'bg-secondary/5 border-secondary/30 hover:border-secondary/60' }}" title="Drag untuk menyalin ke jam lain">
+                                                    <div class="absolute top-0 left-0 w-1.5 h-full {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'bg-primary' : 'bg-secondary' }}"></div>
+                                                    <div class="flex justify-between items-start mb-2 gap-2">
+                                                        <span class="font-bold {{ $jadwal->kategori_kegiatan === 'pembelajaran' ? 'text-primary' : 'text-secondary' }} text-sm leading-tight" style="word-break: break-word;">
                                                             @if($jadwal->kategori_kegiatan === 'pembelajaran')
                                                                 {{ $jadwal->mapel->nama }}
                                                             @else
                                                                 {{ $jadwal->keterangan_kegiatan ?: strtoupper($jadwal->kategori_kegiatan) }}
                                                             @endif
                                                         </span>
-                                                        <div class="flex gap-1 flex-shrink-0">
-                                                            <button wire:click="edit({{ $jadwal->id }})" class="text-on-surface-variant hover:text-primary transition-colors p-1" title="Edit">
-                                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <div class="flex gap-1 flex-shrink-0 bg-surface/80 rounded-md shadow-sm border border-outline-variant/30 backdrop-blur-sm">
+                                                            <button wire:click="edit({{ $jadwal->id }})" class="text-on-surface-variant hover:text-primary transition-colors p-1.5" title="Edit">
+                                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                                 </svg>
                                                             </button>
-                                                            <button wire:click="delete({{ $jadwal->id }})" wire:swal-confirm="Yakin ingin menghapus jadwal ini?" class="text-on-surface-variant hover:text-red-600 transition-colors p-1" title="Hapus">
-                                                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <button wire:click="delete({{ $jadwal->id }})" wire:swal-confirm="Yakin ingin menghapus jadwal ini?" class="text-on-surface-variant hover:text-red-600 transition-colors p-1.5" title="Hapus">
+                                                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                                                                 </svg>
                                                             </button>
@@ -107,8 +107,8 @@
                                                     </div>
                                                     
                                                     @if($jadwal->guru)
-                                                    <div class="text-xs text-on-surface-variant flex items-center gap-1 mb-1 line-clamp-1" title="{{ $jadwal->guru->nama }}">
-                                                        <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <div class="text-xs text-on-surface-variant flex items-center gap-1.5 mb-1.5 line-clamp-1" title="{{ $jadwal->guru->nama }}">
+                                                        <svg class="w-3.5 h-3.5 flex-shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                                                         </svg>
                                                         {{ $jadwal->guru->nama }}
@@ -116,16 +116,16 @@
                                                     @endif
                                                     
                                                     @if($jadwal->kelas_id === null)
-                                                    <div class="text-xs text-secondary flex items-center gap-1 mb-1 line-clamp-1">
-                                                        <svg class="w-3 h-3 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <div class="text-xs text-secondary flex items-center gap-1.5 mb-1.5 line-clamp-1">
+                                                        <svg class="w-3.5 h-3.5 flex-shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                                         </svg>
                                                         Jadwal Global
                                                     </div>
                                                     @endif
                                                     
-                                                    <div class="text-xs font-medium text-on-surface flex items-center gap-1">
-                                                        <svg class="w-3 h-3 text-on-surface-variant flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <div class="text-xs font-medium text-on-surface/80 flex items-center gap-1.5 bg-surface-container-lowest inline-flex px-2 py-1 rounded">
+                                                        <svg class="w-3.5 h-3.5 flex-shrink-0 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                                         </svg>
                                                         {{ substr($jadwal->jam_mulai, 0, 5) }} - {{ substr($jadwal->jam_selesai, 0, 5) }}
@@ -135,8 +135,8 @@
                                         </div>
                                     @endif
                                     
-                                    <button wire:click="create('{{ $hari }}', '{{ $slot[0] }}', '{{ $slot[1] }}')" class="opacity-0 group-hover:opacity-100 absolute inset-0 w-full h-full flex items-center justify-center bg-surface-container-low/50 text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-all {{ $jadwalList->count() > 0 ? 'hidden' : '' }}" title="Tambah Jadwal">
-                                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <button wire:click="create('{{ $hari }}', '{{ $slot[0] }}', '{{ $slot[1] }}')" class="opacity-0 group-hover:opacity-100 absolute inset-0 w-full h-full flex items-center justify-center bg-surface-container-low/40 backdrop-blur-[1px] text-on-surface-variant hover:text-primary hover:bg-primary/5 transition-all z-10 {{ $jadwalList->count() > 0 ? 'hidden' : '' }}" title="Tambah Jadwal">
+                                        <svg class="w-8 h-8 drop-shadow-md" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                                         </svg>
                                     </button>
