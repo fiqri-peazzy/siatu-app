@@ -153,6 +153,10 @@ Route::middleware('auth')->group(function () {
         // Peminatan Admin
         Route::get('/peminatan', \App\Livewire\Akademik\Peminatan\AssignPeminatan::class)->name('peminatan.index');
 
+        // Absensi Siswa (Rekap)
+        Route::get('/absensi-siswa/rekap', \App\Livewire\Akademik\Absensi\RekapSiswa::class)->name('absensi-siswa.rekap');
+        Route::get('/absensi-siswa/export', [\App\Http\Controllers\Akademik\ExportRekapSiswaController::class, 'export'])->name('absensi-siswa.export');
+
         // Guru
         Route::get('/absensi/absen-sekarang', \App\Livewire\Absensi\Guru\FormAbsensi::class)->name('absensi.guru.form');
         Route::get('/absensi/riwayat', \App\Livewire\Absensi\Guru\RiwayatAbsensi::class)->name('absensi.guru.riwayat');
