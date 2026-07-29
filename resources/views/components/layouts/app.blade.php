@@ -25,7 +25,7 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
         <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
-        <!-- Custom Scrollbar for Sidebar -->
+        <!-- Custom Scrollbar & Sidebar Desktop Override -->
         <style>
             .custom-scrollbar::-webkit-scrollbar {
                 width: 4px;
@@ -40,6 +40,41 @@
             .custom-scrollbar:hover::-webkit-scrollbar-thumb {
                 background-color: rgba(156, 163, 175, 0.8);
             }
+
+            /* Desktop: sidebar is always visible and in normal flow */
+            @media (min-width: 1024px) {
+                .admin-sidebar {
+                    position: relative !important;
+                    transform: translateX(0) !important;
+                    z-index: auto !important;
+                }
+                /* Collapsed state */
+                .admin-sidebar.collapsed {
+                    width: 5rem;
+                }
+                .admin-sidebar.collapsed .sidebar-label,
+                .admin-sidebar.collapsed .sidebar-divider {
+                    display: none;
+                }
+                .admin-sidebar.collapsed .sidebar-dots {
+                    display: inline;
+                }
+                .admin-sidebar.collapsed .sidebar-section {
+                    justify-content: center;
+                }
+                .admin-sidebar.collapsed .sidebar-user-info {
+                    display: none;
+                }
+                .admin-sidebar.collapsed .sidebar-user-row {
+                    justify-content: center;
+                }
+                .admin-sidebar.collapsed .sidebar-logout-text {
+                    display: none;
+                }
+                .admin-sidebar.collapsed .sidebar-logout-btn {
+                    justify-content: center;
+                }
+            }
         </style>
     </head>
     <body class="font-sans antialiased bg-background text-on-surface">
@@ -52,18 +87,28 @@
         }">
             
             <!-- Mobile overlay -->
-            <div x-show="sidebarOpen" @click="sidebarOpen = false" class="fixed inset-0 bg-black/50 z-20 lg:hidden" x-transition.opacity></div>
+            <div x-show="sidebarOpen" x-transition.opacity
+                 @click="sidebarOpen = false" 
+                 class="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+                 style="display: none;"></div>
 
-            <!-- Sidebar -->
-            <aside class="bg-surface-container-low flex flex-col transition-all duration-300 z-30 fixed inset-y-0 left-0 lg:static lg:translate-x-0 w-72"
-                   :class="{ '-translate-x-full': !sidebarOpen, 'translate-x-0': sidebarOpen, 'lg:w-20': sidebarCollapsed }">
+            <!-- Sidebar: on mobile uses Alpine for drawer, on desktop CSS forces it visible -->
+            <aside class="admin-sidebar fixed inset-y-0 left-0 z-50 w-72 bg-surface-container-low flex flex-col transition-all duration-300"
+                   x-bind:style="sidebarOpen ? 'transform: translateX(0)' : 'transform: translateX(-100%)'"
+                   :class="{ 'collapsed': sidebarCollapsed }">
                 
-                <div class="p-4 h-16 flex items-center justify-center lg:justify-start border-b border-surface-container-high gap-3 overflow-hidden">
-                    <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="Logo" class="w-10 h-10 object-contain flex-shrink-0">
-                    <div class="whitespace-nowrap transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">
-                        <h1 class="text-sm font-bold tracking-tight text-primary">SITU-SMAMGO</h1>
-                        <p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-0.5">Panel Admin</p>
+                <div class="p-4 h-16 flex items-center justify-between border-b border-surface-container-high overflow-hidden">
+                    <div class="flex items-center gap-3">
+                        <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="Logo" class="w-10 h-10 object-contain flex-shrink-0">
+                        <div class="whitespace-nowrap transition-opacity duration-200 sidebar-label">
+                            <h1 class="text-sm font-bold tracking-tight text-primary">SITU-SMAMGO</h1>
+                            <p class="text-[10px] text-on-surface-variant uppercase tracking-widest mt-0.5">Panel Admin</p>
+                        </div>
                     </div>
+                    <!-- Close button for mobile drawer -->
+                    <button @click="sidebarOpen = false" class="lg:hidden p-1.5 rounded-lg text-on-surface-variant hover:bg-surface-container-high transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
                 </div>
 
                 <nav class="flex-1 px-2 py-4 space-y-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
@@ -74,10 +119,10 @@
                         Dashboard
                     </x-nav-link>
                     
-                    <div class="pt-5 pb-2 px-3 flex items-center gap-2" :class="{ 'lg:justify-center': sidebarCollapsed }">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Administrasi</span>
-                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }"></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
+                    <div class="pt-5 pb-2 px-3 flex items-center gap-2 sidebar-section">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 sidebar-label">Administrasi</span>
+                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200 sidebar-divider"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden sidebar-dots">...</span>
                     </div>
                     <x-nav-link href="{{ route('administrasi.surat-masuk.index') }}" :active="request()->routeIs('administrasi.surat-masuk.*')">
                         <x-slot:icon>
@@ -92,10 +137,10 @@
                         Surat Keluar
                     </x-nav-link>
               
-                    <div class="pt-5 pb-2 px-3 flex items-center gap-2" :class="{ 'lg:justify-center': sidebarCollapsed }">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Akademik</span>
-                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }"></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
+                    <div class="pt-5 pb-2 px-3 flex items-center gap-2 sidebar-section">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 sidebar-label">Akademik</span>
+                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200 sidebar-divider"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden sidebar-dots">...</span>
                     </div>
                     
                     @if(auth()->user()->hasRole('guru'))
@@ -135,10 +180,10 @@
                         Jurnal Mengajar
                     </x-nav-link>
 
-                    <div class="pt-5 pb-2 px-3 flex items-center gap-2" :class="{ 'lg:justify-center': sidebarCollapsed }">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Manajemen</span>
-                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }"></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
+                    <div class="pt-5 pb-2 px-3 flex items-center gap-2 sidebar-section">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 sidebar-label">Manajemen</span>
+                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200 sidebar-divider"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden sidebar-dots">...</span>
                     </div>
                     <x-nav-link href="#">
                         <x-slot:icon>
@@ -159,10 +204,10 @@
                         Kegiatan
                     </x-nav-link>
 
-                    <div class="pt-5 pb-2 px-3 flex items-center gap-2" :class="{ 'lg:justify-center': sidebarCollapsed }">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Data Master</span>
-                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }"></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
+                    <div class="pt-5 pb-2 px-3 flex items-center gap-2 sidebar-section">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 sidebar-label">Data Master</span>
+                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200 sidebar-divider"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden sidebar-dots">...</span>
                     </div>
                     <x-nav-link href="{{ route('master.tahun-ajaran') }}" :active="request()->routeIs('master.tahun-ajaran')">
                         <x-slot:icon>
@@ -215,10 +260,10 @@
                         Pengaturan Lokasi
                     </x-nav-link>
 
-                    <div class="pt-5 pb-2 px-3 flex items-center gap-2" :class="{ 'lg:justify-center': sidebarCollapsed }">
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">Sistem</span>
-                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }"></div>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden" :class="{ 'lg:inline': sidebarCollapsed }">...</span>
+                    <div class="pt-5 pb-2 px-3 flex items-center gap-2 sidebar-section">
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 sidebar-label">Sistem</span>
+                        <div class="h-px bg-slate-200/50 flex-1 transition-opacity duration-200 sidebar-divider"></div>
+                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest transition-opacity duration-200 hidden sidebar-dots">...</span>
                     </div>
                     <x-nav-link href="{{ route('sistem.user') }}" :active="request()->routeIs('sistem.user')">
                         <x-slot:icon>
@@ -230,11 +275,11 @@
                 </nav>
 
                 <div class="p-2 bg-surface-container border-t border-surface-container-high transition-all duration-300">
-                    <div class="flex items-center gap-3 p-2 rounded-xl transition-all duration-300" :class="{ 'justify-center': sidebarCollapsed }">
+                    <div class="flex items-center gap-3 p-2 rounded-xl transition-all duration-300 sidebar-user-row">
                         <div class="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-on-primary font-bold flex-shrink-0">
                             {{ substr(auth()->user()->name ?? 'A', 0, 1) }}
                         </div>
-                        <div class="overflow-hidden transition-all duration-200 w-full" :class="{ 'lg:hidden': sidebarCollapsed }">
+                        <div class="overflow-hidden transition-all duration-200 w-full sidebar-user-info">
                             <p class="text-sm font-semibold truncate">{{ auth()->user()->name ?? 'Pengguna' }}</p>
                             <p class="text-[10px] text-on-surface-variant truncate">{{ auth()->user()->role_label ?? '' }}</p>
                         </div>
@@ -242,9 +287,9 @@
 
                     <form method="POST" action="{{ route('logout') }}" class="mt-2 px-2 pb-2">
                         @csrf
-                        <button type="submit" class="w-full flex items-center gap-3 text-sm font-medium text-on-surface-variant hover:text-error transition-colors p-2 rounded-lg hover:bg-error/10" :class="{ 'justify-center': sidebarCollapsed }">
+                        <button type="submit" class="w-full flex items-center gap-3 text-sm font-medium text-on-surface-variant hover:text-error transition-colors p-2 rounded-lg hover:bg-error/10 sidebar-logout-btn">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 flex-shrink-0"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" /></svg>
-                            <span class="whitespace-nowrap transition-opacity duration-200" :class="{ 'lg:hidden': sidebarCollapsed }">
+                            <span class="whitespace-nowrap transition-opacity duration-200 sidebar-logout-text">
                                 Keluar
                             </span>
                         </button>
@@ -253,10 +298,10 @@
             </aside>
 
             <!-- Main Content -->
-            <main class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
+            <main class="flex-1 flex flex-col min-w-0 h-screen overflow-hidden w-full">
                 <header class="h-16 flex items-center justify-between px-4 lg:px-8 bg-surface/80 backdrop-blur-md sticky top-0 z-10 border-b border-surface-container-low flex-shrink-0">
                     <div class="flex items-center gap-4 min-w-0">
-                        <button @click="sidebarOpen = true" class="lg:hidden p-2 -ml-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors flex-shrink-0">
+                        <button @click="sidebarOpen = !sidebarOpen" class="lg:hidden p-2 -ml-2 text-on-surface-variant hover:bg-surface-container rounded-full transition-colors flex-shrink-0" type="button">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                         </button>
                         
@@ -326,5 +371,8 @@
                 });
             }
         </script>
+        
+        <!-- Force Livewire and AlpineJS to load on pages without Livewire components -->
+        @livewireScripts
     </body>
 </html>

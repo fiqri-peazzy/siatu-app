@@ -12,7 +12,7 @@ $classes = ($active ?? false)
             {{ $icon }}
         </div>
     @endif
-    <span class="truncate whitespace-nowrap transition-opacity duration-200" :class="{'lg:hidden': sidebarCollapsed}">
+    <span class="truncate whitespace-nowrap transition-opacity duration-200 sidebar-label">
         {{ $slot }}
     </span>
 </a>

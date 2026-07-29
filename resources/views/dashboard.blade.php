@@ -10,6 +10,7 @@
             <h2 class="text-3xl font-bold tracking-tight text-on-surface" style="letter-spacing: -0.02em;">
                 Selamat datang, {{ auth()->user()->name }}
             </h2>
+            <p class="text-sm text-on-surface-variant mt-1">
                 {{ now()->translatedFormat('l, d F Y') }} · Tahun Pelajaran 2024/2025
             </p>
         </div>
