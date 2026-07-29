@@ -46,13 +46,12 @@ class UsersSeeder extends Seeder
                 'is_active'=> true,
             ]
         );
-        // Buat data master guru untuk admin TU
-        $guruAdminTu = MasterGuru::firstOrCreate(
-            ['nip' => '198501012010011001'],
+        // Buat data master tendik untuk admin TU
+        $tendikAdminTu = \App\Models\Master\MasterTendik::firstOrCreate(
+            ['nip_nik' => '198501012010011001'],
             ['nama' => 'Budi Santoso', 'jabatan' => 'Kepala TU', 'status' => 'aktif']
         );
-        $guruAdminTu->update(['user_id' => $adminTu->id]);
-        $adminTu->update(['guru_id' => $guruAdminTu->id]);
+        $tendikAdminTu->update(['user_id' => $adminTu->id]);
         $adminTu->assignRole('admin-tu');
 
         // ─── 3. Kepala Sekolah ────────────────────────────────────────────────
@@ -119,12 +118,11 @@ class UsersSeeder extends Seeder
                 'is_active'=> true,
             ]
         );
-        $guruStaf = MasterGuru::firstOrCreate(
-            ['nip' => '199405122019022001'],
+        $tendikStaf = \App\Models\Master\MasterTendik::firstOrCreate(
+            ['nip_nik' => '199405122019022001'],
             ['nama' => 'Dewi Lestari', 'jabatan' => 'Staf TU', 'status' => 'aktif']
         );
-        $guruStaf->update(['user_id' => $stafTu->id]);
-        $stafTu->update(['guru_id' => $guruStaf->id]);
+        $tendikStaf->update(['user_id' => $stafTu->id]);
         $stafTu->assignRole('staf-tu');
 
         // ─── 6. Siswa ─────────────────────────────────────────────────────────

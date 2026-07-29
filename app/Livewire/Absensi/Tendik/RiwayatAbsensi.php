@@ -21,7 +21,12 @@ class RiwayatAbsensi extends Component
 
     public function getRiwayatProperty()
     {
-        $records = AbsensiTendik::where('tendik_id', auth()->user()->masterTendik->id)
+        $tendikId = auth()->user()->masterTendik->id ?? null;
+        if (!$tendikId) {
+            return [];
+        }
+
+        $records = AbsensiTendik::where('tendik_id', $tendikId)
             ->whereMonth('tanggal', $this->filterBulan)
             ->whereYear('tanggal', $this->filterTahun)
             ->orderBy('tanggal', 'desc')

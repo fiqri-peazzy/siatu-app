@@ -29,7 +29,13 @@ class FormAbsensi extends Component
 
     public function mount()
     {
-        $tendikId = auth()->user()->masterTendik->id;
+        $tendikId = auth()->user()->masterTendik->id ?? null;
+        
+        if (!$tendikId) {
+            session()->flash('error', 'Akun Anda belum terhubung dengan data Tenaga Kependidikan. Silakan hubungi Super Admin.');
+            return redirect()->route('dashboard');
+        }
+
         $hariIni = Carbon::today()->format('Y-m-d');
         
         $this->absenMasuk = AbsensiTendik::where('tendik_id', $tendikId)
