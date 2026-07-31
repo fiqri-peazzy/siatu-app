@@ -60,11 +60,11 @@ class JadwalGuru extends Component
             // Check status for this specific JP
             $status = 'mendatang';
             $jurnalRef = null;
-            if ($jadwal->hari == $this->hariIni) {
+            if (strtolower($jadwal->hari) == $this->hariIni) {
                 if (isset($jurnalHariIni[$jadwal->jam_ke]) && $jurnalHariIni[$jadwal->jam_ke]->status == 'diisi') {
                     $status = 'sudah_diisi';
                     $jurnalRef = $jurnalHariIni[$jadwal->jam_ke];
-                } elseif ($currentTime >= $jadwal->jam_mulai) {
+                } else {
                     $status = 'belum_diisi';
                 }
             }
@@ -84,7 +84,7 @@ class JadwalGuru extends Component
                     $lastGroup->status_jurnal = 'belum_diisi';
                 }
                 
-                if ($jadwal->hari == $this->hariIni && $currentTime >= $jadwal->jam_mulai && $currentTime <= $jadwal->jam_selesai) {
+                if (strtolower($jadwal->hari) == $this->hariIni && $currentTime >= $jadwal->jam_mulai && $currentTime <= $jadwal->jam_selesai) {
                     $sesiAktif = $lastGroup;
                 }
             } else {
@@ -97,7 +97,7 @@ class JadwalGuru extends Component
                 $lastGroup->status_jurnal = $status;
                 $lastGroup->jurnal_ref = $jurnalRef;
                 
-                if ($jadwal->hari == $this->hariIni && $currentTime >= $jadwal->jam_mulai && $currentTime <= $jadwal->jam_selesai) {
+                if (strtolower($jadwal->hari) == $this->hariIni && $currentTime >= $jadwal->jam_mulai && $currentTime <= $jadwal->jam_selesai) {
                     $sesiAktif = $lastGroup;
                 }
             }

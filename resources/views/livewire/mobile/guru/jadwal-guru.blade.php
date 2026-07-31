@@ -44,67 +44,61 @@
         </div>
         @endif
 
-        {{-- ── Timeline ── --}}
-        <div class="relative px-5 mt-8">
-            <div class="absolute top-2 bottom-0 left-7 w-[2px] bg-slate-200"></div>
-
-            <div class="space-y-6 relative z-10">
+        {{-- ── Daftar Jadwal (Card Stack) ── --}}
+        <div class="px-5 mt-8">
+            <div class="space-y-4">
                 @forelse($jadwals as $jadwal)
-                    <div class="relative pl-6">
-                        {{-- Dot Status --}}
-                        @if($jadwal->status_jurnal === 'sudah_diisi')
-                            <div class="absolute left-[-21px] top-1.5 w-3 h-3 rounded-full bg-[#3B65F3] ring-[3px] ring-slate-50 flex items-center justify-center">
-                                <svg class="w-2 h-2 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
-                            </div>
-                        @elseif($jadwal->status_jurnal === 'belum_diisi')
-                            <div class="absolute left-[-21px] top-1.5 w-3 h-3 rounded-full border-2 border-[#3B65F3] bg-white ring-[3px] ring-slate-50 flex items-center justify-center">
-                                <div class="w-1.5 h-1.5 rounded-full bg-[#3B65F3]"></div>
-                            </div>
-                        @else
-                            <div class="absolute left-[-21px] top-1.5 w-3 h-3 rounded-full border-2 border-amber-500 bg-white ring-[3px] ring-slate-50"></div>
-                        @endif
-
-                        <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 {{ $jadwal->status_jurnal === 'belum_diisi' ? 'ring-1 ring-[#3B65F3] shadow-md' : '' }}">
-                            <div class="flex items-start justify-between mb-3">
-                                <span class="text-[11px] font-bold text-slate-500 font-mono bg-slate-50 px-2 py-0.5 rounded border border-slate-100">
+                    <div class="bg-white rounded-[16px] p-4 shadow-sm ring-1 {{ $jadwal->status_jurnal === 'sudah_diisi' ? 'ring-slate-100' : ($jadwal->status_jurnal === 'belum_diisi' ? 'ring-[#FCD34D] shadow-[#FEF3C7]/50' : 'ring-slate-200 opacity-70') }}">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-2 h-2 rounded-full {{ $jadwal->status_jurnal === 'sudah_diisi' ? 'bg-[#059669]' : ($jadwal->status_jurnal === 'belum_diisi' ? 'bg-[#D97706]' : 'bg-slate-400') }}"></div>
+                                <span class="font-mono text-sm font-bold text-slate-700 tracking-tight">
                                     {{ substr($jadwal->jam_mulai, 0, 5) }} - {{ substr($jadwal->jam_selesai, 0, 5) }}
                                 </span>
-                                @if($jadwal->status_jurnal === 'sudah_diisi')
-                                    <span class="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">Sudah Diisi</span>
-                                @elseif($jadwal->status_jurnal === 'belum_diisi')
-                                    <span class="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">Belum Diisi</span>
-                                @else
-                                    <span class="bg-slate-100 text-slate-500 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">Mendatang</span>
-                                @endif
                             </div>
-
-                            <h3 class="font-extrabold text-[15px] text-[#121A2F]">{{ $jadwal->kelas->nama ?? '-' }}</h3>
-                            <p class="text-[11px] font-medium text-slate-500 mb-4">{{ $jadwal->mapel->nama ?? '-' }}</p>
-
                             @if($jadwal->status_jurnal === 'sudah_diisi')
-                                <div class="flex items-center gap-1.5 text-[10px] font-bold text-slate-400">
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    Jurnal Pelajaran #JRN-{{ \Carbon\Carbon::parse($jadwal->jurnal_ref->tanggal)->format('Ymd') }}-{{ str_pad($jadwal->jurnal_ref->id, 2, '0', STR_PAD_LEFT) }}
-                                </div>
+                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-md bg-[#ECFDF5] text-[#059669] uppercase tracking-wider">
+                                    Sudah Diisi
+                                </span>
                             @elseif($jadwal->status_jurnal === 'belum_diisi')
-                                <a href="{{ route('guru.jurnal.form', implode(',', $jadwal->jadwal_ids)) }}" class="block w-full bg-[#3B65F3] text-white text-center py-2.5 rounded-xl text-xs font-bold hover:bg-blue-600 transition-colors flex items-center justify-center gap-1">
-                                    Isi Jurnal Pelajaran
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"></path></svg>
-                                </a>
+                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-md bg-[#FFFBEB] text-[#D97706] uppercase tracking-wider">
+                                    Belum Diisi
+                                </span>
                             @else
-                                <div class="w-full bg-slate-50 border border-slate-100 text-slate-400 text-center py-2.5 rounded-xl text-xs font-bold cursor-not-allowed">
-                                    Belum Dapat Diisi
-                                </div>
+                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-md bg-slate-100 text-slate-500 uppercase tracking-wider">
+                                    Mendatang
+                                </span>
                             @endif
                         </div>
+                        <h4 class="font-bold text-ink-900 text-lg mb-1">{{ $jadwal->kelas->nama ?? '-' }}</h4>
+                        <p class="text-sm text-slate-600 font-medium flex items-center gap-1.5">
+                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477-4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
+                            {{ $jadwal->mapel->nama ?? '-' }}
+                        </p>
+
+                        @if($jadwal->status_jurnal === 'sudah_diisi')
+                            <div class="mt-4 flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-400 bg-slate-50 py-2 rounded-lg border border-slate-100">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                Jurnal Pelajaran #JRN-{{ \Carbon\Carbon::parse($jadwal->jurnal_ref->tanggal)->format('Ymd') }}-{{ str_pad($jadwal->jurnal_ref->id, 2, '0', STR_PAD_LEFT) }}
+                            </div>
+                        @elseif($jadwal->status_jurnal === 'belum_diisi')
+                            <a href="{{ route('guru.jurnal.form', implode(',', $jadwal->jadwal_ids)) }}" class="mt-4 w-full bg-[#121A2F] hover:bg-[#1f2937] text-white text-sm font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-[0.98]">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                Isi Jurnal Sekarang
+                            </a>
+                        @else
+                            <div class="mt-4 w-full bg-slate-50 border border-slate-200 text-slate-400 text-center py-2.5 rounded-xl text-xs font-bold cursor-not-allowed">
+                                Belum Dapat Diisi
+                            </div>
+                        @endif
                     </div>
                 @empty
-                    <div class="text-center py-10">
-                        <div class="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                    <div class="bg-slate-50/50 rounded-2xl p-8 border border-slate-100 border-dashed text-center">
+                        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
+                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
                         </div>
-                        <h4 class="font-bold text-slate-800">Tidak ada jadwal</h4>
-                        <p class="text-sm text-slate-500 mt-1">Anda tidak memiliki jadwal mengajar hari ini.</p>
+                        <h4 class="text-slate-800 font-bold mb-1">Hari yang Kosong</h4>
+                        <p class="text-sm text-slate-500 font-medium">Anda tidak memiliki jadwal mengajar hari ini.</p>
                     </div>
                 @endforelse
             </div>
