@@ -186,6 +186,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/jurnal/cetak', [\App\Http\Controllers\ExportJurnalController::class, 'cetakPdfGuru'])->name('jurnal.cetak');
         Route::get('/profil', \App\Livewire\Mobile\Guru\ProfilGuru::class)->name('profil');
         Route::get('/pengaturan-notifikasi', \App\Livewire\Mobile\Guru\PengaturanNotifikasi::class)->name('pengaturan-notifikasi');
+        Route::get('/notifikasi', \App\Livewire\Mobile\Guru\DaftarNotifikasi::class)->name('notifikasi');
     });
 
     // Sistem / Pengaturan (Hanya Super Admin & Admin TU)
@@ -199,4 +200,6 @@ Route::middleware('auth')->group(function () {
         request()->session()->regenerateToken();
         return redirect()->route('login');
     })->name('logout');
+
+    Route::post('/webpush/subscribe', [\App\Http\Controllers\WebPushController::class, 'subscribe']);
 });

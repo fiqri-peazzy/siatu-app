@@ -1,24 +1,37 @@
-const CACHE_NAME = 'situ-sma-cache-v1';
-const urlsToCache = [
-    '/',
-    '/manifest.json',
-    '/images/logo-removebg-preview.png'
-];
+self.addEventListener('push', function (e) {
+    if (!(self.Notification && self.Notification.permission === 'granted')) {
+        return;
+    }
 
-self.addEventListener('install', function(event) {
-    event.waitUntil(
-        caches.open(CACHE_NAME)
-            .then(function(cache) {
-                return cache.addAll(urlsToCache);
+    if (e.data) {
+        var msg = e.data.json();
+        e.waitUntil(
+            self.registration.showNotification(msg.title, {
+                body: msg.body,
+                icon: msg.icon || '/images/logo-removebg-preview.png',
+                data: msg.data
             })
-    );
+        );
+    }
 });
 
-self.addEventListener('fetch', function(event) {
-    // Basic network-first strategy for a dynamic app like Livewire
-    event.respondWith(
-        fetch(event.request).catch(function() {
-            return caches.match(event.request);
+self.addEventListener('notificationclick', function (e) {
+    e.notification.close();
+    
+    // Redirect to notifikasi page if action is clicked or general notification is clicked
+    var targetUrl = e.notification.data?.url || '/guru/notifikasi';
+    
+    e.waitUntil(
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (clientList) {
+            for (var i = 0; i < clientList.length; i++) {
+                var client = clientList[i];
+                if (client.url === targetUrl && 'focus' in client) {
+                    return client.focus();
+                }
+            }
+            if (clients.openWindow) {
+                return clients.openWindow(targetUrl);
+            }
         })
     );
 });

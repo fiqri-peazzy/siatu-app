@@ -46,12 +46,17 @@
                 </div>
 
                 <div class="flex items-center gap-3">
-                    <button class="w-10 h-10 rounded-full flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                    @php
+                        $unreadCount = auth()->user() ? auth()->user()->unreadNotifications->count() : 0;
+                    @endphp
+                    <a href="{{ auth()->user()->hasRole('guru') ? route('guru.notifikasi') : '#' }}" class="relative w-10 h-10 rounded-full flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
-                        <div class="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-danger-coral rounded-full border-2 border-[#121A2F]"></div>
-                    </button>
+                        @if($unreadCount > 0)
+                            <div class="absolute top-2 right-2 w-3 h-3 bg-red-500 rounded-full border-2 border-[#121A2F] flex items-center justify-center text-[8px] font-bold text-white">{{ $unreadCount > 9 ? '9+' : $unreadCount }}</div>
+                        @endif
+                    </a>
                     <form method="POST" action="{{ route('logout') }}" x-data class="hidden">
                         @csrf
                         <button type="submit" id="btnLogout"></button>
@@ -234,9 +239,55 @@
         
         <!-- PWA Service Worker Registration -->
         <script>
-            if ('serviceWorker' in navigator) {
+            function urlBase64ToUint8Array(base64String) {
+                const padding = '='.repeat((4 - base64String.length % 4) % 4);
+                const base64 = (base64String + padding)
+                    .replace(/\-/g, '+')
+                    .replace(/_/g, '/');
+                const rawData = window.atob(base64);
+                const outputArray = new Uint8Array(rawData.length);
+                for (let i = 0; i < rawData.length; ++i) {
+                    outputArray[i] = rawData.charCodeAt(i);
+                }
+                return outputArray;
+            }
+
+            if ('serviceWorker' in navigator && 'PushManager' in window) {
                 window.addEventListener('load', function() {
-                    navigator.serviceWorker.register('/sw.js');
+                    navigator.serviceWorker.register('/sw.js').then(function(registration) {
+                        console.log('ServiceWorker registered:', registration);
+                        
+                        // Setup Push Notification
+                        Notification.requestPermission().then(function(permission) {
+                            if (permission === 'granted') {
+                                subscribeUserToPush(registration);
+                            }
+                        });
+                    });
+                });
+            }
+
+            function subscribeUserToPush(registration) {
+                const vapidPublicKey = '{{ config('webpush.vapid.public_key') }}';
+                if (!vapidPublicKey) return;
+
+                const convertedVapidKey = urlBase64ToUint8Array(vapidPublicKey);
+
+                registration.pushManager.subscribe({
+                    userVisibleOnly: true,
+                    applicationServerKey: convertedVapidKey
+                }).then(function(subscription) {
+                    // Send subscription to server
+                    fetch('/webpush/subscribe', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+                        },
+                        body: JSON.stringify(subscription)
+                    });
+                }).catch(function(err) {
+                    console.log('Failed to subscribe the user: ', err);
                 });
             }
             
