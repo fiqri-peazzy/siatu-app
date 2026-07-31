@@ -3,14 +3,13 @@
 namespace App\Exports;
 
 use App\Models\Master\MasterGuru;
-use Maatwebsite\Excel\Concerns\FromCollection;
-use Maatwebsite\Excel\Concerns\WithHeadings;
-use Maatwebsite\Excel\Concerns\WithMapping;
+use Illuminate\Contracts\View\View;
+use Maatwebsite\Excel\Concerns\FromView;
+use Maatwebsite\Excel\Concerns\WithEvents;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
-use Maatwebsite\Excel\Concerns\WithStyles;
-use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+use Maatwebsite\Excel\Events\AfterSheet;
 
-class RekapAbsensiExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
+class RekapAbsensiExport implements FromView, ShouldAutoSize, WithEvents
 {
     protected $startDate;
     protected $endDate;
@@ -25,14 +24,16 @@ class RekapAbsensiExport implements FromCollection, WithHeadings, WithMapping, S
         $this->search = $search;
     }
 
-    public function collection()
+    public function view(): View
     {
         $start = $this->startDate;
         $end = $this->endDate;
 
         $query = MasterGuru::query()
             ->with(['absensis' => function($q) use ($start, $end) {
-                $q->whereBetween('tanggal', [$start, $end]);
+                if ($start && $end) {
+                    $q->whereBetween('tanggal', [$start, $end]);
+                }
             }])
             ->when($this->search, function($q) {
                 $q->where('nama', 'like', "%{$this->search}%");
@@ -41,60 +42,75 @@ class RekapAbsensiExport implements FromCollection, WithHeadings, WithMapping, S
         if ($this->filterStatus) {
             if ($this->filterStatus === 'belum_absen') {
                 $query->whereDoesntHave('absensis', function($q) use ($start, $end) {
-                    $q->whereBetween('tanggal', [$start, $end]);
+                    if ($start && $end) {
+                        $q->whereBetween('tanggal', [$start, $end]);
+                    }
                 });
             } else {
                 $query->whereHas('absensis', function($q) use ($start, $end) {
-                    $q->whereBetween('tanggal', [$start, $end])
-                      ->where('jenis', \App\Enums\JenisAbsenGuru::MASUK->value)
+                    $q->where('jenis', \App\Enums\JenisAbsenGuru::MASUK->value)
                       ->where('status', $this->filterStatus);
+                      
+                    if ($start && $end) {
+                        $q->whereBetween('tanggal', [$start, $end]);
+                    }
                 });
             }
         }
 
-        return $query->get();
+        return view('exports.rekap-absensi-guru', [
+            'data' => $query->get(),
+            'start_date' => $this->startDate,
+            'end_date' => $this->endDate,
+        ]);
     }
 
-    public function headings(): array
+    public function registerEvents(): array
     {
         return [
-            'Nama Guru',
-            'NIP',
-            'Jabatan',
-            'Total Hadir',
-            'Total Terlambat',
-            'Total Izin',
-            'Total Sakit',
-            'Total Alfa'
-        ];
-    }
-
-    public function map($guru): array
-    {
-        $absensisMasuk = $guru->absensis->where('jenis', 'masuk');
-        
-        $hadir = $absensisMasuk->where('status', 'hadir')->count();
-        $terlambat = $absensisMasuk->where('status', 'terlambat')->count();
-        $izin = $absensisMasuk->where('status', 'izin')->count();
-        $sakit = $absensisMasuk->where('status', 'sakit')->count();
-        $alfa = $absensisMasuk->where('status', 'alfa')->count();
-
-        return [
-            $guru->nama,
-            $guru->nip ?? '-',
-            $guru->jabatan ?? '-',
-            $hadir,
-            $terlambat,
-            $izin,
-            $sakit,
-            $alfa
-        ];
-    }
-
-    public function styles(Worksheet $sheet)
-    {
-        return [
-            1 => ['font' => ['bold' => true]],
+            AfterSheet::class => function(AfterSheet $event) {
+                // Style untuk Header Kop Surat
+                $event->sheet->getDelegate()->getStyle('A1:I5')->applyFromArray([
+                    'font' => [
+                        'bold' => true,
+                    ]
+                ]);
+                
+                $highestRow = $event->sheet->getHighestRow();
+                $highestCol = 'I'; // 9 Kolom (A sampai I)
+                
+                // Style untuk tabel (mulai dari baris ke-9)
+                if ($highestRow >= 9) {
+                    // Borders untuk seluruh cell pada tabel
+                    $event->sheet->getDelegate()->getStyle('A9:'.$highestCol.$highestRow)->applyFromArray([
+                        'borders' => [
+                            'allBorders' => [
+                                'borderStyle' => \PhpOffice\PhpSpreadsheet\Style\Border::BORDER_THIN,
+                                'color' => ['argb' => '000000'],
+                            ],
+                        ],
+                        'alignment' => [
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                            'wrapText' => true,
+                        ]
+                    ]);
+                    
+                    // Background dan bold khusus untuk header tabel (baris 9)
+                    $event->sheet->getDelegate()->getStyle('A9:'.$highestCol.'9')->applyFromArray([
+                        'font' => ['bold' => true],
+                        'alignment' => [
+                            'horizontal' => \PhpOffice\PhpSpreadsheet\Style\Alignment::HORIZONTAL_CENTER,
+                            'vertical' => \PhpOffice\PhpSpreadsheet\Style\Alignment::VERTICAL_CENTER,
+                        ],
+                        'fill' => [
+                            'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
+                            'startColor' => [
+                                'argb' => 'FFE5E7EB', // bg-gray-200
+                            ],
+                        ],
+                    ]);
+                }
+            },
         ];
     }
 }

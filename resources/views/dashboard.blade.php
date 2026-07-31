@@ -29,7 +29,7 @@
         
         $guruHadir = \App\Models\AbsensiGuru::where('tanggal', $today)
             ->where('jenis', 'masuk')
-            ->where('status', 'hadir')
+            ->whereIn('status', ['hadir', 'terlambat'])
             ->count();
             
         $guruIzin = \App\Models\AbsensiGuru::where('tanggal', $today)

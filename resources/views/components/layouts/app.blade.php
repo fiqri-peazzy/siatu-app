@@ -378,5 +378,6 @@
         
         <!-- Force Livewire and AlpineJS to load on pages without Livewire components -->
         @livewireScripts
+        @stack('scripts')
     </body>
 </html>
