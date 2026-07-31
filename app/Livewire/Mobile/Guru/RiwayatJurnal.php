@@ -19,10 +19,35 @@ class RiwayatJurnal extends Component
     public $filterKelas = '';
     public $filterMapel = '';
 
+    public $selectedJurnals = null;
+    public $detailMateri = '';
+    public $detailCatatan = '';
+    public $detailAktivitas = '';
+    public $showModal = false;
+
     public function mount()
     {
         $this->filterBulan = Carbon::now()->format('m');
         $this->filterTahun = Carbon::now()->format('Y');
+    }
+
+    public function showDetail($jurnalIds)
+    {
+        $jurnals = JurnalGuru::with(['kelas', 'mapel'])->whereIn('id', $jurnalIds)->get();
+        if ($jurnals->isEmpty()) return;
+
+        $this->selectedJurnals = $jurnals;
+        $this->detailMateri = $jurnals->first()->materi;
+        $this->detailAktivitas = $jurnals->first()->kegiatan; // Using 'kegiatan' if it exists, otherwise empty
+        $this->detailCatatan = $jurnals->first()->catatan;
+
+        $this->showModal = true;
+    }
+
+    public function closeModal()
+    {
+        $this->showModal = false;
+        $this->selectedJurnals = null;
     }
 
     public function updatingFilterBulan() { $this->resetPage(); }

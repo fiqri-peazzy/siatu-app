@@ -59,7 +59,7 @@
                     </div>
 
                     {{-- Card --}}
-                    <div class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100">
+                    <div @if($jurnal->status == 'diisi') wire:click="showDetail({{ json_encode($jurnal->jurnal_ids) }})" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.98] transition-transform" @else class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100" @endif>
                         <div class="flex items-start justify-between mb-1">
                             <h3 class="font-semibold text-[15px] text-slate-800 tracking-tight">{{ $jurnal->kelas->nama ?? '-' }}</h3>
                             @if($jurnal->status == 'diisi')
@@ -72,6 +72,7 @@
                         
                         @if($jurnal->status == 'diisi')
                             <p class="text-sm text-slate-700 leading-relaxed">{{ Str::limit($jurnal->materi, 80) }}</p>
+                            <p class="text-[10px] text-blue-500 mt-2 font-semibold">Ketuk untuk lihat detail &rarr;</p>
                             
                             {{-- Attendance Stats --}}
                             <div class="mt-3 flex gap-2 border-t border-slate-100 pt-3">
@@ -127,4 +128,56 @@
         </a>
     </div>
 
+    {{-- ── Detail Modal ── --}}
+    @if($showModal)
+        <template x-teleport="body">
+            <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" wire:click="closeModal"></div>
+                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
+                    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+                        <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all w-full max-w-sm">
+                            
+                            <div class="bg-white px-4 pb-4 pt-5">
+                                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                                    <h3 class="text-lg font-bold text-slate-900">Detail Jurnal</h3>
+                                    <button wire:click="closeModal" class="text-slate-400 hover:text-slate-500 bg-slate-100 rounded-full p-1.5">
+                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    </button>
+                                </div>
+                                
+                                <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1 pb-4">
+                                    <div>
+                                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Materi / Topik</h4>
+                                        <p class="text-sm font-medium text-slate-800">{{ $detailMateri ?: '-' }}</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Kegiatan / Aktivitas</h4>
+                                        <p class="text-sm font-medium text-slate-800">{{ $detailAktivitas ?: '-' }}</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Catatan Khusus</h4>
+                                        @if($detailCatatan)
+                                            <div class="bg-amber-50 border border-amber-100 rounded-lg p-3">
+                                                <p class="text-sm font-medium text-amber-800">{{ $detailCatatan }}</p>
+                                            </div>
+                                        @else
+                                            <p class="text-sm font-medium text-slate-800">-</p>
+                                        @endif
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 pt-3 border-t border-slate-100">
+                                    <button wire:click="closeModal" type="button" class="w-full bg-[#121A2F] text-white font-bold py-2.5 rounded-xl hover:bg-slate-800 transition-colors">
+                                        Tutup
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </template>
+    @endif
 </div>
