@@ -12,5 +12,13 @@ class DatabaseSeeder extends Seeder
             RolesAndPermissionsSeeder::class, // Harus pertama
             UsersSeeder::class,
         ]);
+        $this->call(MasterTahunAjaransTableSeeder::class);
+        $this->call(MasterMapelsTableSeeder::class);
+        $this->call(MasterKelasTableSeeder::class);
+        $this->call(MasterGurusTableSeeder::class);
+        $this->call(MasterTenagaKependidikansTableSeeder::class);
+        $this->call(MasterSiswasTableSeeder::class);
+        $this->call(MasterJadwalPelajaransTableSeeder::class);
+        $this->call(PeminatanSiswasTableSeeder::class);
     }
 }
