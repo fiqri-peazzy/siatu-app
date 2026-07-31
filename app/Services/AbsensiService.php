@@ -65,23 +65,7 @@ class AbsensiService
         $absen = \App\Models\AbsensiGuru::create($data);
 
         if ($foto) {
-            $path = '';
-            $folder = 'absensi/' . date('Y/m');
-            
-            if ($foto instanceof \Illuminate\Http\UploadedFile) {
-                $path = $foto->store($folder, 'public');
-            } elseif (is_string($foto) && str_starts_with($foto, 'data:image')) {
-                // Decode base64
-                $image_parts = explode(";base64,", $foto);
-                $image_type_aux = explode("image/", $image_parts[0]);
-                $image_type = $image_type_aux[1];
-                $image_base64 = base64_decode($image_parts[1]);
-                $filename = uniqid() . '.' . $image_type;
-                $path = $folder . '/' . $filename;
-                
-                \Illuminate\Support\Facades\Storage::disk('public')->put($path, $image_base64);
-            }
-
+            $path = $this->compressAndUploadFoto($foto, 'absensi/' . date('Y/m'));
             if ($path) {
                 $absen->update(['foto_path' => $path]);
             }
@@ -92,33 +76,54 @@ class AbsensiService
 
         return $absen;
     }
+
     public function catatAbsenTendik(array $data, mixed $foto = null): \App\Models\AbsensiTendik
     {
         $absen = \App\Models\AbsensiTendik::create($data);
 
         if ($foto) {
-            $path = '';
-            $folder = 'absensi_tendik/' . date('Y/m');
-            
-            if ($foto instanceof \Illuminate\Http\UploadedFile) {
-                $path = $foto->store($folder, 'public');
-            } elseif (is_string($foto) && str_starts_with($foto, 'data:image')) {
-                // Decode base64
-                $image_parts = explode(";base64,", $foto);
-                $image_type_aux = explode("image/", $image_parts[0]);
-                $image_type = $image_type_aux[1];
-                $image_base64 = base64_decode($image_parts[1]);
-                $filename = uniqid() . '.' . $image_type;
-                $path = $folder . '/' . $filename;
-                
-                \Illuminate\Support\Facades\Storage::disk('public')->put($path, $image_base64);
-            }
-
+            $path = $this->compressAndUploadFoto($foto, 'absensi_tendik/' . date('Y/m'));
             if ($path) {
                 $absen->update(['foto_path' => $path]);
             }
         }
 
         return $absen;
+    }
+
+    /**
+     * Helper to compress and upload photo to R2
+     */
+    private function compressAndUploadFoto(mixed $foto, string $folder): ?string
+    {
+        try {
+            $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+            
+            if ($foto instanceof \Illuminate\Http\UploadedFile) {
+                $image = $manager->decodePath($foto->getRealPath());
+                $filename = uniqid() . '.jpg';
+            } elseif (is_string($foto) && str_starts_with($foto, 'data:image')) {
+                // Decode base64
+                $image_parts = explode(";base64,", $foto);
+                $image_base64 = base64_decode($image_parts[1]);
+                $image = $manager->decode($image_base64);
+                $filename = uniqid() . '.jpg';
+            } else {
+                return null;
+            }
+
+            // Scale down to max 800px width/height
+            $image->scaleDown(width: 800, height: 800);
+            $encoded = $image->encodeUsingFileExtension('jpg', quality: 60);
+
+            $path = $folder . '/' . $filename;
+            
+            \Illuminate\Support\Facades\Storage::disk('r2')->put($path, (string) $encoded);
+
+            return $path;
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Image upload failed: ' . $e->getMessage());
+            return null;
+        }
     }
 }

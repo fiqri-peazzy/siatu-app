@@ -148,7 +148,7 @@
                                     <td class="py-4 px-5">
                                         <div class="flex items-center gap-3">
                                             @if($guru->foto_path)
-                                                <img src="{{ asset('storage/' . $guru->foto_path) }}" class="w-10 h-10 rounded-full object-cover shadow-inner border border-outline-variant/30">
+                                                <img src="{{ Storage::disk('r2')->url( $guru->foto_path) }}" class="w-10 h-10 rounded-full object-cover shadow-inner border border-outline-variant/30">
                                             @else
                                                 <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner">
                                                     {{ substr($guru->nama, 0, 1) }}
@@ -201,13 +201,13 @@
                                     <td class="py-4 px-5">
                                         <div class="flex items-center gap-2">
                                             @if($absenMasuk && $absenMasuk->foto_path)
-                                                <a href="{{ Storage::url($absenMasuk->foto_path) }}" target="_blank" class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition-colors border border-emerald-200">
+                                                <a href="{{ Storage::disk('r2')->url($absenMasuk->foto_path) }}" target="_blank" class="inline-flex items-center gap-1 text-xs font-medium text-emerald-700 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1.5 rounded-lg transition-colors border border-emerald-200">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
                                                     Masuk
                                                 </a>
                                             @endif
                                             @if($absenPulang && $absenPulang->foto_path)
-                                                <a href="{{ Storage::url($absenPulang->foto_path) }}" target="_blank" class="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg transition-colors border border-blue-200">
+                                                <a href="{{ Storage::disk('r2')->url($absenPulang->foto_path) }}" target="_blank" class="inline-flex items-center gap-1 text-xs font-medium text-blue-700 bg-blue-50 hover:bg-blue-100 px-2.5 py-1.5 rounded-lg transition-colors border border-blue-200">
                                                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
                                                     Pulang
                                                 </a>
@@ -227,7 +227,7 @@
                                     <td class="py-4 px-5">
                                         <div class="flex items-center gap-3">
                                             @if($guru->foto_path)
-                                                <img src="{{ asset('storage/' . $guru->foto_path) }}" class="w-10 h-10 rounded-full object-cover shadow-inner border border-outline-variant/30">
+                                                <img src="{{ Storage::disk('r2')->url( $guru->foto_path) }}" class="w-10 h-10 rounded-full object-cover shadow-inner border border-outline-variant/30">
                                             @else
                                                 <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner">
                                                     {{ substr($guru->nama, 0, 1) }}

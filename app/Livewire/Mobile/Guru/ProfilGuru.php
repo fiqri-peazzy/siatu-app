@@ -65,18 +65,38 @@ class ProfilGuru extends Component
         ]);
 
         if ($this->foto) {
-            $path = $this->foto->store('foto_guru', 'public');
-            
-            // Delete old photo if exists
-            if ($this->guru->foto_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->guru->foto_path)) {
-                \Illuminate\Support\Facades\Storage::disk('public')->delete($this->guru->foto_path);
+            try {
+                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+                $image = $manager->decodePath($this->foto->getRealPath());
+                
+                // Scale down and encode
+                $image->scaleDown(width: 800, height: 800);
+                $encoded = $image->encodeUsingFileExtension('jpg', quality: 60);
+                
+                $filename = uniqid() . '.jpg';
+                $path = 'foto_guru/' . $filename;
+                
+                // Upload to R2
+                \Illuminate\Support\Facades\Storage::disk('r2')->put($path, (string) $encoded);
+                
+                // Delete old photo if exists
+                if ($this->guru->foto_path) {
+                    try {
+                        \Illuminate\Support\Facades\Storage::disk('r2')->delete($this->guru->foto_path);
+                    } catch (\Exception $e) {
+                        \Illuminate\Support\Facades\Log::warning('Gagal hapus foto lama: ' . $e->getMessage());
+                    }
+                }
+
+                $this->guru->update([
+                    'foto_path' => $path
+                ]);
+
+                $this->dispatch('swal:success', 'Foto profil berhasil diperbarui!');
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Upload Foto Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+                $this->addError('foto', 'Gagal mengunggah foto: ' . $e->getMessage());
             }
-
-            $this->guru->update([
-                'foto_path' => $path
-            ]);
-
-            $this->dispatch('swal:success', 'Foto profil berhasil diperbarui!');
         }
     }
 

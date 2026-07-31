@@ -239,8 +239,8 @@
                     </h4>
                     <div class="flex flex-wrap gap-3">
                         @foreach($detailJurnal->dokumentasi as $fotoPath)
-                            <a href="{{ Storage::url($fotoPath) }}" target="_blank" class="block w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-outline-variant group relative">
-                                <img src="{{ Storage::url($fotoPath) }}" alt="Dokumentasi" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                            <a href="{{ Storage::disk('r2')->url($fotoPath) }}" target="_blank" class="block w-24 h-24 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-outline-variant group relative">
+                                <img src="{{ Storage::disk('r2')->url($fotoPath) }}" alt="Dokumentasi" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                             </a>
                         @endforeach
                     </div>

@@ -118,7 +118,7 @@
                     <dt class="text-sm font-medium text-gray-500">Lampiran Draft</dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                         @if($surat->file_draft_path)
-                            <a href="{{ \Illuminate\Support\Facades\Storage::url($surat->file_draft_path) }}" target="_blank" class="font-medium text-indigo-600 hover:text-indigo-500">Download Lampiran Draft</a>
+                            <a href="{{ \Illuminate\Support\Facades\Storage::disk('r2')->url($surat->file_draft_path) }}" target="_blank" class="font-medium text-indigo-600 hover:text-indigo-500">Download Lampiran Draft</a>
                         @else
                             <span class="text-gray-400 italic">Tidak ada lampiran</span>
                         @endif

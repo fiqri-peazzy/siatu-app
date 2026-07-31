@@ -108,8 +108,22 @@ class FormJurnal extends Component
         
         $dokumentasiPaths = [];
         if (!empty($this->dokumentasi)) {
-            foreach ($this->dokumentasi as $foto) {
-                $dokumentasiPaths[] = $foto->store('jurnal', 'public');
+            try {
+                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
+                foreach ($this->dokumentasi as $foto) {
+                    $image = $manager->decodePath($foto->getRealPath());
+                    $image->scaleDown(width: 800, height: 800);
+                    $encoded = $image->encodeUsingFileExtension('jpg', quality: 60);
+                    
+                    $filename = uniqid() . '.jpg';
+                    $path = 'jurnal/' . $filename;
+                    
+                    \Illuminate\Support\Facades\Storage::disk('r2')->put($path, (string) $encoded);
+                    $dokumentasiPaths[] = $path;
+                }
+            } catch (\Exception $e) {
+                session()->flash('error', 'Gagal mengunggah dokumentasi: ' . $e->getMessage());
+                return;
             }
         }
         

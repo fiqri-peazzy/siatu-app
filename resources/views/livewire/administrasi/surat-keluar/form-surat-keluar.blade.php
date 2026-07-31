@@ -81,7 +81,7 @@
 
                                 @if($isEdit && $surat->file_draft_path)
                                     <div class="mt-2 text-sm text-gray-600">
-                                        Lampiran saat ini: <a href="{{ \Illuminate\Support\Facades\Storage::url($surat->file_draft_path) }}" target="_blank" class="text-indigo-600 underline">Lihat Lampiran</a>
+                                        Lampiran saat ini: <a href="{{ \Illuminate\Support\Facades\Storage::disk('r2')->url($surat->file_draft_path) }}" target="_blank" class="text-indigo-600 underline">Lihat Lampiran</a>
                                     </div>
                                 @endif
 

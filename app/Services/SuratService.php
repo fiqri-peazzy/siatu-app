@@ -71,7 +71,7 @@ class SuratService
             if ($file) {
                 $tahun = $tanggalTerima->year;
                 $bulan = str_pad($tanggalTerima->month, 2, '0', STR_PAD_LEFT);
-                $path = $file->store("surat/masuk/{$tahun}/{$bulan}", 'local');
+                $path = $file->store("surat/masuk/{$tahun}/{$bulan}", 'r2');
                 $data['file_path'] = $path;
             }
 
@@ -90,7 +90,7 @@ class SuratService
                 $tanggalTerima = Carbon::parse($data['tanggal_terima'] ?? $surat->tanggal_terima);
                 $tahun = $tanggalTerima->year;
                 $bulan = str_pad($tanggalTerima->month, 2, '0', STR_PAD_LEFT);
-                $path = $file->store("surat/masuk/{$tahun}/{$bulan}", 'local');
+                $path = $file->store("surat/masuk/{$tahun}/{$bulan}", 'r2');
                 $data['file_path'] = $path;
             }
 
@@ -111,7 +111,7 @@ class SuratService
                 $tanggal = Carbon::parse($data['tanggal']);
                 $tahun = $tanggal->year;
                 $bulan = str_pad($tanggal->month, 2, '0', STR_PAD_LEFT);
-                $path = $file->store("surat/keluar/draft/{$tahun}/{$bulan}", 'local');
+                $path = $file->store("surat/keluar/draft/{$tahun}/{$bulan}", 'r2');
                 $data['file_draft_path'] = $path;
             }
 
@@ -129,7 +129,7 @@ class SuratService
                 $tanggal = Carbon::parse($data['tanggal'] ?? $surat->tanggal);
                 $tahun = $tanggal->year;
                 $bulan = str_pad($tanggal->month, 2, '0', STR_PAD_LEFT);
-                $path = $file->store("surat/keluar/draft/{$tahun}/{$bulan}", 'local');
+                $path = $file->store("surat/keluar/draft/{$tahun}/{$bulan}", 'r2');
                 $data['file_draft_path'] = $path;
             }
 

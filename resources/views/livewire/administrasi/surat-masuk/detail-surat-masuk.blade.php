@@ -90,7 +90,7 @@
                                         <span class="ml-2 w-0 flex-1 truncate">{{ basename($surat->file_path) }}</span>
                                     </div>
                                     <div class="ml-4 flex-shrink-0">
-                                        <a href="{{ \Illuminate\Support\Facades\Storage::url($surat->file_path) }}" target="_blank" class="font-medium text-indigo-600 hover:text-indigo-500">Lihat File</a>
+                                        <a href="{{ \Illuminate\Support\Facades\Storage::disk('r2')->url($surat->file_path) }}" target="_blank" class="font-medium text-indigo-600 hover:text-indigo-500">Lihat File</a>
                                     </div>
                                 </li>
                             </ul>

@@ -104,7 +104,7 @@
                                     </div>
                                 @elseif($isEdit && $surat->file_path)
                                     <div class="mt-2 text-sm text-gray-600">
-                                        File saat ini: <a href="{{ \Illuminate\Support\Facades\Storage::url($surat->file_path) }}" target="_blank" class="text-indigo-600 underline">Lihat Dokumen</a>
+                                        File saat ini: <a href="{{ \Illuminate\Support\Facades\Storage::disk('r2')->url($surat->file_path) }}" target="_blank" class="text-indigo-600 underline">Lihat Dokumen</a>
                                     </div>
                                 @endif
 

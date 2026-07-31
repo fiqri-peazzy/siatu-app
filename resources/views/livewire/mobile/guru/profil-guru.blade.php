@@ -9,7 +9,7 @@
                     @if($foto)
                         <img src="{{ $foto->temporaryUrl() }}" class="w-full h-full object-cover">
                     @elseif($guru->foto_path)
-                        <img src="{{ asset('storage/' . $guru->foto_path) }}" class="w-full h-full object-cover">
+                        <img src="{{ Storage::disk('r2')->url( $guru->foto_path) }}" class="w-full h-full object-cover">
                     @else
                         <div class="w-full h-full flex items-center justify-center bg-navy-deep">
                             <span class="text-3xl font-bold text-white">{{ substr($guru->nama_guru, 0, 1) }}</span>
