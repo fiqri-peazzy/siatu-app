@@ -4,19 +4,33 @@
     <div class="mt-2 flex flex-col items-center text-center">
         {{-- Avatar with badge --}}
         <div class="relative mb-4">
-            <div class="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-sky-mist">
-                @if($guru->foto)
-                    <img src="{{ asset('storage/' . $guru->foto) }}" class="w-full h-full object-cover">
-                @else
-                    <div class="w-full h-full flex items-center justify-center bg-navy-deep">
-                        <svg class="w-12 h-12 text-sky-mist" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                        </svg>
+            <label for="foto-upload" class="cursor-pointer block relative group">
+                <div class="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-sky-mist relative">
+                    @if($foto)
+                        <img src="{{ $foto->temporaryUrl() }}" class="w-full h-full object-cover">
+                    @elseif($guru->foto_path)
+                        <img src="{{ asset('storage/' . $guru->foto_path) }}" class="w-full h-full object-cover">
+                    @else
+                        <div class="w-full h-full flex items-center justify-center bg-navy-deep">
+                            <span class="text-3xl font-bold text-white">{{ substr($guru->nama_guru, 0, 1) }}</span>
+                        </div>
+                    @endif
+                    
+                    {{-- Upload Overlay --}}
+                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
                     </div>
-                @endif
-            </div>
+                </div>
+                
+                {{-- Loading Indicator --}}
+                <div wire:loading wire:target="foto" class="absolute inset-0 bg-white/80 rounded-full flex items-center justify-center z-10">
+                    <svg class="animate-spin h-6 w-6 text-[#3B65F3]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                </div>
+            </label>
+            <input type="file" id="foto-upload" wire:model="foto" accept="image/*" class="hidden">
+            
             {{-- Verified badge --}}
-            <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-signal-blue rounded-full flex items-center justify-center border-2 border-white shadow-sm">
+            <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-signal-blue rounded-full flex items-center justify-center border-2 border-white shadow-sm pointer-events-none z-20">
                 <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                 </svg>

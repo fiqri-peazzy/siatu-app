@@ -147,9 +147,13 @@
                                 <tr class="hover:bg-primary/5 transition-colors group">
                                     <td class="py-4 px-5">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner">
-                                                {{ substr($guru->nama, 0, 1) }}
-                                            </div>
+                                            @if($guru->foto_path)
+                                                <img src="{{ asset('storage/' . $guru->foto_path) }}" class="w-10 h-10 rounded-full object-cover shadow-inner border border-outline-variant/30">
+                                            @else
+                                                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner">
+                                                    {{ substr($guru->nama, 0, 1) }}
+                                                </div>
+                                            @endif
                                             <div>
                                                 <p class="font-semibold text-sm text-on-surface">{{ $guru->nama }}</p>
                                                 <p class="text-xs text-on-surface-variant mt-0.5">{{ $guru->jabatan ?? '-' }}</p>
@@ -222,9 +226,13 @@
                                 <tr class="hover:bg-primary/5 transition-colors group">
                                     <td class="py-4 px-5">
                                         <div class="flex items-center gap-3">
-                                            <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner">
-                                                {{ substr($guru->nama, 0, 1) }}
-                                            </div>
+                                            @if($guru->foto_path)
+                                                <img src="{{ asset('storage/' . $guru->foto_path) }}" class="w-10 h-10 rounded-full object-cover shadow-inner border border-outline-variant/30">
+                                            @else
+                                                <div class="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold shadow-inner">
+                                                    {{ substr($guru->nama, 0, 1) }}
+                                                </div>
+                                            @endif
                                             <div>
                                                 <p class="font-semibold text-sm text-on-surface">{{ $guru->nama }}</p>
                                                 <p class="text-xs text-on-surface-variant mt-0.5">{{ $guru->jabatan ?? '-' }}</p>

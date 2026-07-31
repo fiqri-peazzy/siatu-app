@@ -9,11 +9,16 @@ use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Livewire\Component;
+use Livewire\WithFileUploads;
 
 class ProfilGuru extends Component
 {
+    use WithFileUploads;
+
     public $guru;
     public $persentase = 0;
+    
+    public $foto;
     
     public $no_hp;
     public $alamat;
@@ -50,6 +55,28 @@ class ProfilGuru extends Component
         if ($totalJadwalSebulan > 0) {
             $this->persentase = round(($totalTerisi / $totalJadwalSebulan) * 100);
             if ($this->persentase > 100) $this->persentase = 100;
+        }
+    }
+
+    public function updatedFoto()
+    {
+        $this->validate([
+            'foto' => 'image|max:2048', // max 2MB
+        ]);
+
+        if ($this->foto) {
+            $path = $this->foto->store('foto_guru', 'public');
+            
+            // Delete old photo if exists
+            if ($this->guru->foto_path && \Illuminate\Support\Facades\Storage::disk('public')->exists($this->guru->foto_path)) {
+                \Illuminate\Support\Facades\Storage::disk('public')->delete($this->guru->foto_path);
+            }
+
+            $this->guru->update([
+                'foto_path' => $path
+            ]);
+
+            $this->dispatch('swal:success', 'Foto profil berhasil diperbarui!');
         }
     }
 
