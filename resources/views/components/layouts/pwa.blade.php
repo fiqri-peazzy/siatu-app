@@ -49,7 +49,7 @@
                     @php
                         $unreadCount = auth()->user() ? auth()->user()->unreadNotifications->count() : 0;
                     @endphp
-                    <a href="{{ auth()->user()->hasRole('guru') ? route('guru.notifikasi') : '#' }}" class="relative w-10 h-10 rounded-full flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                    <a wire:navigate href="{{ auth()->user()->hasRole('guru') ? route('guru.notifikasi') : '#' }}" class="relative w-10 h-10 rounded-full flex items-center justify-center text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                         </svg>
@@ -76,7 +76,7 @@
 
             @if(auth()->user()->hasRole('guru'))
                 {{-- Beranda (Guru) --}}
-                <a href="{{ route('guru.dashboard') }}"
+                <a wire:navigate href="{{ route('guru.dashboard') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
                     @if(request()->routeIs('guru.dashboard'))
                         <div class="bg-[#3B65F3] rounded-xl px-4 py-1.5 flex flex-col items-center gap-0.5 mt-2">
@@ -94,7 +94,7 @@
                 </a>
 
                 {{-- Jadwal (Guru) --}}
-                <a href="{{ route('guru.jadwal') }}"
+                <a wire:navigate href="{{ route('guru.jadwal') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
                     @if(request()->routeIs('guru.jadwal'))
                         <div class="bg-[#3B65F3] rounded-xl px-4 py-1.5 flex flex-col items-center gap-0.5 mt-2">
@@ -112,7 +112,7 @@
                 </a>
 
                 {{-- Jurnal (Guru) --}}
-                <a href="{{ route('guru.jurnal.riwayat') }}"
+                <a wire:navigate href="{{ route('guru.jurnal.riwayat') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
                     @if(request()->routeIs('guru.jurnal.riwayat'))
                         <div class="bg-[#3B65F3] rounded-xl px-4 py-1.5 flex flex-col items-center gap-0.5 mt-2">
@@ -130,7 +130,7 @@
                 </a>
 
                 {{-- Riwayat (Guru) --}}
-                <a href="{{ route('akademik.absensi.guru.riwayat') }}"
+                <a wire:navigate href="{{ route('akademik.absensi.guru.riwayat') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
                     @if(request()->routeIs('akademik.absensi.guru.riwayat'))
                         <div class="bg-[#3B65F3] rounded-xl px-4 py-1.5 flex flex-col items-center gap-0.5 mt-2">
@@ -148,7 +148,7 @@
                 </a>
 
                 {{-- Profil (Guru) --}}
-                <a href="{{ route('guru.profil') }}"
+                <a wire:navigate href="{{ route('guru.profil') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors">
                     @if(request()->routeIs('guru.profil'))
                         <div class="bg-[#3B65F3] rounded-xl px-4 py-1.5 flex flex-col items-center gap-0.5 mt-2">
@@ -167,7 +167,7 @@
             @else
                 {{-- Tendik / Selain Guru --}}
                 {{-- Beranda --}}
-                <a href="{{ route('dashboard') }}"
+                <a wire:navigate href="{{ route('dashboard') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
                     @if(request()->routeIs('dashboard'))
                         <div class="bg-[#3B65F3] rounded-xl px-4 py-1.5 flex flex-col items-center gap-0.5 mt-2">
@@ -185,7 +185,7 @@
                 </a>
 
                 {{-- Absen --}}
-                <a href="{{ route('akademik.absensi.tendik.form') }}"
+                <a wire:navigate href="{{ route('akademik.absensi.tendik.form') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
                     @if(request()->routeIs('akademik.absensi.tendik.form'))
                         <div class="bg-[#3B65F3] rounded-xl px-4 py-1.5 flex flex-col items-center gap-0.5 mt-2">
@@ -205,7 +205,7 @@
                 </a>
 
                 {{-- Riwayat --}}
-                <a href="{{ route('akademik.absensi.tendik.riwayat') }}"
+                <a wire:navigate href="{{ route('akademik.absensi.tendik.riwayat') }}"
                    class="flex flex-col items-center justify-center flex-1 gap-1 transition-colors relative">
                     @if(request()->routeIs('akademik.absensi.tendik.riwayat'))
                         <div class="bg-[#3B65F3] rounded-xl px-4 py-1.5 flex flex-col items-center gap-0.5 mt-2">

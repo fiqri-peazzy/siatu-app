@@ -1,11 +1,11 @@
 {
-    "name": "Sistem Informasi Tata Usaha SMA",
-    "short_name": "SITU-SMA",
+    "name": "Sistem Informasi Mengajar dan Absensi SMAMGO",
+    "short_name": "SIMO-G",
     "start_url": "/",
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#4f46e5",
-    "description": "Aplikasi PWA untuk Absensi dan Tata Usaha SMA",
+    "description": "Aplikasi PWA untuk Absensi dan Jurnal Mengajar Guru",
     "icons": [
         {
             "src": "/images/logo-removebg-preview.png",
