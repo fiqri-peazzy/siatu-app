@@ -10,8 +10,10 @@ class DatabaseSeeder extends Seeder
     {
         $this->call([
             RolesAndPermissionsSeeder::class, // Harus pertama
-            UsersSeeder::class,
+            // UsersSeeder::class, // Diganti dengan data real
         ]);
+        $this->call(UsersTableSeeder::class);
+        $this->call(ModelHasRolesTableSeeder::class);
         $this->call(MasterTahunAjaransTableSeeder::class);
         $this->call(MasterMapelsTableSeeder::class);
         $this->call(MasterKelasTableSeeder::class);
@@ -20,5 +22,7 @@ class DatabaseSeeder extends Seeder
         $this->call(MasterSiswasTableSeeder::class);
         $this->call(MasterJadwalPelajaransTableSeeder::class);
         $this->call(PeminatanSiswasTableSeeder::class);
+        $this->call(UsersTableSeeder::class);
+        $this->call(ModelHasRolesTableSeeder::class);
     }
 }
