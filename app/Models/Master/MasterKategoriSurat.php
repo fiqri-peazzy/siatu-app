@@ -15,10 +15,12 @@ class MasterKategoriSurat extends Model
         'tipe',
         'format_nomor',
         'counter',
+        'config',
     ];
 
     protected $casts = [
         'tipe' => \App\Enums\TipeKategoriSurat::class,
+        'config' => 'array',
     ];
 
     public function suratMasuks()

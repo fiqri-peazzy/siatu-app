@@ -28,6 +28,7 @@ class SuratMasuk extends Model
         'file_path',
         'status',
         'input_oleh',
+        'metadata',
     ];
 
     protected $casts = [
@@ -35,6 +36,7 @@ class SuratMasuk extends Model
         'tanggal_surat' => 'date',
         'sifat' => SifatSurat::class,
         'status' => StatusSuratMasuk::class,
+        'metadata' => 'array',
     ];
 
     public function kategori(): BelongsTo

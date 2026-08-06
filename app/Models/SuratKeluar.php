@@ -30,12 +30,14 @@ class SuratKeluar extends Model
         'catatan_revisi',
         'disetujui_oleh',
         'disetujui_at',
+        'metadata',
     ];
 
     protected $casts = [
         'tanggal' => 'date',
         'disetujui_at' => 'datetime',
         'status' => StatusSuratKeluar::class,
+        'metadata' => 'array',
     ];
 
     public function kategori(): BelongsTo

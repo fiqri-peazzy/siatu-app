@@ -24,5 +24,6 @@ class DatabaseSeeder extends Seeder
         $this->call(PeminatanSiswasTableSeeder::class);
         $this->call(UsersTableSeeder::class);
         $this->call(ModelHasRolesTableSeeder::class);
+        $this->call(MasterKategoriSuratSeeder::class);
     }
 }

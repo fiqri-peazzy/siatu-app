@@ -28,12 +28,14 @@ class FormSuratMasuk extends Component
     public $perihal = '';
     public $sifat = 'biasa';
     public $file;
+    public $metadata = [];
+    public $dynamicConfig = [];
 
     public bool $isEdit = false;
 
     protected function rules()
     {
-        return [
+        $rules = [
             'kategori_surat_id' => ['required', 'exists:master_kategori_surats,id'],
             'klasifikasi_arsip_id' => ['nullable', 'exists:master_klasifikasi_arsips,id'],
             'tanggal_terima' => ['required', 'date', 'before_or_equal:today'],
@@ -43,16 +45,34 @@ class FormSuratMasuk extends Component
             'sifat' => ['required', \Illuminate\Validation\Rule::in(SifatSurat::values())],
             'file' => [$this->isEdit ? 'nullable' : 'required', 'file', 'mimes:pdf,jpg,png', 'max:5120'],
         ];
+
+        if ($this->dynamicConfig && is_array($this->dynamicConfig)) {
+            foreach ($this->dynamicConfig as $field) {
+                $rules['metadata.' . $field['name']] = $field['required'] ? ['required'] : ['nullable'];
+            }
+        }
+
+        return $rules;
     }
 
     protected function messages()
     {
-        return [
+        $messages = [
             'file.max' => 'Ukuran file maksimal 5MB.',
             'file.mimes' => 'Format file harus PDF, JPG, atau PNG.',
             'tanggal_surat.before_or_equal' => 'Tanggal surat asli tidak boleh melewati tanggal terima.',
             'tanggal_terima.before_or_equal' => 'Tanggal terima tidak boleh melewati hari ini.',
         ];
+
+        if ($this->dynamicConfig && is_array($this->dynamicConfig)) {
+            foreach ($this->dynamicConfig as $field) {
+                if ($field['required']) {
+                    $messages['metadata.' . $field['name'] . '.required'] = $field['label'] . ' wajib diisi.';
+                }
+            }
+        }
+
+        return $messages;
     }
 
     public function mount(?SuratMasuk $surat = null)
@@ -68,9 +88,35 @@ class FormSuratMasuk extends Component
             $this->asal_instansi = $surat->asal_instansi;
             $this->perihal = $surat->perihal;
             $this->sifat = $surat->sifat->value;
+            $this->metadata = $surat->metadata ?? [];
+            $this->loadDynamicConfig();
         } else {
             $this->authorize('create', SuratMasuk::class);
             $this->tanggal_terima = date('Y-m-d');
+        }
+    }
+
+    public function updatedKategoriSuratId()
+    {
+        $this->metadata = [];
+        $this->loadDynamicConfig();
+    }
+
+    private function loadDynamicConfig()
+    {
+        if ($this->kategori_surat_id) {
+            $kategori = MasterKategoriSurat::find($this->kategori_surat_id);
+            $this->dynamicConfig = $kategori ? $kategori->config : [];
+            
+            if ($this->dynamicConfig && is_array($this->dynamicConfig)) {
+                foreach ($this->dynamicConfig as $field) {
+                    if (!isset($this->metadata[$field['name']])) {
+                        $this->metadata[$field['name']] = '';
+                    }
+                }
+            }
+        } else {
+            $this->dynamicConfig = [];
         }
     }
 
@@ -90,6 +136,7 @@ class FormSuratMasuk extends Component
     {
         $validatedData = $this->validate();
         $validatedData['input_oleh'] = auth()->id();
+        $validatedData['metadata'] = $this->metadata;
 
         if ($this->isEdit) {
             $suratService->updateSuratMasuk($this->surat, $validatedData, $this->file);
@@ -99,8 +146,7 @@ class FormSuratMasuk extends Component
             session()->flash('success', 'Surat Masuk berhasil ditambahkan. Nomor agenda di-generate otomatis.');
         }
 
-        // Untuk navigasi sesuaikan dengan route yang nanti dibuat, sementara redirect ke halaman yang sama (mock)
-        return redirect()->route('administrasi.surat-masuk.index'); // Asumsi nama route
+        return redirect()->route('administrasi.surat-masuk.index');
     }
 
     public function render()

@@ -22,12 +22,48 @@
                         <div class="grid grid-cols-6 gap-6">
                             <div class="col-span-6 sm:col-span-3">
                                 <label class="block text-sm font-medium text-gray-700">Kategori Surat <span class="text-red-500">*</span></label>
-                                <select wire:model="kategori_surat_id" class="mt-1 block w-full rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
-                                    <option value="">-- Pilih Kategori --</option>
-                                    @foreach($this->kategoris as $kat)
-                                        <option value="{{ $kat->id }}">{{ $kat->kode }} - {{ $kat->nama }}</option>
-                                    @endforeach
-                                </select>
+                                <div x-data="{
+                                    open: false,
+                                    search: '',
+                                    selectedId: @entangle('kategori_surat_id').live,
+                                    options: {{ $this->kategoris->map(fn($k) => ['id' => $k->id, 'label' => $k->kode . ' - ' . $k->nama])->toJson() }},
+                                    get filteredOptions() {
+                                        if (this.search === '') return this.options;
+                                        return this.options.filter(option => option.label.toLowerCase().includes(this.search.toLowerCase()));
+                                    },
+                                    get selectedLabel() {
+                                        const selected = this.options.find(option => option.id == this.selectedId);
+                                        return selected ? selected.label : '-- Pilih Kategori --';
+                                    },
+                                    selectOption(id) {
+                                        this.selectedId = id;
+                                        this.open = false;
+                                        this.search = '';
+                                    }
+                                }" class="relative mt-1">
+                                    <button @click="open = !open" type="button" class="flex w-full items-center justify-between rounded-md border border-gray-300 bg-white py-2 px-3 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500 sm:text-sm">
+                                        <span x-text="selectedLabel" class="block truncate"></span>
+                                        <svg class="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                            <path fill-rule="evenodd" d="M10 3a1 1 0 01.707.293l3 3a1 1 0 01-1.414 1.414L10 5.414 7.707 7.707a1 1 0 01-1.414-1.414l3-3A1 1 0 0110 3zm-3.707 9.293a1 1 0 011.414 0L10 14.586l2.293-2.293a1 1 0 011.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" />
+                                        </svg>
+                                    </button>
+                                    
+                                    <div x-show="open" @click.away="open = false" class="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm" style="display: none;">
+                                        <div class="sticky top-0 bg-white px-3 py-2">
+                                            <input x-model="search" type="text" class="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Cari kategori...">
+                                        </div>
+                                        <ul tabindex="-1" role="listbox" aria-labelledby="listbox-label">
+                                            <template x-for="option in filteredOptions" :key="option.id">
+                                                <li @click="selectOption(option.id)" class="text-gray-900 relative cursor-pointer select-none py-2 pl-3 pr-9 hover:bg-indigo-600 hover:text-white">
+                                                    <span x-text="option.label" class="font-normal block truncate"></span>
+                                                </li>
+                                            </template>
+                                            <li x-show="filteredOptions.length === 0" class="text-gray-500 relative cursor-default select-none py-2 pl-3 pr-9">
+                                                Tidak ditemukan
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                                 @error('kategori_surat_id') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                             </div>
 
@@ -75,6 +111,24 @@
                                 </select>
                                 @error('sifat') <span class="text-xs text-red-500">{{ $message }}</span> @enderror
                             </div>
+
+                            @if($dynamicConfig && count($dynamicConfig) > 0)
+                            <div class="col-span-6 bg-indigo-50/50 p-4 rounded-lg border border-indigo-100">
+                                <h4 class="text-sm font-semibold text-indigo-900 mb-4 flex items-center">
+                                    <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Informasi Spesifik: <span class="ml-1 font-normal">{{ $this->kategoris->firstWhere('id', $kategori_surat_id)?->nama }}</span>
+                                </h4>
+                                <div class="grid grid-cols-6 gap-4">
+                                    @foreach($dynamicConfig as $field)
+                                        <div class="col-span-6 sm:col-span-3">
+                                            <label class="block text-xs font-medium text-gray-700">{{ $field['label'] }} {!! $field['required'] ? '<span class="text-red-500">*</span>' : '' !!}</label>
+                                            <input type="{{ $field['type'] }}" wire:model="metadata.{{ $field['name'] }}" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm" placeholder="Masukkan {{ strtolower($field['label']) }}...">
+                                            @error('metadata.'.$field['name']) <span class="text-xs text-red-500">{{ $message }}</span> @enderror
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            @endif
 
                             <div class="col-span-6">
                                 <label class="block text-sm font-medium text-gray-700">Upload File Surat <span class="text-red-500">{{ $isEdit ? '' : '*' }}</span></label>

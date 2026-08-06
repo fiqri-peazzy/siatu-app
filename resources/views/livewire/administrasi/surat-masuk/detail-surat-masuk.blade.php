@@ -77,6 +77,33 @@
                         </span>
                     </dd>
                 </div>
+                
+                @if($surat->metadata && count($surat->metadata) > 0)
+                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6 bg-indigo-50/50">
+                    <dt class="text-sm font-medium text-gray-500 flex items-center">
+                        <svg class="w-4 h-4 mr-1.5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Informasi Spesifik
+                    </dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <ul role="list" class="divide-y divide-gray-200 rounded-md border border-gray-200 bg-white">
+                            @foreach($surat->metadata as $key => $val)
+                            @php
+                                $label = $key;
+                                if($surat->kategori->config) {
+                                    $configField = collect($surat->kategori->config)->firstWhere('name', $key);
+                                    if($configField) $label = $configField['label'];
+                                }
+                            @endphp
+                            <li class="flex items-center justify-between py-2 pl-3 pr-4 text-sm">
+                                <span class="font-medium text-gray-500 w-1/3">{{ $label }}</span>
+                                <span class="text-gray-900 w-2/3">{{ $val ?: '-' }}</span>
+                            </li>
+                            @endforeach
+                        </ul>
+                    </dd>
+                </div>
+                @endif
+                
                 <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
                     <dt class="text-sm font-medium text-gray-500">File Surat</dt>
                     <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
