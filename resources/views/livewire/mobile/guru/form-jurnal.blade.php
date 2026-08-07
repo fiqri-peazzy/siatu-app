@@ -117,28 +117,40 @@
             
             <div class="divide-y divide-line-200">
                 @forelse($siswas as $siswa)
-                <div class="p-3 flex items-center justify-between">
-                    <div>
-                        <p class="text-sm font-semibold text-ink-900">{{ $siswa->nama }}</p>
-                        <p class="text-[10px] text-slate-500">{{ $siswa->nisn ?? $siswa->nis }}</p>
+                <div wire:key="siswa-{{ $siswa->id }}" class="p-3 flex flex-col gap-2 border-b border-line-200 last:border-0" x-data="{ status: @entangle('absensi.'.$siswa->id) }">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm font-semibold text-ink-900">{{ $siswa->nama }}</p>
+                            <p class="text-[10px] text-slate-500">{{ $siswa->nisn ?? $siswa->nis }}</p>
+                        </div>
+                        <div class="flex gap-1">
+                            <label class="cursor-pointer">
+                                <input type="radio" name="absensi_{{ $siswa->id }}" x-model="status" value="hadir" class="peer sr-only">
+                                <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-green-500 peer-checked:text-white peer-checked:border-green-500 transition-colors">H</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="absensi_{{ $siswa->id }}" x-model="status" value="izin" class="peer sr-only">
+                                <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition-colors">I</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="absensi_{{ $siswa->id }}" x-model="status" value="sakit" class="peer sr-only">
+                                <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-yellow-500 peer-checked:text-white peer-checked:border-yellow-500 transition-colors">S</span>
+                            </label>
+                            <label class="cursor-pointer">
+                                <input type="radio" name="absensi_{{ $siswa->id }}" x-model="status" value="alfa" class="peer sr-only">
+                                <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500 transition-colors">A</span>
+                            </label>
+                        </div>
                     </div>
-                    <div class="flex gap-1">
-                        <label class="cursor-pointer">
-                            <input type="radio" wire:model.defer="absensi.{{ $siswa->id }}" value="hadir" class="peer sr-only">
-                            <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-green-500 peer-checked:text-white peer-checked:border-green-500 transition-colors">H</span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" wire:model.defer="absensi.{{ $siswa->id }}" value="izin" class="peer sr-only">
-                            <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition-colors">I</span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" wire:model.defer="absensi.{{ $siswa->id }}" value="sakit" class="peer sr-only">
-                            <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-yellow-500 peer-checked:text-white peer-checked:border-yellow-500 transition-colors">S</span>
-                        </label>
-                        <label class="cursor-pointer">
-                            <input type="radio" wire:model.defer="absensi.{{ $siswa->id }}" value="alfa" class="peer sr-only">
-                            <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500 transition-colors">A</span>
-                        </label>
+                    
+                    <div x-show="status === 'izin' || status === 'sakit'" x-cloak x-transition style="display: none;" class="mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Upload Bukti (PDF/Foto)</label>
+                        <input type="file" wire:model="bukti_izin.{{ $siswa->id }}" accept=".pdf,image/*" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-signal-blue/10 file:text-signal-blue hover:file:bg-signal-blue/20 transition-colors cursor-pointer border border-line-200 rounded-md p-1 bg-white">
+                        <div wire:loading wire:target="bukti_izin.{{ $siswa->id }}" class="mt-1 text-[10px] text-signal-blue flex items-center gap-1">
+                            <svg class="animate-spin w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Mengunggah...
+                        </div>
+                        @error('bukti_izin.'.$siswa->id) <span class="text-[10px] text-danger-coral mt-1 block">{{ $message }}</span> @enderror
                     </div>
                 </div>
                 @empty

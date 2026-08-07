@@ -26,6 +26,7 @@ class FormJurnal extends Component
     
     public $siswas = [];
     public $absensi = []; // Array to store attendance status keyed by siswa_id
+    public $bukti_izin = []; // Array to store file uploads keyed by siswa_id
 
     public function mount($jadwal_ids)
     {
@@ -102,6 +103,7 @@ class FormJurnal extends Component
             'materi' => 'required|min:5',
             'kegiatan' => 'required|min:5',
             'dokumentasi.*' => 'image|max:5120',
+            'bukti_izin.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ]);
 
         $guruId = Auth::user()->guru_id ?? Auth::user()->guru->id ?? null;
@@ -124,6 +126,25 @@ class FormJurnal extends Component
             } catch (\Exception $e) {
                 session()->flash('error', 'Gagal mengunggah dokumentasi: ' . $e->getMessage());
                 return;
+            }
+        }
+        
+        $buktiIzinPaths = [];
+        if (!empty($this->bukti_izin)) {
+            foreach ($this->absensi as $siswaId => $status) {
+                if (in_array($status, ['izin', 'sakit']) && isset($this->bukti_izin[$siswaId])) {
+                    $file = $this->bukti_izin[$siswaId];
+                    if ($file instanceof \Illuminate\Http\UploadedFile) {
+                        try {
+                            $filename = 'bukti_izin_' . $siswaId . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+                            $path = $file->storeAs('bukti_izin', $filename, 'r2');
+                            $buktiIzinPaths[$siswaId] = $path;
+                        } catch (\Exception $e) {
+                            session()->flash('error', 'Gagal mengunggah bukti izin: ' . $e->getMessage());
+                            return;
+                        }
+                    }
+                }
             }
         }
         
@@ -170,6 +191,7 @@ class FormJurnal extends Component
                         [
                             'status' => $status,
                             'dicatat_oleh' => $userId,
+                            'bukti_file' => $buktiIzinPaths[$siswa->id] ?? null,
                         ]
                     );
                 }

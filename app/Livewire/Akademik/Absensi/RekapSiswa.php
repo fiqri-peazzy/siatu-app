@@ -107,6 +107,7 @@ class RekapSiswa extends Component
             'absensi_siswas.siswa_id',
             'absensi_siswas.status',
             'absensi_siswas.tanggal',
+            'absensi_siswas.bukti_file',
             'jurnal_gurus.mapel_id'
         )->get();
 
@@ -132,7 +133,10 @@ class RekapSiswa extends Component
 
             // Detail per tanggal jika 1 mapel
             if ($this->mapel_id != 'semua') {
-                $data[$ab->siswa_id]['per_tanggal'][$ab->tanggal] = $status;
+                $data[$ab->siswa_id]['per_tanggal'][$ab->tanggal] = [
+                    'status' => $status,
+                    'bukti_file' => $ab->bukti_file
+                ];
                 $tanggals[$ab->tanggal] = true;
             }
         }
