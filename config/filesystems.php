@@ -60,18 +60,29 @@ return [
             'report' => false,
         ],
 
-        'r2' => [
-            'driver' => 's3',
-            'key' => env('CLOUDFLARE_R2_ACCESS_KEY_ID'),
-            'secret' => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY'),
-            'region' => 'auto',
-            'bucket' => env('CLOUDFLARE_R2_BUCKET'),
-            'url' => env('CLOUDFLARE_R2_URL'),
-            'endpoint' => env('CLOUDFLARE_R2_ENDPOINT'),
-            'use_path_style_endpoint' => true,
-            'throw' => false,
-            'report' => false,
-        ],
+        // Cloudflare R2. Untuk development lokal set CLOUDFLARE_R2_LOCAL=true agar
+        // upload uji coba disimpan di storage/app/public/r2 (tidak mencemari bucket production).
+        'r2' => env('CLOUDFLARE_R2_LOCAL', false)
+            ? [
+                'driver' => 'local',
+                'root' => storage_path('app/public/r2'),
+                'url' => rtrim(env('APP_URL', 'http://localhost'), '/').'/storage/r2',
+                'visibility' => 'public',
+                'throw' => false,
+                'report' => false,
+            ]
+            : [
+                'driver' => 's3',
+                'key' => env('CLOUDFLARE_R2_ACCESS_KEY_ID'),
+                'secret' => env('CLOUDFLARE_R2_SECRET_ACCESS_KEY'),
+                'region' => 'auto',
+                'bucket' => env('CLOUDFLARE_R2_BUCKET'),
+                'url' => env('CLOUDFLARE_R2_URL'),
+                'endpoint' => env('CLOUDFLARE_R2_ENDPOINT'),
+                'use_path_style_endpoint' => true,
+                'throw' => false,
+                'report' => false,
+            ],
 
     ],
 
