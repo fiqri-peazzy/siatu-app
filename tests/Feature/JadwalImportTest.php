@@ -11,7 +11,7 @@ use Database\Seeders\MasterGurusTableSeeder;
 use Database\Seeders\MasterKelasTableSeeder;
 use Database\Seeders\MasterMapelsTableSeeder;
 use Database\Seeders\MasterTahunAjaransTableSeeder;
-use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Support\Facades\Schema;
 
 uses(DatabaseMigrations::class);
