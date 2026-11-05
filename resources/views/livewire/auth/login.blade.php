@@ -1,116 +1,87 @@
-<div class="fixed inset-0 bg-[#f8f9fa] flex items-center justify-center p-4 sm:p-8 z-[60] overflow-y-auto">
-    <div class="w-full max-w-5xl bg-white rounded-[2rem] flex overflow-hidden shadow-2xl mx-auto min-h-[600px] animate-fade-in-up relative my-auto">
-        <!-- Left Side: Dark Blue Background -->
-        <div class="w-1/2 bg-[#0a0f37] relative flex-col justify-center p-12 text-white hidden md:flex overflow-hidden">
-            
-            <!-- Abstract Shapes -->
-            <!-- Top Left Circle -->
-            <div class="absolute -top-16 -left-16 w-48 h-48 rounded-full bg-[#181d4b] opacity-80"></div>
-            
-            <!-- Top Right Semi-circle -->
-            <div class="absolute -top-8 -right-8 w-32 h-32 rounded-full border-[12px] border-[#181d4b] opacity-80"></div>
-            
-            <!-- Slanted Lines -->
-            <div class="absolute top-24 right-20 text-[#181d4b] opacity-80 transform rotate-45 text-2xl tracking-widest font-bold">//////</div>
-            <div class="absolute bottom-24 right-24 text-[#181d4b] opacity-80 transform rotate-45 text-2xl tracking-widest font-bold">//////</div>
-            
-            <!-- Small dots -->
-            <div class="absolute top-32 right-12 w-1.5 h-1.5 rounded-full bg-white opacity-80"></div>
-            <div class="absolute top-40 left-12 w-1.5 h-1.5 rounded-full bg-white opacity-80"></div>
-            <div class="absolute bottom-40 left-32 w-1 h-1 rounded-full bg-white opacity-80"></div>
-            
-            <!-- Middle Circle -->
-            <div class="absolute top-[40%] right-32 w-10 h-10 rounded-full border-[6px] border-[#181d4b] opacity-80"></div>
-            <div class="absolute top-[45%] right-20 w-1 h-1 rounded-full bg-white opacity-80"></div>
-            
-            <!-- Bottom Left Circle -->
-            <div class="absolute -bottom-12 -left-12 w-32 h-32 rounded-full border-[12px] border-[#181d4b] opacity-80"></div>
-            <div class="absolute bottom-32 left-16 w-8 h-8 rounded-full border-[5px] border-[#181d4b] opacity-80"></div>
-            
-            <!-- Bottom Right Curve -->
-            <div class="absolute -bottom-8 right-16 w-16 h-16 rounded-full border-[6px] border-[#181d4b] opacity-80"></div>
-            <div class="absolute -left-2 top-1/2 w-8 h-8 rounded-full border-[4px] border-[#181d4b] opacity-80"></div>
+<div class="fixed inset-0 z-[60] overflow-y-auto bg-ivory-200 font-body text-navy-900">
+    <div class="flex min-h-dvh flex-col lg:flex-row">
 
-            <div class="z-10 relative mt-4 flex flex-col justify-center items-start">
-                <div class="w-28 h-28 bg-white/5 rounded-3xl p-3 backdrop-blur-md border border-white/10 mb-8 shadow-2xl relative group overflow-hidden">
-                    <div class="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-                    <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="Logo SMAGO" class="w-full h-full object-contain drop-shadow-xl relative z-10">
+        {{-- Panel identitas: atas (mobile) / kiri (desktop) --}}
+        <section class="relative overflow-hidden bg-console px-6 pt-[max(env(safe-area-inset-top),2.5rem)] pb-16 text-white lg:flex lg:w-[46%] lg:flex-col lg:justify-between lg:px-14 lg:py-14">
+            <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="" aria-hidden="true"
+                 class="pointer-events-none absolute -right-16 -bottom-16 h-72 w-72 object-contain opacity-[0.06] lg:h-[28rem] lg:w-[28rem]">
+
+            <div class="relative flex items-center gap-3">
+                <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="Logo SMA Muhammadiyah Kota Gorontalo" class="h-12 w-12 object-contain">
+                <div class="leading-tight">
+                    <p class="font-heading text-lg font-semibold">SIATU</p>
+                    <p class="text-[12px] text-white/60">SMA Muhammadiyah Kota Gorontalo</p>
                 </div>
-                <h1 class="text-[3rem] leading-none font-extrabold tracking-tight mb-2">SMAMGO</h1>
-                <h2 class="text-xl font-medium text-blue-200 mb-2 tracking-wide">SITU-SMA Portal</h2>
-                <div class="w-12 h-1 bg-indigo-500 rounded-full mb-6"></div>
-                <p class="text-sm text-blue-100/70 font-light max-w-xs leading-relaxed">SMA Muhammadiyah Gorontalo<br/>Sistem Informasi Tata Usaha Terpadu</p>
-            </div>
-        </div>
-        
-        <!-- Right Side: White Login Form -->
-        <div class="w-full md:w-1/2 p-8 sm:p-12 lg:p-16 flex flex-col justify-center bg-white relative">
-            
-            <!-- Top right dark circle on white -->
-            <div class="absolute -top-12 -right-12 w-32 h-32 rounded-full border-[1px] border-[#0a0f37] flex items-center justify-center">
-                <div class="w-20 h-20 rounded-full bg-[#0a0f37] ml-6 mt-6"></div>
-            </div>
-            
-            <!-- Top left small icon on white -->
-            <div class="absolute top-12 left-12 w-8 h-8 rounded-full border border-gray-300 flex items-center justify-center">
-                <div class="w-4 h-4 rounded-full bg-gray-200"></div>
-            </div>
-            
-            <div class="text-center mb-12 relative z-10 mt-10">
-                <h2 class="text-[2.5rem] font-medium text-[#0a0f37] tracking-wide relative inline-block">
-                    Masuk
-                    <!-- Small dot near Login -->
-                    <div class="absolute bottom-2 -right-6 w-2.5 h-2.5 rounded-full bg-gray-300"></div>
-                </h2>
             </div>
 
-            <form wire:submit="login" class="space-y-6 relative z-10 w-full max-w-sm mx-auto">
-                <div class="space-y-1.5">
-                    <label for="email" class="block text-[13px] font-medium text-gray-500">Email / NIP</label>
-                    <input wire:model="email" type="text" id="email" 
-                        class="w-full bg-white border border-gray-200 focus:border-[#0a0f37] focus:ring-0 rounded-xl px-4 py-3 text-gray-800 transition-colors outline-none"
-                        placeholder="">
-                    @error('email') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
-                </div>
+            <div class="relative mt-8 lg:mt-0">
+                <h1 class="font-heading text-[1.9rem] font-semibold leading-tight lg:text-[2.6rem]">Tata usaha sekolah,<br><span class="text-gold-300">dalam satu genggaman.</span></h1>
+                <p class="mt-3 max-w-md text-[15px] leading-relaxed text-white/65">Absensi, jadwal & jurnal mengajar, persuratan, dan rekap sekolah — untuk guru, tendik, dan pimpinan.</p>
+            </div>
 
-                <div class="space-y-1.5">
-                    <label for="password" class="block text-[13px] font-medium text-gray-500">Kata Sandi</label>
-                    <input wire:model="password" type="password" id="password" 
-                        class="w-full bg-white border border-gray-200 focus:border-[#0a0f37] focus:ring-0 rounded-xl px-4 py-3 text-gray-800 transition-colors outline-none"
-                        placeholder="">
-                    @error('password') <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span> @enderror
-                </div>
+            <ul class="relative mt-10 hidden space-y-3 lg:block">
+                @foreach (['Absen dengan lokasi & swafoto', 'Jurnal mengajar langsung dari kelas', 'Pantau kehadiran secara real-time'] as $poin)
+                    <li class="flex items-center gap-3 text-[14px] text-white/80">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-full bg-gold-400/15 text-gold-300"><x-ui.icon name="cek" class="h-3.5 w-3.5" /></span>{{ $poin }}
+                    </li>
+                @endforeach
+            </ul>
+        </section>
 
-                <div class="flex items-center justify-between pt-1">
-                    <label class="flex items-center gap-2 cursor-pointer group">
-                        <div class="relative flex items-center justify-center">
-                            <input wire:model="remember" type="checkbox" class="peer sr-only">
-                            <div class="w-4 h-4 rounded border border-gray-300 bg-white peer-checked:bg-[#0a0f37] peer-checked:border-[#0a0f37] transition-all duration-200"></div>
-                            <svg class="absolute w-2.5 h-2.5 text-white opacity-0 peer-checked:opacity-100 transition-opacity duration-200 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+        {{-- Form --}}
+        <section class="relative -mt-8 flex flex-1 items-start justify-center rounded-t-[2rem] bg-ivory-200 px-6 pt-8 pb-[max(env(safe-area-inset-bottom),2rem)] lg:mt-0 lg:items-center lg:rounded-none lg:px-14">
+            <div class="w-full max-w-sm">
+                <h2 class="font-heading text-2xl font-semibold text-navy-900">Masuk</h2>
+                <p class="mt-1 text-[14px] text-navy-500">Gunakan email yang terdaftar di sekolah.</p>
+
+                @if ($errors->any())
+                    <div role="alert" class="mt-5 flex gap-2.5 rounded-2xl bg-bad-50 p-3.5 text-[13px] font-medium text-bad-500 ring-1 ring-bad-400/25">
+                        <x-ui.icon name="peringatan" class="h-5 w-5 shrink-0" />
+                        <span>{{ $errors->first('email') ?: $errors->first() }}</span>
+                    </div>
+                @endif
+
+                <form wire:submit="login" class="mt-6 space-y-4" novalidate>
+                    <div>
+                        <label for="email" class="text-[13px] font-semibold text-navy-700">Email</label>
+                        <div class="relative mt-1.5">
+                            <x-ui.icon name="pengguna" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-navy-300" />
+                            <input wire:model="email" type="email" id="email" inputmode="email" autocomplete="username" autofocus
+                                   placeholder="nama@sekolah.sch.id" aria-invalid="{{ $errors->has('email') ? 'true' : 'false' }}"
+                                   class="h-12 w-full rounded-2xl border-0 bg-white pl-12 pr-4 text-[15px] ring-1 placeholder:text-navy-300 focus:ring-2 focus:ring-gold-500 {{ $errors->has('email') ? 'ring-bad-400' : 'ring-ivory-400' }}">
                         </div>
-                        <span class="text-[12px] font-medium text-gray-500 group-hover:text-gray-700 transition-colors">Ingat saya</span>
+                    </div>
+
+                    <div x-data="{ lihat: false, caps: false }">
+                        <label for="password" class="text-[13px] font-semibold text-navy-700">Password</label>
+                        <div class="relative mt-1.5">
+                            <x-ui.icon name="kunci" class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-navy-300" />
+                            <input wire:model="password" id="password" :type="lihat ? 'text' : 'password'" autocomplete="current-password"
+                                   @keyup="caps = $event.getModifierState && $event.getModifierState('CapsLock')"
+                                   class="h-12 w-full rounded-2xl border-0 bg-white pl-12 pr-20 text-[15px] ring-1 focus:ring-2 focus:ring-gold-500 {{ $errors->has('password') ? 'ring-bad-400' : 'ring-ivory-400' }}">
+                            <button type="button" @click="lihat = ! lihat" :aria-pressed="lihat" class="absolute right-1.5 top-1.5 h-9 rounded-xl px-3 text-[12px] font-semibold text-navy-500 hover:bg-ivory-200"
+                                    x-text="lihat ? 'Sembunyi' : 'Lihat'">Lihat</button>
+                        </div>
+                        <p x-show="caps" x-cloak class="mt-1.5 text-[12px] font-medium text-warn-500">Caps Lock aktif</p>
+                        @error('password') <p class="mt-1.5 text-[12px] font-medium text-bad-500">{{ $message }}</p> @enderror
+                    </div>
+
+                    <label class="flex cursor-pointer items-center gap-2.5 text-[14px] text-navy-600">
+                        <input wire:model="remember" type="checkbox" class="h-5 w-5 rounded-md border-ivory-400 text-navy-900 focus:ring-gold-500">
+                        Ingat saya di perangkat ini
                     </label>
-                    <a href="#" class="text-[11px] font-medium text-[#0a0f37] hover:underline">Lupa kata sandi?</a>
-                </div>
 
-                <div class="pt-6 pb-2 flex justify-center">
-                    <button type="submit" wire:loading.attr="disabled"
-                        class="bg-[#0a0f37] text-white px-14 py-3 rounded-lg font-medium text-lg hover:bg-opacity-90 active:scale-95 transition-all w-auto flex items-center justify-center min-w-[160px]">
-                        
-                        <span wire:loading.remove wire:target="login">
-                            Masuk
-                        </span>
-
-                        <span wire:loading wire:target="login">
-                            <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                    <button type="submit" wire:loading.attr="disabled" wire:target="login"
+                            class="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-navy-900 text-[15px] font-semibold text-white shadow-lg shadow-navy-900/20 transition hover:bg-navy-800 active:scale-[0.98] disabled:opacity-70">
+                        <span wire:loading.remove wire:target="login">Masuk</span>
+                        <span wire:loading wire:target="login" class="inline-flex items-center gap-2">
+                            <span class="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white"></span> Memeriksa…
                         </span>
                     </button>
-                </div>
-            </form>
+                </form>
 
-            <div class="text-center mt-12 text-[11px] text-gray-400 font-medium relative z-10 mb-6">
-                Belum memiliki akun? <a href="#" class="text-[#0a0f37] font-semibold hover:underline">Hubungi Admin</a>
+                <p class="mt-6 text-center text-[13px] text-navy-400">Lupa password atau belum punya akun?<br>Hubungi <span class="font-semibold text-navy-700">Admin Tata Usaha</span>.</p>
             </div>
-        </div>
+        </section>
     </div>
 </div>

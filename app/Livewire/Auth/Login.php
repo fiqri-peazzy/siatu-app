@@ -24,7 +24,17 @@ class Login extends Component
     {
         $this->validate();
 
+        // Batasi tebakan password: 5 percobaan / menit per email + IP
+        $kunci = 'login:'.strtolower($this->email).'|'.request()->ip();
+        if (\Illuminate\Support\Facades\RateLimiter::tooManyAttempts($kunci, 5)) {
+            $detik = \Illuminate\Support\Facades\RateLimiter::availableIn($kunci);
+            $this->addError('email', "Terlalu banyak percobaan. Coba lagi dalam {$detik} detik.");
+
+            return;
+        }
+
         if (Auth::attempt(['email' => $this->email, 'password' => $this->password], $this->remember)) {
+            \Illuminate\Support\Facades\RateLimiter::clear($kunci);
             session()->regenerate();
             
             if (Auth::user()->hasRole('guru')) {
@@ -34,6 +44,7 @@ class Login extends Component
             return redirect()->intended(route('dashboard'));
         }
 
+        \Illuminate\Support\Facades\RateLimiter::hit($kunci, 60);
         $this->addError('email', 'Email atau password salah.');
     }
 

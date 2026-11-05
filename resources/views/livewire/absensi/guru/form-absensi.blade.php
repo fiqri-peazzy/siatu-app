@@ -30,84 +30,90 @@
         ])
     @endif
 
-    <!-- Top Bar -->
-    <div class="px-5 pt-10 pb-4 flex items-center justify-between z-20 relative">
-        <div class="flex items-center gap-3">
-            <button type="button" @click="closeModalAndGoBack()" class="w-8 h-8 flex items-center justify-center text-white hover:bg-white/10 rounded-full transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+    {{-- Kamera layar penuh; semua kontrol melayang di atasnya --}}
+    <div class="relative flex-1 overflow-hidden bg-navy-950 font-body">
+        <video x-ref="videoEl" autoplay muted playsinline class="absolute inset-0 z-0 h-full w-full -scale-x-100 object-cover"></video>
+
+        <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 top-0 z-10 h-36 bg-linear-to-b from-navy-950/85 to-transparent"></div>
+        <div aria-hidden="true" class="pointer-events-none absolute inset-x-0 bottom-0 z-10 h-72 bg-linear-to-t from-navy-950 via-navy-950/75 to-transparent"></div>
+
+        {{-- Bar atas --}}
+        <header class="absolute inset-x-0 top-0 z-30 flex h-[calc(3.5rem+env(safe-area-inset-top))] items-end justify-between gap-3 px-3 pb-1 pt-[env(safe-area-inset-top)] text-white"
+                x-data="{ jam: '', tick() { this.jam = new Intl.DateTimeFormat('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false, timeZone: @js(config('app.timezone')) }).format(Date.now()).replace('.', ':') } }"
+                x-init="tick(); setInterval(() => tick(), 15000)">
+            <button type="button" @click="closeModalAndGoBack()" aria-label="Tutup kamera"
+                    class="flex h-11 w-11 items-center justify-center rounded-full bg-white/10 backdrop-blur-md transition hover:bg-white/20">
+                <x-ui.icon name="tutup" class="h-5 w-5" />
             </button>
-            <div class="flex flex-col">
-                <span class="text-white font-bold text-[18px] leading-tight">Ambil Foto</span>
-                <span class="text-white font-bold text-[18px] leading-tight">Absen</span>
+            <div class="text-center leading-tight">
+                <p class="font-heading text-[15px] font-semibold">Absen {{ $absenMasuk ? 'pulang' : 'masuk' }}</p>
+                <p class="text-[12px] tabular-nums text-white/65" x-text="jam + ' WITA'"></p>
+            </div>
+            <div class="flex h-11 min-w-11 items-center gap-1.5 rounded-full bg-white/10 px-3 backdrop-blur-md" aria-live="polite">
+                <x-ui.icon name="lokasi" class="h-4 w-4 text-gold-300" />
+                <span class="text-[12px] font-semibold tabular-nums" x-text="jarakTeks">…</span>
+            </div>
+        </header>
+
+        {{-- Bingkai wajah --}}
+        <div x-show="!loadingLokasi && !errorLokasi && !verifikasiBerhasil" aria-hidden="true"
+             class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center pb-24">
+            <div class="aspect-[3/4] w-[64vw] max-w-[17rem] rounded-[50%] shadow-[0_0_0_200vmax_rgb(7_20_42/0.45)] ring-2 ring-white/80">
+                <div class="h-full w-full rounded-[50%] ring-[6px] ring-gold-400/25"></div>
             </div>
         </div>
-        <div class="bg-white/10 rounded-full px-3 py-1.5 flex items-center gap-1.5 backdrop-blur-sm border border-white/5">
-            <svg class="w-3.5 h-3.5 text-rose-500" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5a2.5 2.5 0 010-5 2.5 2.5 0 010 5z"/></svg>
-            <span class="text-[10px] font-medium text-white tracking-wide" x-text="jarakTeks">...</span>
-        </div>
-    </div>
-    
-    <!-- Stepper Dots -->
-    <div class="flex justify-center items-center gap-3 mb-6 z-20 relative">
-        <div class="w-1.5 h-1.5 rounded-full bg-gold-400"></div>
-        <div class="w-10 h-[1px] bg-white/20"></div>
-        <div class="w-2.5 h-2.5 rounded-full bg-gold-400 ring-4 ring-gold-400/30"></div>
-        <div class="w-10 h-[1px] bg-white/20"></div>
-        <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
-    </div>
-    
-    <!-- Camera Area -->
-    <div class="flex-1 relative w-full h-full bg-navy-950 overflow-hidden flex flex-col justify-end">
-        
-        <video x-ref="videoEl" autoplay muted playsinline class="absolute inset-0 z-0 w-full h-full object-cover transform scale-x-[-1]"></video>
-        
-        <!-- Loading GPS Overlay -->
-        <div x-show="loadingLokasi" class="absolute inset-0 bg-navy-950/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-white p-6 text-center">
-            <svg class="animate-spin w-12 h-12 text-gold-400 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            <p class="font-extrabold text-xl mb-2" x-text="loadingTitle"></p>
-            <p class="text-sm text-slate-400 max-w-[250px]" x-text="loadingSubtitle"></p>
-        </div>
 
-        <!-- Manual Capture Button -->
-        <div x-show="!loadingLokasi && !errorLokasi && !verifikasiBerhasil" class="relative z-30 pb-12 pt-8 w-full flex justify-center bg-gradient-to-t from-navy-950 to-transparent">
-            <button type="button" 
-                    @click="triggerSuccessCapture()" 
-                    :disabled="isCapturing"
-                    class="relative group focus:outline-none focus:ring-4 focus:ring-gold-400/30 rounded-full transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-                <!-- Outer ring -->
-                <div class="absolute inset-0 bg-white/20 rounded-full backdrop-blur-sm group-hover:bg-white/30 transition-colors"></div>
-                <div class="w-20 h-20 border-[3px] border-white rounded-full flex items-center justify-center p-1.5">
-                    <!-- Inner button -->
-                    <div class="w-full h-full bg-white rounded-full group-hover:scale-95 transition-transform duration-300"></div>
-                </div>
+        {{-- Panel bawah --}}
+        <div x-show="!loadingLokasi && !errorLokasi && !verifikasiBerhasil"
+             class="absolute inset-x-0 bottom-0 z-30 flex flex-col items-center px-6 pb-[max(env(safe-area-inset-bottom),1.75rem)] text-white">
+            <p class="mb-5 max-w-[17rem] text-center text-[14px] leading-relaxed text-white/80">Posisikan wajah di dalam bingkai dengan cahaya cukup, lalu ketuk tombol.</p>
+            <button type="button" @click="triggerSuccessCapture()" :disabled="isCapturing" aria-label="Ambil swafoto & absen"
+                    class="group relative flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-full ring-4 ring-white/90 transition active:scale-95 focus-visible:outline-none focus-visible:ring-gold-400 disabled:opacity-60">
+                <span class="h-[3.9rem] w-[3.9rem] rounded-full bg-white transition group-hover:scale-95 group-disabled:bg-white/70"></span>
+                <span x-show="isCapturing" x-cloak class="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-gold-400"></span>
             </button>
+            <p class="mt-3 text-[13px] font-semibold" x-text="isCapturing ? 'Memproses…' : 'Ambil swafoto'">Ambil swafoto</p>
         </div>
 
-        <!-- Error GPS Overlay -->
-        <div x-show="errorLokasi" style="display: none;" class="absolute inset-0 bg-rose-900/95 backdrop-blur-md z-40 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
-            <div class="w-20 h-20 bg-rose-500 rounded-full flex items-center justify-center shadow-2xl mb-6 ring-8 ring-rose-500/30">
-                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+        {{-- Memuat GPS / kamera --}}
+        <div x-show="loadingLokasi" class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-navy-950/92 p-8 text-center text-white backdrop-blur-md" role="status">
+            <div class="relative mb-6 flex h-20 w-20 items-center justify-center">
+                <span class="absolute inset-0 animate-ping rounded-full bg-gold-400/20 motion-reduce:animate-none"></span>
+                <span class="relative flex h-16 w-16 items-center justify-center rounded-full bg-gold-400/15 text-gold-300 ring-1 ring-gold-400/30"><x-ui.icon name="lokasi" class="h-8 w-8" /></span>
             </div>
-            <h3 class="font-extrabold text-2xl drop-shadow-md mb-2">Lokasi Tidak Valid</h3>
-            <p class="text-rose-200 text-sm max-w-[280px] mb-8" x-text="pesanErrorLokasi"></p>
-            <button type="button" @click="closeModalAndGoBack()" class="bg-white text-rose-600 px-6 py-3 rounded-full font-bold text-sm shadow-lg active:scale-95 transition-all">
-                Kembali
-            </button>
+            <p class="font-heading text-xl font-semibold" x-text="loadingTitle"></p>
+            <p class="mt-1.5 max-w-[16rem] text-[14px] text-white/60" x-text="loadingSubtitle"></p>
         </div>
 
-        <!-- Success Overlay -->
-        <div x-show="verifikasiBerhasil" style="display: none;" class="absolute inset-0 bg-navy-950/95 backdrop-blur-md z-30 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
-            <div class="w-24 h-24 bg-gold-400 rounded-full flex items-center justify-center shadow-2xl mb-6 scale-up-center ring-8 ring-gold-400/30">
-                <svg class="w-12 h-12 text-navy-950" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+        {{-- Lokasi tidak valid --}}
+        <div x-show="errorLokasi" x-cloak x-transition.opacity role="alertdialog" aria-labelledby="judul-lokasi-error"
+             class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-navy-950/95 p-8 text-center text-white backdrop-blur-md">
+            <span class="mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-bad-500/20 text-rose-300 ring-1 ring-rose-300/30"><x-ui.icon name="lokasi" class="h-8 w-8" /></span>
+            <h3 id="judul-lokasi-error" class="font-heading text-xl font-semibold">Di luar area absen</h3>
+            <p class="mt-2 max-w-[18rem] text-[14px] leading-relaxed text-white/70" x-text="pesanErrorLokasi"></p>
+            <p class="mt-3 max-w-[18rem] text-[12px] text-white/45">Pastikan GPS aktif & mode akurasi tinggi, lalu coba lagi dari dalam lingkungan sekolah.</p>
+            <div class="mt-7 grid w-full max-w-xs grid-cols-2 gap-2.5">
+                <button type="button" @click="closeModalAndGoBack()" class="h-12 rounded-2xl text-[15px] font-semibold ring-1 ring-white/25">Kembali</button>
+                <button type="button" @click="window.location.reload()" class="h-12 rounded-2xl bg-gold-400 text-[15px] font-semibold text-navy-950">Coba lagi</button>
             </div>
-            <h3 class="font-extrabold text-2xl drop-shadow-md mb-2">Absensi Berhasil!</h3>
-            <p class="text-white/70 text-sm">Menyimpan data kehadiran Anda...</p>
+        </div>
+
+        {{-- Berhasil --}}
+        <div x-show="verifikasiBerhasil" x-cloak x-transition.opacity role="status"
+             class="absolute inset-0 z-40 flex flex-col items-center justify-center bg-navy-950/95 p-8 text-center text-white backdrop-blur-md">
+            <span class="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gold-400 text-navy-950 shadow-[0_0_0_10px_rgb(212_175_55/0.18)]"><x-ui.icon name="cek" class="h-10 w-10" /></span>
+            <h3 class="font-heading text-xl font-semibold">Absen {{ $absenMasuk ? 'pulang' : 'masuk' }} tercatat</h3>
+            <p class="mt-1.5 text-[14px] text-white/60">Menyimpan data kehadiran…</p>
         </div>
     </div>
-    
-    @error('foto') <div class="absolute top-24 inset-x-4 bg-rose-500/90 backdrop-blur-sm text-white rounded-xl p-4 shadow-xl z-50 text-center font-medium text-sm">{{ $message }}</div> @enderror
-    @error('latitude') <div class="absolute top-24 inset-x-4 bg-rose-500/90 backdrop-blur-sm text-white rounded-xl p-4 shadow-xl z-50 text-center font-medium text-sm">Lokasi GPS tidak valid. Pastikan GPS aktif.</div> @enderror
-    @error('keterangan') <div class="absolute top-24 inset-x-4 bg-rose-500/90 backdrop-blur-sm text-white rounded-xl p-4 shadow-xl z-50 text-center font-medium text-sm">{{ $message }}</div> @enderror
+
+    @foreach (['foto' => null, 'latitude' => 'Lokasi GPS tidak valid. Pastikan GPS aktif.', 'keterangan' => null] as $field => $pesanTetap)
+        @error($field)
+            <div role="alert" class="absolute inset-x-4 top-[calc(4rem+env(safe-area-inset-top))] z-50 flex gap-2.5 rounded-2xl bg-bad-500/95 p-3.5 text-[13px] font-medium text-white shadow-float backdrop-blur-sm">
+                <x-ui.icon name="peringatan" class="h-5 w-5 shrink-0" /> <span>{{ $pesanTetap ?? $message }}</span>
+            </div>
+        @enderror
+    @endforeach
 
     <!-- Load face-api.js from CDN -->
     @assets
