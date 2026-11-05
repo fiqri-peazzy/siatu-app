@@ -56,9 +56,8 @@ class TestWebPush extends Command
 
         try {
             $pesanTest = "Ini adalah pesan percobaan Push Notification dari server (Realtime Test!).";
-            $kanal = 'wa_dan_inapp';
             
-            $user->notify(new ReminderJurnalNotification($pesanTest, $kanal));
+            $user->notify(new ReminderJurnalNotification($pesanTest));
             
             $this->info('Notifikasi berhasil dikirim (di-queue/diproses)! Cek layar HP/Browser Anda.');
         } catch (\Exception $e) {

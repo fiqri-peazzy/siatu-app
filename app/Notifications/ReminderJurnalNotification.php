@@ -13,36 +13,21 @@ class ReminderJurnalNotification extends Notification implements ShouldQueue
     use Queueable;
 
     protected $pesan;
-    protected $kanal;
 
-    /**
-     * Create a new notification instance.
-     */
-    public function __construct($pesan, $kanal)
+    public function __construct($pesan)
     {
         $this->pesan = $pesan;
-        $this->kanal = $kanal; // 'wa_saja' atau 'wa_dan_inapp'
     }
 
     /**
-     * Get the notification's delivery channels.
+     * In-app (database) selalu; Web Push terkirim ke semua perangkat yang
+     * sudah mengizinkan notifikasi. WhatsApp dinonaktifkan.
      *
      * @return array<int, string>
      */
     public function via(object $notifiable): array
     {
-        $channels = [];
-
-        // We handle WA manually outside of Laravel's built-in channels for simplicity,
-        // but we can also trigger it from `toDatabase` or via a custom channel.
-        // For 'wa_dan_inapp', we use database and WebPush
-        
-        if ($this->kanal === 'wa_dan_inapp') {
-            $channels[] = 'database';
-            $channels[] = WebPushChannel::class;
-        }
-
-        return $channels;
+        return ['database', WebPushChannel::class];
     }
 
     /**

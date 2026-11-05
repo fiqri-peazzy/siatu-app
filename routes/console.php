@@ -29,18 +29,10 @@ Artisan::command('inspire', function () {
 
         if ($totalJadwal > $totalTerisi) {
             $pesan = "Halo Bpk/Ibu {$guru->nama}, Anda memiliki {$totalJadwal} jadwal hari ini namun baru mengisi {$totalTerisi} jurnal. Mohon segera lengkapi jurnal Anda di aplikasi.";
-            $kanal = $guru->preferensiNotifikasi->kanal_notifikasi ?? 'wa_saja';
-            
-            \Illuminate\Support\Facades\Log::info("Reminder sent to {$guru->nama} for unfilled journals. Kanal: {$kanal}");
-            
-            // Send WA (Fonnte/Wablas/Log)
-            if ($guru->no_hp) {
-                app(\App\Services\NotifikasiService::class)->sendWhatsApp($guru->no_hp, $pesan);
-            }
-
-            // Send In-App & WebPush if preferred
-            if ($kanal === 'wa_dan_inapp' && $guru->user) {
-                $guru->user->notify(new \App\Notifications\ReminderJurnalNotification($pesan, $kanal));
+            // WhatsApp (Fonnte) sengaja dinonaktifkan — reminder hanya via in-app + Web Push.
+            if ($guru->user) {
+                \Illuminate\Support\Facades\Log::info("Reminder jurnal dikirim ke {$guru->nama} (in-app + web push).");
+                $guru->user->notify(new \App\Notifications\ReminderJurnalNotification($pesan));
             }
         }
     }
