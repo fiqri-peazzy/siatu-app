@@ -10,7 +10,11 @@ Route::middleware('auth')->group(function () {
         if (auth()->user()->hasRole('guru')) {
             return redirect()->route('guru.dashboard');
         }
-        return view('dashboard');
+        $komponen = auth()->user()->hasRole('kepala-sekolah')
+            ? \App\Livewire\Dashboard\DashboardKepsek::class
+            : \App\Livewire\Dashboard\DashboardAdmin::class;
+
+        return app()->call([app($komponen), '__invoke']);
     })->name('dashboard');
 
     // Data Master Routes
