@@ -11,6 +11,7 @@ docs/
 ├── README.md                                       # Indeks utama & panduan dokumentasi ini
 ├── DB_SCHEMA.md                                    # Spesifikasi lengkap tabel & skema database
 ├── SETUP_LOKAL.md                                  # Cara menjalankan aplikasi di laptop (Windows)
+├── DEMO_SKRIP.md                                   # Skrip demo SIATU v2
 ├── ROADMAP_V2.md                                   # Rencana & progres SIATU v2
 ├── design.md                                       # Desain UI/UX & spesifikasi teknis PWA Mobile Guru
 └── prd/                                            # Product Requirement Documents (PRD)
