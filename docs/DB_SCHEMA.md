@@ -345,3 +345,31 @@ Contoh: upacara Senin (07.00–07.45) menimpa jam ke-I; bila upacara **ditiadaka
 | `dibuat_oleh` | `bigint(20) unsigned` | FK ke `users.id` (Nullable, Set Null) |
 | `deleted_at` | `timestamp` | Soft Deletes |
 | `created_at`, `updated_at` | `timestamp` | Timestamps |
+
+---
+
+### 18. `aturan_absensis` (Model: `AturanAbsensi`)
+Jendela waktu check-in / check-out per kategori pegawai per hari. Dievaluasi oleh `AturanAbsensiService::evaluasi()` (portal guru & tendik); diatur admin di Pengaturan Sistem. Bila baris belum ada, dipakai `AturanAbsensiService::DEFAULT`.
+
+```
+masuk_buka ─── masuk_tepat (+toleransi) ─── masuk_tutup        pulang_buka ─── pulang_tutup
+   │ hadir                 │ terlambat           │ ditolak (izin)   │ (sebelumnya: pulang_cepat + alasan wajib)
+```
+
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | `bigint(20) unsigned` | Primary Key |
+| `kategori` | `varchar(20)` | `guru` / `tendik` (Enum `KategoriAbsensi`) |
+| `hari` | `varchar(10)` | `senin`..`sabtu` (Enum `Hari`). Unique (`kategori`, `hari`) |
+| `hari_kerja` | `tinyint(1)` | `false` = tidak ada absensi di hari ini |
+| `masuk_buka` | `time` | Check-in paling awal |
+| `masuk_tepat` | `time` | Batas tepat waktu; lewat dari ini + toleransi = `terlambat` |
+| `toleransi_menit` | `smallint unsigned` | Toleransi keterlambatan (menit) |
+| `masuk_tutup` | `time` | Lewat dari ini check-in ditolak (ajukan izin) |
+| `pulang_buka` | `time` | Check-out normal paling awal |
+| `pulang_tutup` | `time` | Check-out paling akhir |
+| `pulang_cepat_diizinkan` | `tinyint(1)` | Boleh check-out sebelum `pulang_buka` dengan alasan → status `pulang_cepat` |
+| `created_at`, `updated_at` | `timestamp` | Timestamps |
+
+> Status baru pada `absensi_gurus.status` / `absensi_tendiks.status`: `pulang_cepat` (Enum `StatusAbsensiGuru::PULANG_CEPAT`).
+> Pengaturan `batas_telat` di tabel `pengaturans` tidak dipakai lagi — digantikan `aturan_absensis.masuk_tepat` per hari.

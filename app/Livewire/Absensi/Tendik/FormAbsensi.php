@@ -4,7 +4,10 @@ namespace App\Livewire\Absensi\Tendik;
 
 use Livewire\Component;
 use Livewire\WithFileUploads;
+use App\Enums\JenisAbsenGuru;
+use App\Enums\KategoriAbsensi;
 use App\Services\AbsensiService;
+use App\Services\AturanAbsensiService;
 use App\Models\AbsensiTendik;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -27,7 +30,10 @@ class FormAbsensi extends Component
     public $pesanErrorLokasi = null;
     public $dalamRadius = false;
 
-    public function mount()
+    /** Hasil cek jendela waktu saat halaman dibuka (AturanAbsensiService::evaluasi) */
+    public array $cekWaktu = [];
+
+    public function mount(AturanAbsensiService $aturan)
     {
         $tendikId = auth()->user()->masterTendik->id ?? null;
         
@@ -47,6 +53,20 @@ class FormAbsensi extends Component
             ->where('tanggal', $hariIni)
             ->where('jenis', \App\Enums\JenisAbsenGuru::PULANG->value)
             ->first();
+
+        $this->cekWaktu = $this->evaluasiWaktu($aturan, Carbon::now());
+    }
+
+    private function evaluasiWaktu(AturanAbsensiService $aturan, Carbon $waktu, ?string $alasan = null): array
+    {
+        return $aturan->evaluasi(
+            KategoriAbsensi::TENDIK,
+            $this->absenMasuk ? JenisAbsenGuru::PULANG : JenisAbsenGuru::MASUK,
+            $waktu,
+            sudahMasuk: (bool) $this->absenMasuk,
+            sudahPulang: (bool) $this->absenPulang,
+            alasan: $alasan,
+        );
     }
 
     public function cekLokasi(AbsensiService $service)
@@ -69,7 +89,7 @@ class FormAbsensi extends Component
         return true;
     }
 
-    public function submitAbsen(AbsensiService $service)
+    public function submitAbsen(AbsensiService $service, AturanAbsensiService $aturan)
     {
         $this->validate([
             'latitude' => 'required|numeric',
@@ -89,12 +109,17 @@ class FormAbsensi extends Component
             return;
         }
 
+        // 2. Validasi jendela waktu (dicek ulang di server saat submit)
         $waktuAbsen = Carbon::now();
-        $status = \App\Enums\StatusAbsensiGuru::HADIR->value;
-        
-        if ($jenis === \App\Enums\JenisAbsenGuru::MASUK->value && $service->isTerlambat($waktuAbsen)) {
-            $status = \App\Enums\StatusAbsensiGuru::TERLAMBAT->value;
+        $hasil = $this->evaluasiWaktu($aturan, $waktuAbsen, $this->keterangan);
+
+        if (! $hasil['boleh']) {
+            $this->cekWaktu = $hasil;
+            $this->dispatch('swal:error', $hasil['pesan']);
+            return;
         }
+
+        $status = $hasil['status'];
 
         try {
             DB::beginTransaction();

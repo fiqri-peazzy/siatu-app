@@ -25,5 +25,12 @@ class DatabaseSeeder extends Seeder
         $this->call(UsersTableSeeder::class);
         $this->call(ModelHasRolesTableSeeder::class);
         $this->call(MasterKategoriSuratSeeder::class);
+
+        // Pengaturan sistem & aturan absensi (idempoten)
+        $this->call(PengaturanSeeder::class);
+        $this->call(AturanAbsensiSeeder::class);
+
+        // Jadwal v2 Semester Ganjil 2026/2027
+        $this->call(JadwalGanjil20262027Seeder::class);
     }
 }

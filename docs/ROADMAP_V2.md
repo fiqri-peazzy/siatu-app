@@ -25,6 +25,11 @@ Branch kerja: `v2`. Merge ke `main` **per tahap**, setelah dites — setiap push
 - [ ] Migrasi pemakai tabel lama `master_jadwal_pelajarans` (portal guru, jurnal, supervisi) → pensiunkan tabel lama
 - [ ] Jurnal per sesi (multi-rombel) + absensi per rombel
 
+### Tahap 1b — Aturan absensi & Pengaturan Sistem
+- [x] Tabel `aturan_absensis` + `AturanAbsensiService::evaluasi()` (jendela check-in/out per kategori per hari, toleransi, pulang cepat + alasan, cegah absen ganda, hormati hari libur)
+- [x] Integrasi ke form absen guru & tendik (cek sebelum kamera dibuka)
+- [ ] Halaman Pengaturan Sistem (tab: Lokasi & Radius, Jam Absensi, Notifikasi, Identitas Sekolah) — dibangun dengan design system Tahap 2
+
 ### Tahap 2 — Design system
 - [ ] Token warna (light/dark), tipografi, spacing, radius, elevation
 - [ ] Komponen: button, input, select, tabel, badge status, card, tabs, modal, drawer

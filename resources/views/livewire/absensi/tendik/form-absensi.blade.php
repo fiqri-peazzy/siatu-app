@@ -82,8 +82,19 @@
                     <h3 class="text-2xl font-extrabold text-slate-800 tracking-tight mb-2">
                         {{ !$absenMasuk ? 'Absensi Masuk' : 'Absensi Pulang' }}
                     </h3>
-                  
                 </div>
+
+                @if (! ($cekWaktu['boleh'] ?? true))
+                    <div class="mb-6 flex gap-3 rounded-2xl bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-amber-200">
+                        <svg class="mt-0.5 h-5 w-5 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        <p>
+                            {{ $cekWaktu['pesan'] }}
+                            @if ($cekWaktu['butuh_alasan'] ?? false)
+                                <span class="mt-1 block font-semibold">Tulis alasan di kolom keterangan sebelum mengirim.</span>
+                            @endif
+                        </p>
+                    </div>
+                @endif
                 
                 <div x-data="absensiLiveness($wire)" class="space-y-6 relative z-10">
 

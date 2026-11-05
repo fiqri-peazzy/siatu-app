@@ -10,10 +10,13 @@ enum StatusAbsensiGuru: string
     case ALFA = 'alfa';
     case DINAS_LUAR = 'dinas_luar';
     case TERLAMBAT = 'terlambat';
+    /** Check-out sebelum jam pulang (dengan alasan) */
+    case PULANG_CEPAT = 'pulang_cepat';
 
     public function label(): string
     {
         return match($this) {
+            self::PULANG_CEPAT => 'Pulang Cepat',
             self::HADIR => 'Hadir',
             self::IZIN => 'Izin',
             self::SAKIT => 'Sakit',

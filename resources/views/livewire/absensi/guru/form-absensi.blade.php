@@ -5,7 +5,45 @@
      @swal:error.window="handleSwalError($event)"
      @absensi:success.window="handleSuccess()"
      class="fixed inset-0 z-[9999] flex flex-col bg-[#121A2F] animate-fade-in" style="height: 100dvh;">
-    
+
+    @php
+        $waktuDitolak = ! ($cekWaktu['boleh'] ?? true) && ! ($cekWaktu['butuh_alasan'] ?? false);
+        $perluAlasan = $cekWaktu['butuh_alasan'] ?? false;
+    @endphp
+
+    {{-- Di luar jendela waktu absen: hentikan alur sebelum kamera/GPS dipakai --}}
+    @if ($waktuDitolak)
+        <div class="absolute inset-0 z-70 flex flex-col items-center justify-center bg-[#121A2F] p-8 text-center text-white">
+            <div class="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-amber-500/15 ring-8 ring-amber-500/10">
+                <svg class="h-10 w-10 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <h3 class="mb-2 text-2xl font-extrabold">Di Luar Jam Absen</h3>
+            <p class="mb-8 max-w-72.5 text-sm text-slate-300">{{ $cekWaktu['pesan'] }}</p>
+            <a href="{{ url()->previous() }}" class="rounded-full bg-white px-6 py-3 text-sm font-bold text-slate-900 shadow-lg transition-all active:scale-95">Kembali</a>
+        </div>
+    @endif
+
+    {{-- Pulang sebelum waktunya: minta alasan dulu, baru kamera --}}
+    @if ($perluAlasan)
+        <div x-data="{ open: true }" x-show="open" class="absolute inset-0 z-70 flex items-end justify-center bg-slate-950/80 backdrop-blur-sm sm:items-center">
+            <div class="w-full max-w-md rounded-t-4xl bg-white p-6 text-slate-800 shadow-2xl sm:rounded-4xl">
+                <div class="mb-1 flex items-center gap-2 text-amber-600">
+                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
+                    <span class="text-xs font-bold uppercase tracking-wider">Pulang lebih awal</span>
+                </div>
+                <p class="mb-4 text-sm text-slate-600">{{ $cekWaktu['pesan'] }} Alasan Anda akan terlihat oleh admin dan kepala sekolah.</p>
+                <textarea wire:model="keterangan" x-ref="alasan" rows="3" placeholder="Contoh: Dinas ke Dikbud, anak sakit…"
+                          class="w-full resize-none rounded-2xl border-0 bg-slate-50 px-4 py-3 text-sm ring-1 ring-slate-200 focus:ring-2 focus:ring-amber-500"></textarea>
+                <div class="mt-4 flex gap-3">
+                    <a href="{{ url()->previous() }}" class="flex-1 rounded-full bg-slate-100 py-3 text-center text-sm font-bold text-slate-700">Batal</a>
+                    <button type="button" @click="if ($refs.alasan.value.trim().length >= 5) { open = false } else { $refs.alasan.focus() }"
+                            class="flex-1 rounded-full bg-amber-500 py-3 text-sm font-bold text-white shadow-lg shadow-amber-500/30 active:scale-95">Lanjut Foto</button>
+                </div>
+                <p class="mt-2 text-center text-[11px] text-slate-400">Minimal 5 karakter</p>
+            </div>
+        </div>
+    @endif
+
     <!-- Top Bar -->
     <div class="px-5 pt-10 pb-4 flex items-center justify-between z-20 relative">
         <div class="flex items-center gap-3">
@@ -118,6 +156,9 @@
             verifikasiBerhasil: false,
             
             async init() {
+                // Jangan nyalakan kamera/GPS bila di luar jendela waktu absen
+                if (@js($waktuDitolak)) return;
+
                 this.loadingTitle = 'Menyiapkan Sistem...';
                 this.loadingSubtitle = 'Mohon tunggu sebentar.';
                 
