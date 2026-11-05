@@ -31,6 +31,8 @@ Branch kerja: `v2`. Merge ke `main` **per tahap**, setelah dites — setiap push
 - [ ] Halaman Pengaturan Sistem (tab: Lokasi & Radius, Jam Absensi, Notifikasi, Identitas Sekolah) — dibangun dengan design system Tahap 2
 
 ### Tahap 2 — Design system
+- [x] Token awal di `resources/css/app.css` (navy · gold · ivory, status, font Poppins + Plus Jakarta Sans, safe-area, varian `short:` untuk landscape)
+- [x] Komponen pertama: `<x-absensi.jendela-waktu>`, layar absen di luar jam, sheet pulang cepat, banner tendik — diuji di 320/390/430/768/landscape
 - [ ] Token warna (light/dark), tipografi, spacing, radius, elevation
 - [ ] Komponen: button, input, select, tabel, badge status, card, tabs, modal, drawer
 - [ ] Custom alert/toast/confirm (ganti SweetAlert default), tooltip informatif, empty state, skeleton
@@ -43,6 +45,7 @@ Branch kerja: `v2`. Merge ke `main` **per tahap**, setelah dites — setiap push
 ### Tahap 4 — Redesign panel admin (per modul)
 
 ### Tahap 5 — Portal mobile guru & tendik
+- [ ] Modul pengajuan izin/sakit/dinas luar oleh guru & tendik (tujuan tombol di layar "di luar jam")
 - [ ] Audit alur absen: GPS mati/akurasi rendah, di luar radius, terlambat, lupa absen pulang, offline/sinyal lemah, izin kamera ditolak, izin/sakit + bukti
 - [ ] Redesign layout mobile (bottom nav, gesture-friendly, state lengkap)
 

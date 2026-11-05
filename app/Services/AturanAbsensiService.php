@@ -85,24 +85,24 @@ class AturanAbsensiService
         $aturan = $this->aturan($kategori, $waktu);
 
         if (! $aturan || ! $aturan->hari_kerja) {
-            return $this->tolak('Hari ini bukan hari kerja.');
+            return $this->tolak('Hari ini bukan hari kerja.', 'bukan_hari_kerja');
         }
 
         if ($libur = $this->namaLibur($waktu)) {
-            return $this->tolak("Hari ini libur: {$libur}.");
+            return $this->tolak("Hari ini libur: {$libur}.", 'libur');
         }
 
         $jam = fn (string $kolom) => $waktu->copy()->setTimeFromTimeString($aturan->jam($kolom));
 
         if ($jenis === JenisAbsenGuru::MASUK) {
             if ($sudahMasuk) {
-                return $this->tolak('Anda sudah absen masuk hari ini.');
+                return $this->tolak('Anda sudah absen masuk hari ini.', 'sudah_absen');
             }
             if ($waktu->lt($jam('masuk_buka'))) {
-                return $this->tolak("Absen masuk baru dibuka pukul {$aturan->jam('masuk_buka')}.");
+                return $this->tolak("Absen masuk baru dibuka pukul {$aturan->jam('masuk_buka')}.", 'belum_buka');
             }
             if ($waktu->gt($jam('masuk_tutup'))) {
-                return $this->tolak("Absen masuk sudah ditutup pukul {$aturan->jam('masuk_tutup')}. Silakan ajukan izin ke admin.");
+                return $this->tolak("Absen masuk sudah ditutup pukul {$aturan->jam('masuk_tutup')}. Silakan ajukan izin ke admin.", 'sudah_tutup');
             }
 
             $batas = $jam('masuk_tepat')->addMinutes($aturan->toleransi_menit);
@@ -117,27 +117,52 @@ class AturanAbsensiService
 
         // ---- PULANG ----
         if (! $sudahMasuk) {
-            return $this->tolak('Anda belum absen masuk hari ini.');
+            return $this->tolak('Anda belum absen masuk hari ini.', 'belum_masuk');
         }
         if ($sudahPulang) {
-            return $this->tolak('Anda sudah absen pulang hari ini.');
+            return $this->tolak('Anda sudah absen pulang hari ini.', 'sudah_absen');
         }
         if ($waktu->gt($jam('pulang_tutup'))) {
-            return $this->tolak("Absen pulang sudah ditutup pukul {$aturan->jam('pulang_tutup')}.");
+            return $this->tolak("Absen pulang sudah ditutup pukul {$aturan->jam('pulang_tutup')}.", 'sudah_tutup');
         }
 
         if ($waktu->lt($jam('pulang_buka'))) {
             if (! $aturan->pulang_cepat_diizinkan) {
-                return $this->tolak("Absen pulang baru dibuka pukul {$aturan->jam('pulang_buka')}.");
+                return $this->tolak("Absen pulang baru dibuka pukul {$aturan->jam('pulang_buka')}.", 'belum_buka');
             }
             if (blank($alasan)) {
-                return [...$this->tolak("Belum jam pulang ({$aturan->jam('pulang_buka')}). Isi alasan untuk pulang lebih awal."), 'butuh_alasan' => true];
+                return [...$this->tolak("Belum jam pulang ({$aturan->jam('pulang_buka')}). Isi alasan untuk pulang lebih awal.", 'butuh_alasan'), 'butuh_alasan' => true];
             }
 
             return $this->terima(StatusAbsensiGuru::PULANG_CEPAT, 'Tercatat pulang lebih awal.');
         }
 
         return $this->terima(StatusAbsensiGuru::HADIR, 'Absen pulang tercatat.');
+    }
+
+    /**
+     * Ringkasan jendela waktu hari itu untuk ditampilkan di UI (garis waktu).
+     *
+     * @return array{hari_kerja: bool, libur: ?string, masuk_buka: string, masuk_tepat: string, batas_terlambat: string,
+     *               toleransi_menit: int, masuk_tutup: string, pulang_buka: string, pulang_tutup: string, pulang_cepat_diizinkan: bool}
+     */
+    public function jendela(KategoriAbsensi $kategori, Carbon $tanggal): array
+    {
+        $aturan = $this->aturan($kategori, $tanggal) ?? $this->dariDefault($kategori, Hari::SENIN);
+        $hariKerja = (bool) $this->aturan($kategori, $tanggal)?->hari_kerja;
+
+        return [
+            'hari_kerja' => $hariKerja,
+            'libur' => $this->namaLibur($tanggal),
+            'masuk_buka' => $aturan->jam('masuk_buka'),
+            'masuk_tepat' => $aturan->jam('masuk_tepat'),
+            'batas_terlambat' => Carbon::parse($aturan->jam('masuk_tepat'))->addMinutes($aturan->toleransi_menit)->format('H:i'),
+            'toleransi_menit' => $aturan->toleransi_menit,
+            'masuk_tutup' => $aturan->jam('masuk_tutup'),
+            'pulang_buka' => $aturan->jam('pulang_buka'),
+            'pulang_tutup' => $aturan->jam('pulang_tutup'),
+            'pulang_cepat_diizinkan' => $aturan->pulang_cepat_diizinkan,
+        ];
     }
 
     // ------------------------------------------------------------------
@@ -165,13 +190,16 @@ class AturanAbsensiService
         return HolidayService::getHolidays($tanggal->year)[$tanggal->format('Y-m-d')] ?? null;
     }
 
-    private function tolak(string $pesan): array
+    /**
+     * @param  string  $kode  bukan_hari_kerja | libur | sudah_absen | belum_buka | sudah_tutup | belum_masuk | butuh_alasan
+     */
+    private function tolak(string $pesan, string $kode): array
     {
-        return ['boleh' => false, 'status' => null, 'pesan' => $pesan, 'butuh_alasan' => false, 'menit_terlambat' => 0];
+        return ['boleh' => false, 'kode' => $kode, 'status' => null, 'pesan' => $pesan, 'butuh_alasan' => false, 'menit_terlambat' => 0];
     }
 
     private function terima(StatusAbsensiGuru $status, string $pesan, int $menitTerlambat = 0): array
     {
-        return ['boleh' => true, 'status' => $status->value, 'pesan' => $pesan, 'butuh_alasan' => false, 'menit_terlambat' => $menitTerlambat];
+        return ['boleh' => true, 'kode' => 'ok', 'status' => $status->value, 'pesan' => $pesan, 'butuh_alasan' => false, 'menit_terlambat' => $menitTerlambat];
     }
 }

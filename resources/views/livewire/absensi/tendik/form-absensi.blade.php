@@ -84,17 +84,7 @@
                     </h3>
                 </div>
 
-                @if (! ($cekWaktu['boleh'] ?? true))
-                    <div class="mb-6 flex gap-3 rounded-2xl bg-amber-50 p-4 text-sm text-amber-800 ring-1 ring-amber-200">
-                        <svg class="mt-0.5 h-5 w-5 shrink-0 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                        <p>
-                            {{ $cekWaktu['pesan'] }}
-                            @if ($cekWaktu['butuh_alasan'] ?? false)
-                                <span class="mt-1 block font-semibold">Tulis alasan di kolom keterangan sebelum mengirim.</span>
-                            @endif
-                        </p>
-                    </div>
-                @endif
+                @include('livewire.absensi.partials.banner-jam-absen', ['cekWaktu' => $cekWaktu, 'jendela' => $jendela])
                 
                 <div x-data="absensiLiveness($wire)" class="space-y-6 relative z-10">
 
@@ -148,7 +138,7 @@
                             @if($dalamRadius)
                             <div class="mb-4">
                                 <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2 pl-1">Catatan Tambahan (Opsional)</label>
-                                <textarea wire:model="keterangan" rows="2" placeholder="Cth: Shift pagi, lembur dll..." class="w-full rounded-2xl border-0 ring-1 ring-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-shadow resize-none shadow-sm placeholder:text-slate-300"></textarea>
+                                <textarea id="keterangan-tendik" wire:model="keterangan" rows="2" placeholder="Cth: Shift pagi, lembur dll..." class="w-full rounded-2xl border-0 ring-1 ring-slate-200 bg-white px-5 py-4 text-sm font-medium text-slate-800 focus:ring-2 focus:ring-indigo-500 transition-shadow resize-none shadow-sm placeholder:text-slate-300"></textarea>
                                 @error('keterangan') <span class="text-rose-500 font-bold text-xs mt-2 block pl-1">{{ $message }}</span> @enderror
                             </div>
                             <button type="button" @click="openModal()" class="w-full bg-indigo-600 text-white rounded-full py-4 font-bold text-sm shadow-[0_8px_20px_rgba(99,102,241,0.25)] hover:bg-indigo-700 active:scale-95 transition-all flex items-center justify-center gap-2">

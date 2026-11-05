@@ -1,5 +1,8 @@
 @import 'tailwindcss';
 
+/* HP landscape / layar pendek — layout dua kolom */
+@custom-variant short (@media (orientation: landscape) and (max-height: 540px));
+
 @source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
 @source '../../storage/framework/views/*.php';
 @source '../**/*.blade.php';
@@ -62,5 +65,80 @@
     
     [x-cloak] {
         display: none !important;
+    }
+}
+
+/* ==========================================================================
+   SIATU v2 — Design tokens (identitas SMAMGo, lihat docs/ROADMAP_V2.md Tahap 2)
+   Sumber: website sekolah smamg-platform.vercel.app — navy · gold · ivory.
+   Token lama di atas tetap ada sampai semua layar dimigrasi.
+   ========================================================================== */
+@theme {
+    /* Navy — permukaan console, teks utama di atas ivory */
+    --color-navy-50: #eef2f8;
+    --color-navy-100: #d9e1ee;
+    --color-navy-200: #b3c3dd;
+    --color-navy-300: #8099c2;
+    --color-navy-400: #4d6ea3;
+    --color-navy-500: #2a4d85;
+    --color-navy-600: #1b3a6c;
+    --color-navy-700: #16345e;
+    --color-navy-800: #0e2a55;
+    --color-navy-900: #0b1d3a;
+    --color-navy-950: #07142a;
+
+    /* Gold — aksen & aksi utama; dipakai hemat */
+    --color-gold-50: #fbf7e9;
+    --color-gold-100: #f6ecc7;
+    --color-gold-200: #efdb94;
+    --color-gold-300: #f2c94c;
+    --color-gold-400: #e3bb45;
+    --color-gold-500: #d4af37;
+    --color-gold-600: #b8932a;
+    --color-gold-700: #8a6d12;
+    --color-gold-800: #6b540f;
+
+    /* Ivory — latar konten hangat (pengganti putih polos) */
+    --color-ivory-50: #fdfcf9;
+    --color-ivory-100: #faf9f6;
+    --color-ivory-200: #f6f4ee;
+    --color-ivory-300: #ece8dd;
+    --color-ivory-400: #e5e1d8;
+
+    /* Status semantik */
+    --color-ok-50: #ecf5f0;
+    --color-ok-500: #2f6b4f;
+    --color-ok-400: #4f9a76;
+    --color-warn-50: #fdf5e7;
+    --color-warn-400: #d99a3a;
+    --color-warn-500: #b7791f;
+    --color-bad-50: #fdeeec;
+    --color-bad-400: #e0574a;
+    --color-bad-500: #b42318;
+    --color-info-50: #eaf0fd;
+    --color-info-500: #1d4ed8;
+
+    /* Tipografi */
+    --font-heading: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+    --font-body: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+
+    /* Elevation */
+    --shadow-sheet: 0 -12px 40px -12px rgb(7 20 42 / 0.35);
+    --shadow-float: 0 20px 25px -5px rgb(7 20 42 / 0.12), 0 8px 10px -6px rgb(7 20 42 / 0.10);
+}
+
+@layer utilities {
+    /* Safe-area (notch & home indicator) — minimal 1rem */
+    .pt-safe { padding-top: max(env(safe-area-inset-top), 1rem); }
+    .pb-safe { padding-bottom: max(env(safe-area-inset-bottom), 1rem); }
+    .pb-safe-lg { padding-bottom: max(env(safe-area-inset-bottom), 1.5rem); }
+
+    /* Pola halus untuk permukaan navy (tidak polos) */
+    .bg-console {
+        background-color: var(--color-navy-950);
+        background-image:
+            radial-gradient(120% 80% at 100% 0%, rgb(212 175 55 / 0.10), transparent 55%),
+            radial-gradient(90% 70% at 0% 100%, rgb(42 77 133 / 0.45), transparent 60%),
+            linear-gradient(180deg, var(--color-navy-900), var(--color-navy-950));
     }
 }

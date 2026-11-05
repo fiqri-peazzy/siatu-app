@@ -33,6 +33,12 @@ class FormAbsensi extends Component
     /** Hasil cek jendela waktu saat halaman dibuka (AturanAbsensiService::evaluasi) */
     public array $cekWaktu = [];
 
+    /** Ringkasan jam absen hari ini untuk garis waktu (AturanAbsensiService::jendela) */
+    public array $jendela = [];
+
+    /** Jenis absen berikutnya: masuk / pulang */
+    public string $jenisAbsen = 'masuk';
+
     public function mount(AturanAbsensiService $aturan)
     {
         $guruId = auth()->user()->guru_id;
@@ -49,6 +55,8 @@ class FormAbsensi extends Component
             ->first();
 
         $this->cekWaktu = $this->evaluasiWaktu($aturan, Carbon::now());
+        $this->jendela = $aturan->jendela(KategoriAbsensi::GURU, Carbon::now());
+        $this->jenisAbsen = $this->absenMasuk ? 'pulang' : 'masuk';
     }
 
     private function jenisBerikutnya(): JenisAbsenGuru
