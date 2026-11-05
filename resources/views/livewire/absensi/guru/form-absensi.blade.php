@@ -119,7 +119,8 @@
     <script type="module">
         document.addEventListener('alpine:init', () => {
         Alpine.data('absensiLiveness', (wire) => ({
-            loadingLokasi: true,
+            loadingLokasi: false, // overlay hanya saat menyimpan; GPS dicari di latar belakang
+            lokasiSiap: false,
             errorLokasi: false,
             pesanErrorLokasi: '',
             jarakTeks: 'Mencari...',
@@ -148,8 +149,9 @@
             jumlahWajah: null,      // null = memuat, 0 = tidak ada, n = jumlah wajah
             deteksiTersedia: true,  // false bila model gagal dimuat → swafoto tetap diizinkan
             hentikanDeteksi: null,
-            get bolehFoto() { return ! this.deteksiTersedia || this.jumlahWajah >= 1 },
+            get bolehFoto() { return this.lokasiSiap && (! this.deteksiTersedia || this.jumlahWajah >= 1) },
             get statusWajah() {
+                if (! this.lokasiSiap) return 'Mencari lokasi Anda…';
                 if (! this.deteksiTersedia) return 'Ambil swafoto dengan wajah terlihat jelas';
                 if (this.jumlahWajah === null) return 'Menyiapkan deteksi wajah…';
                 if (this.jumlahWajah === 0) return 'Arahkan wajah ke kamera';
@@ -185,9 +187,9 @@
             },
             
             mulaiLacakLokasi() {
-                this.loadingLokasi = true;
-                this.loadingTitle = 'Melacak Lokasi...';
-                this.loadingSubtitle = 'Mencari sinyal GPS akurasi tinggi.';
+                // Tidak memblokir layar: kamera tetap tampil, status lokasi ada di chip jarak
+                this.lokasiSiap = false;
+                this.jarakTeks = 'Mencari…';
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition(
                         async (position) => {
@@ -195,10 +197,11 @@
                             const lon = position.coords.longitude;
                             wire.set('latitude', lat);
                             wire.set('longitude', lon);
-                            
+
                             try {
-                                const result = await wire.cekLokasi();
+                                const valid = await wire.cekLokasi();
                                 this.loadingLokasi = false;
+                                this.lokasiSiap = valid !== false; // di luar radius → overlay "Di luar area" (event lokasi-error)
                             } catch (e) {
                                 this.loadingLokasi = false;
                                 this.errorLokasi = true;
@@ -214,7 +217,7 @@
                             else if (error.code == 3) msg = 'Waktu habis.';
                             this.pesanErrorLokasi = msg;
                         },
-                        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                        { enableHighAccuracy: true, timeout: 15000, maximumAge: 30000 }
                     );
                 } else {
                     this.loadingLokasi = false;
