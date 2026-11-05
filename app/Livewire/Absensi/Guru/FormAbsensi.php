@@ -166,6 +166,6 @@ class FormAbsensi extends Component
 
     public function render()
     {
-        return view('livewire.absensi.guru.form-absensi')->layout('components.layouts.pwa');
+        return view('livewire.absensi.guru.form-absensi')->layout('components.layouts.pwa', ['judul' => 'Absen', 'tanpaNav' => true]);
     }
 }

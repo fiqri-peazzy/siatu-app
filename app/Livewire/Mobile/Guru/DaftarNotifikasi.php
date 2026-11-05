@@ -21,6 +21,6 @@ class DaftarNotifikasi extends Component
         
         return view('livewire.mobile.guru.daftar-notifikasi', [
             'notifications' => $notifications
-        ])->layout('components.layouts.pwa');
+        ])->layout('components.layouts.pwa', ['judul' => 'Notifikasi']);
     }
 }

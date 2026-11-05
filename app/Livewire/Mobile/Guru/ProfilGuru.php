@@ -44,7 +44,9 @@ class ProfilGuru extends Component
         $bulanIni = Carbon::now()->format('m');
         $tahunIni = Carbon::now()->format('Y');
         
-        $totalJadwalSebulan = MasterJadwalPelajaran::where('guru_id', $this->guru->id)->count() * 4; // Approx 4 weeks
+        // Jam mengajar per minggu (jadwal v2) × minggu berjalan bulan ini
+        $jamPerMinggu = array_sum(app(\App\Services\JadwalService::class)->ringkasanMingguGuru($this->guru->id));
+        $totalJadwalSebulan = $jamPerMinggu * (int) ceil(Carbon::now()->day / 7);
         
         $totalTerisi = JurnalGuru::where('guru_id', $this->guru->id)
             ->where('status', 'diisi')
@@ -137,6 +139,6 @@ class ProfilGuru extends Component
 
     public function render()
     {
-        return view('livewire.mobile.guru.profil-guru')->layout('components.layouts.pwa');
+        return view('livewire.mobile.guru.profil-guru')->layout('components.layouts.pwa', ['judul' => 'Profil']);
     }
 }

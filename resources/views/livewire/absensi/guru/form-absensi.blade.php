@@ -4,7 +4,7 @@
      @validation-error.window="handleValidationError($event)"
      @swal:error.window="handleSwalError($event)"
      @absensi:success.window="handleSuccess()"
-     class="fixed inset-0 z-[9999] flex flex-col bg-[#121A2F] animate-fade-in" style="height: 100dvh;">
+     class="fixed inset-0 z-[9999] flex flex-col bg-navy-950 animate-fade-in" style="height: 100dvh;">
 
     @php
         $waktuDitolak = ! ($cekWaktu['boleh'] ?? true) && ! ($cekWaktu['butuh_alasan'] ?? false);
@@ -49,31 +49,31 @@
     
     <!-- Stepper Dots -->
     <div class="flex justify-center items-center gap-3 mb-6 z-20 relative">
-        <div class="w-1.5 h-1.5 rounded-full bg-indigo-400"></div>
-        <div class="w-10 h-[1px] bg-indigo-400/30"></div>
-        <div class="w-2.5 h-2.5 rounded-full bg-indigo-400 ring-4 ring-indigo-400/30"></div>
-        <div class="w-10 h-[1px] bg-indigo-400/30"></div>
-        <div class="w-1.5 h-1.5 rounded-full bg-indigo-400/30"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-gold-400"></div>
+        <div class="w-10 h-[1px] bg-white/20"></div>
+        <div class="w-2.5 h-2.5 rounded-full bg-gold-400 ring-4 ring-gold-400/30"></div>
+        <div class="w-10 h-[1px] bg-white/20"></div>
+        <div class="w-1.5 h-1.5 rounded-full bg-white/20"></div>
     </div>
     
     <!-- Camera Area -->
-    <div class="flex-1 relative w-full h-full bg-[#121A2F] overflow-hidden flex flex-col justify-end">
+    <div class="flex-1 relative w-full h-full bg-navy-950 overflow-hidden flex flex-col justify-end">
         
         <video x-ref="videoEl" autoplay muted playsinline class="absolute inset-0 z-0 w-full h-full object-cover transform scale-x-[-1]"></video>
         
         <!-- Loading GPS Overlay -->
-        <div x-show="loadingLokasi" class="absolute inset-0 bg-slate-900/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-white p-6 text-center">
-            <svg class="animate-spin w-12 h-12 text-indigo-500 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+        <div x-show="loadingLokasi" class="absolute inset-0 bg-navy-950/90 backdrop-blur-md z-20 flex flex-col items-center justify-center text-white p-6 text-center">
+            <svg class="animate-spin w-12 h-12 text-gold-400 mb-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             <p class="font-extrabold text-xl mb-2" x-text="loadingTitle"></p>
             <p class="text-sm text-slate-400 max-w-[250px]" x-text="loadingSubtitle"></p>
         </div>
 
         <!-- Manual Capture Button -->
-        <div x-show="!loadingLokasi && !errorLokasi && !verifikasiBerhasil" class="relative z-30 pb-12 pt-8 w-full flex justify-center bg-gradient-to-t from-[#121A2F] to-transparent">
+        <div x-show="!loadingLokasi && !errorLokasi && !verifikasiBerhasil" class="relative z-30 pb-12 pt-8 w-full flex justify-center bg-gradient-to-t from-navy-950 to-transparent">
             <button type="button" 
                     @click="triggerSuccessCapture()" 
                     :disabled="isCapturing"
-                    class="relative group focus:outline-none focus:ring-4 focus:ring-indigo-500/30 rounded-full transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                    class="relative group focus:outline-none focus:ring-4 focus:ring-gold-400/30 rounded-full transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
                 <!-- Outer ring -->
                 <div class="absolute inset-0 bg-white/20 rounded-full backdrop-blur-sm group-hover:bg-white/30 transition-colors"></div>
                 <div class="w-20 h-20 border-[3px] border-white rounded-full flex items-center justify-center p-1.5">
@@ -96,12 +96,12 @@
         </div>
 
         <!-- Success Overlay -->
-        <div x-show="verifikasiBerhasil" style="display: none;" class="absolute inset-0 bg-[#121A2F]/95 backdrop-blur-md z-30 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
-            <div class="w-24 h-24 bg-[#3B65F3] rounded-full flex items-center justify-center shadow-2xl mb-6 scale-up-center ring-8 ring-[#3B65F3]/30">
-                <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
+        <div x-show="verifikasiBerhasil" style="display: none;" class="absolute inset-0 bg-navy-950/95 backdrop-blur-md z-30 flex flex-col items-center justify-center text-white p-6 text-center" x-transition>
+            <div class="w-24 h-24 bg-gold-400 rounded-full flex items-center justify-center shadow-2xl mb-6 scale-up-center ring-8 ring-gold-400/30">
+                <svg class="w-12 h-12 text-navy-950" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"></path></svg>
             </div>
             <h3 class="font-extrabold text-2xl drop-shadow-md mb-2">Absensi Berhasil!</h3>
-            <p class="text-indigo-200 text-sm">Menyimpan data kehadiran Anda...</p>
+            <p class="text-white/70 text-sm">Menyimpan data kehadiran Anda...</p>
         </div>
     </div>
     

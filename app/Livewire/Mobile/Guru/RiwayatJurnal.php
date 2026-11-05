@@ -36,6 +36,11 @@ class RiwayatJurnal extends Component
         $jurnals = JurnalGuru::with(['kelas', 'mapel'])->whereIn('id', $jurnalIds)->get();
         if ($jurnals->isEmpty()) return;
 
+        // Hanya jurnal milik guru ini (id berasal dari klien)
+        $guruId = Auth::user()->guru_id;
+        $jurnals = $jurnals->where('guru_id', $guruId)->values();
+        if ($jurnals->isEmpty()) return;
+
         $this->selectedJurnals = $jurnals;
         $this->detailMateri = $jurnals->first()->materi;
         $this->detailAktivitas = $jurnals->first()->kegiatan; // Using 'kegiatan' if it exists, otherwise empty
@@ -78,27 +83,31 @@ class RiwayatJurnal extends Component
         $lastGroup = null;
 
         foreach ($allJurnals as $j) {
-            if ($lastGroup && 
-                $lastGroup->kelas_id == $j->kelas_id && 
-                $lastGroup->mapel_id == $j->mapel_id && 
-                $lastGroup->tanggal->isSameDay($j->tanggal) && 
+            if ($lastGroup &&
+                $lastGroup->kelas_id == $j->kelas_id &&
+                $lastGroup->mapel_id == $j->mapel_id &&
+                $lastGroup->tanggal->isSameDay($j->tanggal) &&
                 $lastGroup->jam_selesai + 1 == $j->jam_ke) {
-                
+
                 $lastGroup->jam_selesai = $j->jam_ke;
                 $lastGroup->total_jp++;
                 $ids = $lastGroup->jurnal_ids;
                 $ids[] = $j->id;
                 $lastGroup->jurnal_ids = $ids;
+                $lastGroup->sesi_ids = array_values(array_filter([...$lastGroup->sesi_ids, $j->jadwal_sesi_id]));
             } else {
                 if ($lastGroup) {
                     $grouped->push($lastGroup);
                 }
-                
+
                 $lastGroup = clone $j;
                 $lastGroup->jam_mulai = $j->jam_ke;
                 $lastGroup->jam_selesai = $j->jam_ke;
                 $lastGroup->total_jp = 1;
                 $lastGroup->jurnal_ids = [$j->id];
+                $lastGroup->sesi_ids = array_values(array_filter([$j->jadwal_sesi_id]));
+                // Kehadiran satu pertemuan = rekap jam pertama (siswa yang sama di tiap jam)
+                $lastGroup->stat = ['hadir' => (int) $j->jumlah_hadir, 'izin' => (int) $j->jumlah_izin, 'sakit' => (int) $j->jumlah_sakit, 'alfa' => (int) $j->jumlah_alfa];
             }
         }
         
@@ -116,13 +125,15 @@ class RiwayatJurnal extends Component
             ['path' => \Illuminate\Pagination\Paginator::resolveCurrentPath()]
         );
         
-        $kelasList = MasterKelas::orderBy('nama')->get();
+        // Filter hanya rombel yang pernah diajar guru ini
+        $kelasList = MasterKelas::whereIn('id', JurnalGuru::where('guru_id', $guruId)->distinct()->pluck('kelas_id'))->orderBy('nama')->get();
         $mapelList = MasterMapel::orderBy('nama')->get();
 
         return view('livewire.mobile.guru.riwayat-jurnal', [
             'jurnals' => $jurnals,
             'kelasList' => $kelasList,
             'mapelList' => $mapelList,
-        ])->layout('components.layouts.pwa');
+            'ringkasan' => ['pertemuan' => $grouped->count(), 'jp' => $grouped->sum('total_jp')],
+        ])->layout('components.layouts.pwa', ['judul' => 'Riwayat Jurnal']);
     }
 }

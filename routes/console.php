@@ -7,33 +7,29 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
+// Pengingat jurnal harian (jadwal v2): hanya pertemuan yang sudah lewat/berlangsung,
+// jam yang tergeser upacara/kegiatan tidak ditagih. Hari libur dilewati.
 \Illuminate\Support\Facades\Schedule::call(function () {
-    $hariIniStr = \Carbon\Carbon::now()->locale('id')->isoFormat('dddd');
-    $tanggalSekarang = \Carbon\Carbon::today()->format('Y-m-d');
+    $hariIni = \Carbon\Carbon::today();
+    if (\App\Services\HolidayService::isHoliday($hariIni)) {
+        return;
+    }
 
-    $gurus = \App\Models\Master\MasterGuru::with(['preferensiNotifikasi', 'jurnals' => function($q) use ($tanggalSekarang) {
-        $q->where('tanggal', $tanggalSekarang)->where('status', 'diisi');
-    }])->get();
+    $jadwal = app(\App\Services\JadwalService::class);
+    $gurus = \App\Models\Master\MasterGuru::with(['preferensiNotifikasi', 'user'])->get();
 
     foreach ($gurus as $guru) {
-        // Skip if reminder is disabled
-        if ($guru->preferensiNotifikasi && !$guru->preferensiNotifikasi->reminder_jurnal_aktif) {
+        if ($guru->preferensiNotifikasi && ! $guru->preferensiNotifikasi->reminder_jurnal_aktif) {
             continue;
         }
 
-        $totalJadwal = \App\Models\Master\MasterJadwalPelajaran::where('guru_id', $guru->id)
-            ->where('hari', $hariIniStr)
-            ->count();
+        $harian = $jadwal->jadwalGuruHarian($guru->id, $hariIni);
+        $belum = $harian['belum_jurnal'];
 
-        $totalTerisi = $guru->jurnals->count();
-
-        if ($totalJadwal > $totalTerisi) {
-            $pesan = "Halo Bpk/Ibu {$guru->nama}, Anda memiliki {$totalJadwal} jadwal hari ini namun baru mengisi {$totalTerisi} jurnal. Mohon segera lengkapi jurnal Anda di aplikasi.";
-            // WhatsApp (Fonnte) sengaja dinonaktifkan — reminder hanya via in-app + Web Push.
-            if ($guru->user) {
-                \Illuminate\Support\Facades\Log::info("Reminder jurnal dikirim ke {$guru->nama} (in-app + web push).");
-                $guru->user->notify(new \App\Notifications\ReminderJurnalNotification($pesan));
-            }
+        if ($belum > 0 && $guru->user) {
+            $pesan = "Bapak/Ibu {$guru->nama}, masih ada {$belum} jurnal mengajar hari ini yang belum diisi. Ketuk untuk melengkapinya.";
+            \Illuminate\Support\Facades\Log::info("Reminder jurnal: {$guru->nama} ({$belum} belum diisi).");
+            $guru->user->notify(new \App\Notifications\ReminderJurnalNotification($pesan));
         }
     }
-})->dailyAt('14:00');
+})->name('reminder-jurnal-harian')->dailyAt('14:00');

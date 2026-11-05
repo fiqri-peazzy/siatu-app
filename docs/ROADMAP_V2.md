@@ -25,7 +25,8 @@ Branch kerja: `v2`. Merge ke `main` **per tahap**, setelah dites — setiap push
 - [ ] Migrasi pemakai tabel lama `master_jadwal_pelajarans` (portal guru, jurnal, supervisi) → pensiunkan tabel lama
 - [x] Jurnal per pertemuan (multi-rombel, lintas istirahat) + absensi per rombel — `JurnalService`, form 3 langkah
 - [x] Jadwal mengajar guru v2: strip hari + timeline lengkap (istirahat, upacara, kegiatan, pengecualian) — `JadwalService::jadwalGuruHarian()`
-- [ ] Pindahkan pemakai tabel lama yang tersisa ke v2: reminder jurnal (routes/console.php), BadgeJurnal, supervisi realtime, admin ListJadwal
+- [x] Reminder jurnal 14.00 memakai jadwal v2 (lewati hari libur & jam tergeser)
+- [ ] Pindahkan pemakai tabel lama yang tersisa ke v2: BadgeJurnal, supervisi realtime, admin ListJadwal
 
 ### Tahap 1b — Aturan absensi & Pengaturan Sistem
 - [x] Tabel `aturan_absensis` + `AturanAbsensiService::evaluasi()` (jendela check-in/out per kategori per hari, toleransi, pulang cepat + alasan, cegah absen ganda, hormati hari libur)
@@ -49,7 +50,9 @@ Branch kerja: `v2`. Merge ke `main` **per tahap**, setelah dites — setiap push
 ### Tahap 5 — Portal mobile guru & tendik
 - [ ] Modul pengajuan izin/sakit/dinas luar oleh guru & tendik (tujuan tombol di layar "di luar jam")
 - [ ] Audit alur absen: GPS mati/akurasi rendah, di luar radius, terlambat, lupa absen pulang, offline/sinyal lemah, izin kamera ditolak, izin/sakit + bukti
-- [ ] Redesign layout mobile (bottom nav, gesture-friendly, state lengkap)
+- [x] Redesign seluruh layar portal guru: onboarding, beranda, jadwal, form & riwayat jurnal, profil, notifikasi, pengingat, riwayat absen, warna layar kamera
+- [x] Portal tendik: beranda baru (/tendik), riwayat absen, warna layar absen
+- [ ] Redesign halaman login; pindah rombel siswa massal (siswa Social masih di rombel Science)
 
 ### Tahap 6 — Dokumen resmi siap cetak
 - [ ] Format rekap resmi (absensi siswa/guru/tendik, jurnal, rekap bulanan) — kop sekolah, tanda tangan, PDF & Excel

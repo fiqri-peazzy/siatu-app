@@ -1,183 +1,157 @@
-<div class="space-y-6 pb-24 bg-slate-50 min-h-screen">
+@php
+    $statWarna = ['hadir' => 'text-ok-500', 'izin' => 'text-info-500', 'sakit' => 'text-warn-500', 'alfa' => 'text-bad-500'];
+    $perTanggal = $jurnals->getCollection()->groupBy(fn ($j) => $j->tanggal->toDateString());
+    $urlIsi = route('guru.jurnal.form', ['sesi' => '__SESI__']);
+@endphp
 
-    {{-- ── Header ── --}}
-    <div class="px-5 pt-6 pb-2">
-        <h2 class="text-[22px] font-extrabold text-[#121A2F] tracking-tight">Riwayat Jurnal</h2>
-        <p class="text-sm text-slate-500 mt-1">Lacak aktivitas pembelajaran terdahulu.</p>
-    </div>
-
-    {{-- ── Filter Panel ── --}}
-    <div class="px-5 flex gap-3">
-        {{-- Bulan --}}
-        <div class="relative bg-white border border-slate-200 rounded-xl px-4 py-2 flex-1 shadow-sm">
-            <select wire:model.live="filterBulan" class="w-full bg-transparent text-sm font-semibold text-slate-700 appearance-none outline-none z-10 relative">
-                @for($i=1; $i<=12; $i++)
-                    <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">
-                        {{ \Carbon\Carbon::create()->month($i)->locale('id')->isoFormat('MMMM') }} {{ $filterTahun }}
-                    </option>
-                @endfor
-            </select>
-            <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-            </div>
+<div class="font-body">
+    {{-- Judul + unduh --}}
+    <div class="flex items-end justify-between gap-3">
+        <div>
+            <p class="text-[12px] font-medium text-navy-400">Jurnal mengajar</p>
+            <h1 class="font-heading text-[1.35rem] font-semibold leading-tight text-navy-900">Riwayat</h1>
         </div>
-
-        {{-- Kelas --}}
-        <div class="relative bg-white border border-slate-200 rounded-xl px-4 py-2 flex-1 shadow-sm">
-            <select wire:model.live="filterKelas" class="w-full bg-transparent text-sm font-semibold text-slate-700 appearance-none outline-none z-10 relative">
-                <option value="">Semua Kelas</option>
-                @foreach($kelasList as $kelas)
-                    <option value="{{ $kelas->id }}">{{ $kelas->nama }}</option>
-                @endforeach
-            </select>
-            <div class="absolute inset-y-0 right-4 flex items-center pointer-events-none">
-                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
-            </div>
-        </div>
-    </div>
-
-    {{-- ── Timeline List ── --}}
-    <div class="relative px-5">
-        {{-- Vertical Line --}}
-        <div class="absolute top-2 bottom-0 left-7 w-[2px] bg-[#121A2F]"></div>
-
-        <div class="space-y-6 relative z-10">
-            @forelse($jurnals as $jurnal)
-                <div class="relative pl-6">
-                    {{-- Dot --}}
-                    <div class="absolute left-[-21px] top-1.5 w-2.5 h-2.5 rounded-full ring-[3px] ring-slate-50
-                                {{ $jurnal->status == 'diisi' ? 'bg-[#3B65F3]' : 'bg-amber-500' }}"></div>
-
-                    {{-- Date & Time --}}
-                    <div class="mb-2">
-                        <h4 class="text-[11px] font-bold text-[#3B65F3] uppercase tracking-widest">
-                            {{ \Carbon\Carbon::parse($jurnal->tanggal)->locale('id')->isoFormat('dddd, D MMM YYYY') }}
-                        </h4>
-                        <p class="text-[10px] font-semibold text-slate-400 mt-0.5">
-                            Jam ke-{{ $jurnal->jam_mulai == $jurnal->jam_selesai ? $jurnal->jam_mulai : $jurnal->jam_mulai . ' s/d ' . $jurnal->jam_selesai }} &middot; <span class="font-bold text-[#3B65F3]">{{ $jurnal->total_jp }} JP</span>
-                        </p>
-                    </div>
-
-                    {{-- Card --}}
-                    <div @if($jurnal->status == 'diisi') wire:click="showDetail({{ json_encode($jurnal->jurnal_ids) }})" class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 cursor-pointer active:scale-[0.98] transition-transform" @else class="bg-white rounded-2xl p-4 shadow-sm border border-slate-100" @endif>
-                        <div class="flex items-start justify-between mb-1">
-                            <h3 class="font-semibold text-[15px] text-slate-800 tracking-tight">{{ $jurnal->kelas->nama ?? '-' }}</h3>
-                            @if($jurnal->status == 'diisi')
-                                <span class="bg-emerald-50 text-emerald-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">Terisi</span>
-                            @else
-                                <span class="bg-amber-50 text-amber-600 px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider">Draft</span>
-                            @endif
-                        </div>
-                        <p class="text-[11px] font-medium text-slate-500 mb-3">{{ $jurnal->mapel->nama ?? '-' }}</p>
-                        
-                        @if($jurnal->status == 'diisi')
-                            <p class="text-sm text-slate-700 leading-relaxed">{{ Str::limit($jurnal->materi, 80) }}</p>
-                            <p class="text-[10px] text-blue-500 mt-2 font-semibold">Ketuk untuk lihat detail &rarr;</p>
-                            
-                            {{-- Attendance Stats --}}
-                            <div class="mt-3 flex gap-2 border-t border-slate-100 pt-3">
-                                <div class="flex-1 text-center bg-slate-50 rounded-lg py-1">
-                                    <p class="text-[10px] text-slate-400 font-medium">Hadir</p>
-                                    <p class="text-xs font-bold text-green-600">{{ collect($jurnal->jurnal_ids)->map(fn($id) => \App\Models\JurnalGuru::find($id)->jumlah_hadir ?? 0)->sum() }}</p>
-                                </div>
-                                <div class="flex-1 text-center bg-slate-50 rounded-lg py-1">
-                                    <p class="text-[10px] text-slate-400 font-medium">Izin</p>
-                                    <p class="text-xs font-bold text-blue-600">{{ collect($jurnal->jurnal_ids)->map(fn($id) => \App\Models\JurnalGuru::find($id)->jumlah_izin ?? 0)->sum() }}</p>
-                                </div>
-                                <div class="flex-1 text-center bg-slate-50 rounded-lg py-1">
-                                    <p class="text-[10px] text-slate-400 font-medium">Sakit</p>
-                                    <p class="text-xs font-bold text-yellow-600">{{ collect($jurnal->jurnal_ids)->map(fn($id) => \App\Models\JurnalGuru::find($id)->jumlah_sakit ?? 0)->sum() }}</p>
-                                </div>
-                                <div class="flex-1 text-center bg-slate-50 rounded-lg py-1">
-                                    <p class="text-[10px] text-slate-400 font-medium">Alfa</p>
-                                    <p class="text-xs font-bold text-red-600">{{ collect($jurnal->jurnal_ids)->map(fn($id) => \App\Models\JurnalGuru::find($id)->jumlah_alfa ?? 0)->sum() }}</p>
-                                </div>
-                            </div>
-                        @else
-                            <p class="text-sm text-slate-500 italic leading-relaxed">Belum ada ringkasan materi yang disimpan.</p>
-                        @endif
-                    </div>
-                </div>
-            @empty
-                <div class="bg-white rounded-2xl p-8 border border-slate-200 flex flex-col items-center justify-center text-center shadow-sm ml-6 relative z-10">
-                    <div class="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mb-4">
-                        <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
-                        </svg>
-                    </div>
-                    <h4 class="font-bold text-slate-800">Belum Ada Jurnal</h4>
-                    <p class="text-sm text-slate-500 mt-1">Tidak ditemukan jurnal pada periode ini.</p>
-                </div>
-            @endforelse
-        </div>
-    </div>
-
-    {{-- Pagination (if needed) --}}
-    <div class="px-5 mt-6">
-        {{ $jurnals->links('pagination::tailwind') }}
-    </div>
-
-    {{-- ── Fixed Bottom Button ── --}}
-    <div class="fixed bottom-16 left-0 right-0 p-4 max-w-md mx-auto z-40 bg-gradient-to-t from-slate-50 via-slate-50 to-transparent pt-10">
         <a href="{{ route('guru.jurnal.cetak', ['bulan' => $filterBulan, 'tahun' => $filterTahun]) }}" target="_blank"
-           class="w-full bg-[#121A2F] text-white font-bold py-3.5 rounded-2xl shadow-lg hover:bg-slate-800 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            Unduh PDF Bulan Ini
+           class="inline-flex h-10 items-center gap-1.5 rounded-full bg-white px-3.5 text-[13px] font-semibold text-navy-800 ring-1 ring-ivory-300 active:scale-95">
+            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+            PDF
         </a>
     </div>
 
-    {{-- ── Detail Modal ── --}}
-    @if($showModal)
-        <template x-teleport="body">
-            <div class="relative z-[100]" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-                <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" wire:click="closeModal"></div>
-                <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-                    <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-                        <div class="relative transform overflow-hidden rounded-2xl bg-white text-left shadow-xl transition-all w-full max-w-sm">
-                            
-                            <div class="bg-white px-4 pb-4 pt-5">
-                                <div class="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-                                    <h3 class="text-lg font-bold text-slate-900">Detail Jurnal</h3>
-                                    <button wire:click="closeModal" class="text-slate-400 hover:text-slate-500 bg-slate-100 rounded-full p-1.5">
-                                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
-                                    </button>
+    {{-- Filter --}}
+    <div class="mt-4 grid grid-cols-2 gap-2">
+        <label class="relative">
+            <span class="sr-only">Bulan</span>
+            <select wire:model.live="filterBulan" class="h-11 w-full appearance-none rounded-2xl border-0 bg-white pl-4 pr-9 text-[14px] font-semibold text-navy-800 ring-1 ring-ivory-300 focus:ring-2 focus:ring-gold-500">
+                @for ($i = 1; $i <= 12; $i++)
+                    <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">{{ \Carbon\Carbon::create()->month($i)->locale('id')->isoFormat('MMMM') }} {{ $filterTahun }}</option>
+                @endfor
+            </select>
+            <x-ui.icon name="chevron-kanan" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-navy-400" />
+        </label>
+        <label class="relative">
+            <span class="sr-only">Rombel</span>
+            <select wire:model.live="filterKelas" class="h-11 w-full appearance-none rounded-2xl border-0 bg-white pl-4 pr-9 text-[14px] font-semibold text-navy-800 ring-1 ring-ivory-300 focus:ring-2 focus:ring-gold-500">
+                <option value="">Semua rombel</option>
+                @foreach ($kelasList as $kelas)
+                    <option value="{{ $kelas->id }}">{{ $kelas->nama }}</option>
+                @endforeach
+            </select>
+            <x-ui.icon name="chevron-kanan" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-navy-400" />
+        </label>
+    </div>
+
+    {{-- Ringkasan bulan --}}
+    <div class="mt-3 grid grid-cols-2 gap-2" wire:loading.class="opacity-50">
+        <div class="rounded-2xl bg-navy-900 p-4 text-white">
+            <p class="text-[12px] text-white/60">Pertemuan</p>
+            <p class="mt-0.5 font-heading text-2xl font-semibold">{{ $ringkasan['pertemuan'] }}</p>
+        </div>
+        <div class="rounded-2xl bg-white p-4 ring-1 ring-ivory-300">
+            <p class="text-[12px] text-navy-400">Jam pelajaran</p>
+            <p class="mt-0.5 font-heading text-2xl font-semibold text-navy-900">{{ $ringkasan['jp'] }} <span class="text-sm font-medium text-navy-300">JP</span></p>
+        </div>
+    </div>
+
+    {{-- Daftar per tanggal --}}
+    <div class="mt-6 space-y-6" wire:loading.class="opacity-50">
+        @forelse ($perTanggal as $tanggal => $daftar)
+            @php $tgl = \Carbon\Carbon::parse($tanggal); @endphp
+            <section>
+                <h2 class="mb-2 flex items-baseline gap-2 text-[13px] font-semibold text-navy-500">
+                    <span class="font-heading text-[15px] text-navy-900">{{ $tgl->isToday() ? 'Hari ini' : ($tgl->isYesterday() ? 'Kemarin' : $tgl->locale('id')->isoFormat('dddd')) }}</span>
+                    {{ $tgl->locale('id')->isoFormat('D MMMM YYYY') }}
+                </h2>
+                <div class="space-y-2.5">
+                    @foreach ($daftar as $j)
+                        <button type="button" wire:click="showDetail({{ json_encode($j->jurnal_ids) }})"
+                                class="w-full rounded-2xl bg-white p-4 text-left ring-1 ring-ivory-300 transition active:scale-[0.99]">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <h3 class="truncate font-heading text-[15px] font-semibold text-navy-900">{{ $j->mapel->nama ?? '-' }}</h3>
+                                    <p class="text-[13px] text-navy-500">{{ $j->kelas->nama ?? '-' }}</p>
                                 </div>
-                                
-                                <div class="space-y-4 max-h-[60vh] overflow-y-auto pr-1 pb-4">
-                                    <div>
-                                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Materi / Topik</h4>
-                                        <p class="text-sm font-medium text-slate-800">{{ $detailMateri ?: '-' }}</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Kegiatan / Aktivitas</h4>
-                                        <p class="text-sm font-medium text-slate-800">{{ $detailAktivitas ?: '-' }}</p>
-                                    </div>
-                                    
-                                    <div>
-                                        <h4 class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Catatan Khusus</h4>
-                                        @if($detailCatatan)
-                                            <div class="bg-amber-50 border border-amber-100 rounded-lg p-3">
-                                                <p class="text-sm font-medium text-amber-800">{{ $detailCatatan }}</p>
-                                            </div>
-                                        @else
-                                            <p class="text-sm font-medium text-slate-800">-</p>
-                                        @endif
-                                    </div>
-                                </div>
-                                
-                                <div class="mt-4 pt-3 border-t border-slate-100">
-                                    <button wire:click="closeModal" type="button" class="w-full bg-[#121A2F] text-white font-bold py-2.5 rounded-xl hover:bg-slate-800 transition-colors">
-                                        Tutup
-                                    </button>
-                                </div>
+                                <span class="shrink-0 rounded-lg bg-ivory-200 px-2 py-1 text-[11px] font-semibold tabular-nums text-navy-500">
+                                    Jam {{ $j->jam_mulai }}{{ $j->jam_mulai == $j->jam_selesai ? '' : '–'.$j->jam_selesai }}
+                                </span>
                             </div>
-                        </div>
+                            <p class="mt-2 line-clamp-2 text-[14px] leading-relaxed text-navy-700">{{ $j->materi }}</p>
+                            <div class="mt-3 flex items-center gap-3 text-[12px] font-semibold tabular-nums">
+                                @foreach ($j->stat as $kode => $n)
+                                    <span class="{{ $n > 0 || $kode === 'hadir' ? $statWarna[$kode] : 'text-navy-200' }}">{{ $n }} {{ ucfirst($kode) }}</span>
+                                @endforeach
+                                @if (! empty($j->dokumentasi))
+                                    <span class="ml-auto inline-flex items-center gap-1 text-navy-400"><x-ui.icon name="kamera" class="h-3.5 w-3.5" />{{ count($j->dokumentasi) }}</span>
+                                @endif
+                            </div>
+                        </button>
+                    @endforeach
+                </div>
+            </section>
+        @empty
+            <div class="rounded-3xl border border-dashed border-ivory-400 bg-ivory-50 px-6 py-12 text-center">
+                <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-navy-300 ring-1 ring-ivory-300"><x-ui.icon name="jurnal" /></span>
+                <h3 class="mt-3 font-heading text-[15px] font-semibold text-navy-800">Belum ada jurnal</h3>
+                <p class="mt-1 text-[13px] text-navy-400">Jurnal yang Anda isi bulan ini akan muncul di sini.</p>
+                <a wire:navigate href="{{ route('guru.jadwal') }}" class="mt-4 inline-flex h-10 items-center rounded-full bg-navy-900 px-4 text-[13px] font-semibold text-white">Buka jadwal hari ini</a>
+            </div>
+        @endforelse
+    </div>
+
+    @if ($jurnals->hasPages())
+        <div class="mt-6">{{ $jurnals->links('pagination::simple-tailwind') }}</div>
+    @endif
+
+    {{-- Detail (bottom sheet) --}}
+    @if ($showModal && $selectedJurnals)
+        @php
+            $first = $selectedJurnals->first();
+            $sesiIds = $selectedJurnals->pluck('jadwal_sesi_id')->filter()->unique()->implode(',');
+            $foto = collect($first->dokumentasi ?? []);
+        @endphp
+        <div class="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/60 backdrop-blur-[2px] sm:items-center sm:p-6" wire:click.self="closeModal" @keydown.escape.window="$wire.closeModal()">
+            <div role="dialog" aria-modal="true" aria-labelledby="judul-detail-jurnal"
+                 class="flex max-h-[88dvh] w-full max-w-md flex-col rounded-t-[1.75rem] bg-ivory-50 font-body shadow-sheet sm:rounded-[1.75rem]">
+                <div class="flex justify-center pt-3 sm:hidden"><span class="h-1.5 w-10 rounded-full bg-navy-200"></span></div>
+                <div class="overflow-y-auto px-5 pt-3 pb-4">
+                    <p class="text-[12px] text-navy-400">{{ $first->tanggal->locale('id')->isoFormat('dddd, D MMMM YYYY') }} · Jam ke-{{ $selectedJurnals->pluck('jam_ke')->implode(', ') }}</p>
+                    <h2 id="judul-detail-jurnal" class="mt-1 font-heading text-xl font-semibold text-navy-900">{{ $first->mapel->nama ?? '-' }}</h2>
+                    <p class="text-[13px] text-navy-500">{{ $first->kelas->nama ?? '-' }}</p>
+
+                    <div class="mt-4 grid grid-cols-4 gap-2 text-center">
+                        @foreach (['hadir' => $first->jumlah_hadir, 'izin' => $first->jumlah_izin, 'sakit' => $first->jumlah_sakit, 'alfa' => $first->jumlah_alfa] as $kode => $n)
+                            <div class="rounded-xl bg-white py-2 ring-1 ring-ivory-300"><p class="font-heading text-lg font-semibold {{ $statWarna[$kode] }}">{{ (int) $n }}</p><p class="text-[11px] text-navy-400">{{ ucfirst($kode) }}</p></div>
+                        @endforeach
                     </div>
+
+                    <dl class="mt-4 space-y-3 text-[14px]">
+                        @if ($first->kd_cp)
+                            <div><dt class="text-[12px] font-semibold text-navy-400">KD / CP</dt><dd class="mt-0.5 text-navy-900">{{ $first->kd_cp }}</dd></div>
+                        @endif
+                        <div><dt class="text-[12px] font-semibold text-navy-400">Materi</dt><dd class="mt-0.5 text-navy-900">{{ $detailMateri ?: '—' }}</dd></div>
+                        <div><dt class="text-[12px] font-semibold text-navy-400">Kegiatan</dt><dd class="mt-0.5 text-navy-800">{{ $detailAktivitas ?: '—' }}</dd></div>
+                        @if ($detailCatatan)
+                            <div class="rounded-xl bg-warn-50 p-3"><dt class="text-[12px] font-semibold text-warn-500">Catatan supervisi</dt><dd class="mt-0.5 text-navy-800">{{ $detailCatatan }}</dd></div>
+                        @endif
+                    </dl>
+
+                    @if ($foto->isNotEmpty())
+                        <div class="mt-4 grid grid-cols-3 gap-2">
+                            @foreach ($foto as $path)
+                                <a href="{{ Storage::disk('r2')->url($path) }}" target="_blank" class="aspect-square overflow-hidden rounded-xl ring-1 ring-ivory-300">
+                                    <img src="{{ Storage::disk('r2')->url($path) }}" alt="Dokumentasi" loading="lazy" class="h-full w-full object-cover">
+                                </a>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+                <div class="grid gap-2.5 border-t border-ivory-300 px-5 pt-4 pb-safe-lg {{ $first->tanggal->isToday() && $sesiIds ? 'grid-cols-2' : '' }}">
+                    @if ($first->tanggal->isToday() && $sesiIds)
+                        <a wire:navigate href="{{ str_replace('__SESI__', $sesiIds, $urlIsi) }}" class="flex h-12 items-center justify-center rounded-2xl bg-navy-900 text-[15px] font-semibold text-white">Ubah jurnal</a>
+                    @endif
+                    <button type="button" wire:click="closeModal" class="h-12 rounded-2xl text-[15px] font-semibold text-navy-700 ring-1 ring-ivory-400">Tutup</button>
                 </div>
             </div>
-        </template>
+        </div>
     @endif
 </div>

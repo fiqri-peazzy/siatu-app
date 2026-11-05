@@ -1,219 +1,143 @@
-<div class="space-y-6 pb-12" x-data="{ modalDataPribadi: false, modalPassword: false }" @swal:success.window="modalDataPribadi = false; modalPassword = false">
+@php
+    $inisial = collect(explode(' ', trim($guru->nama)))->filter()->take(2)->map(fn ($k) => mb_substr($k, 0, 1))->implode('');
+    $menuAkun = [
+        ['pengguna', 'Data pribadi', 'No. HP & alamat', "sheet = 'data'"],
+        ['kunci', 'Ganti password', 'Amankan akun Anda', "sheet = 'password'"],
+    ];
+@endphp
 
-    {{-- ── Profile Hero ── --}}
-    <div class="mt-2 flex flex-col items-center text-center">
-        {{-- Avatar with badge --}}
-        <div class="relative mb-4">
-            <label for="foto-upload" class="cursor-pointer block relative group">
-                <div class="w-24 h-24 rounded-full border-4 border-white shadow-lg overflow-hidden bg-sky-mist relative">
-                    @if($foto)
-                        <img src="{{ $foto->temporaryUrl() }}" class="w-full h-full object-cover">
-                    @elseif($guru->foto_path)
-                        <img src="{{ Storage::disk('r2')->url( $guru->foto_path) }}" class="w-full h-full object-cover">
+<div class="font-body" x-data="{ sheet: null }" @swal:success.window="sheet = null">
+
+    {{-- Identitas --}}
+    <section class="relative overflow-hidden rounded-3xl bg-navy-900 p-5 text-white">
+        <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="" aria-hidden="true" class="pointer-events-none absolute -right-8 -bottom-10 h-40 w-40 object-contain opacity-[0.06]">
+        <div class="relative flex items-center gap-4">
+            <label for="foto-upload" class="group relative block shrink-0 cursor-pointer" aria-label="Ganti foto profil">
+                <span class="block h-20 w-20 overflow-hidden rounded-full ring-4 ring-white/10">
+                    @if ($foto)
+                        <img src="{{ $foto->temporaryUrl() }}" alt="" class="h-full w-full object-cover">
+                    @elseif ($guru->foto_path)
+                        <img src="{{ Storage::disk('r2')->url($guru->foto_path) }}" alt="" class="h-full w-full object-cover">
                     @else
-                        <div class="w-full h-full flex items-center justify-center bg-navy-deep">
-                            <span class="text-3xl font-bold text-white">{{ substr($guru->nama_guru, 0, 1) }}</span>
-                        </div>
+                        <span class="flex h-full w-full items-center justify-center bg-gold-400 font-heading text-2xl font-semibold text-navy-950">{{ $inisial }}</span>
                     @endif
-                    
-                    {{-- Upload Overlay --}}
-                    <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                    </div>
-                </div>
-                
-                {{-- Loading Indicator --}}
-                <div wire:loading wire:target="foto" class="absolute inset-0 bg-white/80 rounded-full flex items-center justify-center z-10">
-                    <svg class="animate-spin h-6 w-6 text-[#3B65F3]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                </div>
+                </span>
+                <span class="absolute -bottom-0.5 -right-0.5 flex h-7 w-7 items-center justify-center rounded-full bg-white text-navy-900 ring-2 ring-navy-900">
+                    <x-ui.icon name="kamera" class="h-3.5 w-3.5" />
+                </span>
+                <span wire:loading wire:target="foto" class="absolute inset-0 flex items-center justify-center rounded-full bg-navy-950/70 text-[11px] font-semibold">…</span>
             </label>
-            <input type="file" id="foto-upload" wire:model="foto" accept="image/*" class="hidden">
-            
-            {{-- Verified badge --}}
-            <div class="absolute -bottom-1 -right-1 w-7 h-7 bg-signal-blue rounded-full flex items-center justify-center border-2 border-white shadow-sm pointer-events-none z-20">
-                <svg class="w-3.5 h-3.5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="3">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-            </div>
-        </div>
-        <h2 class="text-xl font-extrabold text-ink-900 tracking-tight leading-tight">{{ $guru->nama_guru }}</h2>
-        <p class="text-sm text-slate-500 font-medium mt-1 font-mono">NIP. {{ $guru->nip ?? '-' }}</p>
-    </div>
+            <input type="file" id="foto-upload" wire:model="foto" accept="image/*" class="sr-only">
 
-    {{-- ── Ringkasan Bulanan Card ── --}}
-    <div class="bg-navy-deep rounded-[1.5rem] p-5 shadow-[0_8px_30px_rgba(18,42,82,0.15)] relative overflow-hidden">
-        <div class="absolute inset-0 border border-white/10 rounded-[1.5rem] pointer-events-none"></div>
-        <div class="flex items-start justify-between mb-3">
-            <div>
-                <p class="text-[10px] font-bold text-sky-mist uppercase tracking-[0.1em] opacity-80">Ringkasan Bulanan</p>
-                <p class="text-white font-bold text-base mt-0.5">Kepatuhan Jurnal</p>
-            </div>
-            <div class="w-9 h-9 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center">
-                <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
+            <div class="min-w-0">
+                <h1 class="font-heading text-lg font-semibold leading-snug">{{ $guru->nama }}</h1>
+                <p class="mt-0.5 text-[13px] text-white/65">{{ $guru->jabatan ?: 'Guru' }}{{ $guru->mapel ? ' · '.$guru->mapel->nama : '' }}</p>
+                <p class="mt-1.5 text-[12px] tabular-nums text-white/50">
+                    @if ($guru->nip) NIP {{ $guru->nip }} @elseif ($guru->nuptk) NUPTK {{ $guru->nuptk }} @else NIP/NUPTK belum diisi @endif
+                </p>
             </div>
         </div>
-        <div class="flex items-baseline gap-2 mb-2">
-            <span class="text-4xl font-extrabold text-white font-mono">{{ $persentase }}%</span>
-            <span class="text-sm text-sky-mist opacity-80">Bulan ini</span>
-        </div>
-        <div class="w-full bg-white/20 rounded-full h-2 overflow-hidden mb-2">
-            <div class="h-full rounded-full transition-all duration-1000 ease-out
-                {{ $persentase >= 80 ? 'bg-success-teal' : ($persentase >= 50 ? 'bg-warning-amber' : 'bg-danger-coral') }}"
-                 style="width: {{ $persentase }}%"></div>
-        </div>
+        @error('foto') <p class="relative mt-3 text-[12px] text-rose-300">{{ $message }}</p> @enderror
+    </section>
+
+    {{-- Kepatuhan jurnal --}}
+    <section class="mt-3 rounded-2xl bg-white p-4 ring-1 ring-ivory-300">
         <div class="flex items-center justify-between">
-            <span class="text-[11px] text-sky-mist opacity-70 font-mono">{{ $totalTerisi ?? 0 }}/{{ $totalJam ?? 0 }} Sesi Terisi</span>
-            <span class="text-[11px] font-bold text-warning-amber">Target: 100%</span>
-        </div>
-    </div>
-
-    {{-- ── Menu List ── --}}
-    <div class="bg-white rounded-2xl border border-line-200 shadow-sm overflow-hidden divide-y divide-line-200">
-
-        {{-- Data Pribadi --}}
-        <button @click="modalDataPribadi = true" type="button"
-                class="w-full flex items-center gap-4 p-4 hover:bg-paper transition-colors active:bg-paper group">
-            <div class="w-9 h-9 rounded-xl bg-signal-blue/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-signal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                </svg>
+            <div>
+                <p class="text-[12px] font-medium text-navy-400">Kepatuhan jurnal bulan ini</p>
+                <p class="mt-0.5 font-heading text-2xl font-semibold text-navy-900">{{ $persentase }}<span class="text-base text-navy-300">%</span></p>
             </div>
-            <span class="flex-1 text-sm font-medium text-ink-900 text-left">Data Pribadi</span>
-            <svg class="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
+            <a wire:navigate href="{{ route('guru.jurnal.riwayat') }}" class="text-[13px] font-semibold text-navy-600">Riwayat</a>
+        </div>
+        <div class="mt-3 h-2 overflow-hidden rounded-full bg-ivory-300">
+            <div class="h-full rounded-full {{ $persentase >= 80 ? 'bg-ok-500' : ($persentase >= 50 ? 'bg-warn-400' : 'bg-bad-400') }}" style="width: {{ $persentase }}%"></div>
+        </div>
+        <p class="mt-2 text-[12px] text-navy-400">Target sekolah 100% — isi jurnal setiap selesai mengajar.</p>
+    </section>
+
+    {{-- Menu --}}
+    @foreach ([
+        'Akun' => $menuAkun,
+        'Aplikasi' => [
+            ['lonceng', 'Notifikasi & pengingat', 'Atur pengingat jurnal', null, route('guru.pengaturan-notifikasi')],
+            ['riwayat', 'Riwayat absensi', 'Masuk & pulang', null, route('akademik.absensi.guru.riwayat')],
+            ['info', 'Panduan aplikasi', 'Izin, notifikasi, pasang aplikasi', "window.dispatchEvent(new CustomEvent('siatu:onboarding'))"],
+        ],
+    ] as $grup => $menu)
+        <h2 class="mt-6 mb-2 px-1 text-[12px] font-semibold uppercase tracking-wider text-navy-400">{{ $grup }}</h2>
+        <ul class="divide-y divide-ivory-300 overflow-hidden rounded-2xl bg-white ring-1 ring-ivory-300">
+            @foreach ($menu as $m)
+                @php [$ikon, $label, $ket, $aksi] = $m; $href = $m[4] ?? null; @endphp
+                <li>
+                    <{{ $href ? 'a' : 'button' }} @if ($href) wire:navigate href="{{ $href }}" @else type="button" @click="{{ $aksi }}" @endif
+                        class="flex w-full items-center gap-3.5 px-4 py-3.5 text-left transition hover:bg-ivory-100">
+                        <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-ivory-200 text-navy-700"><x-ui.icon :name="$ikon" /></span>
+                        <span class="min-w-0 flex-1">
+                            <span class="block text-[15px] font-semibold text-navy-900">{{ $label }}</span>
+                            <span class="block text-[12px] text-navy-400">{{ $ket }}</span>
+                        </span>
+                        <x-ui.icon name="chevron-kanan" class="h-4 w-4 text-navy-300" />
+                    </{{ $href ? 'a' : 'button' }}>
+                </li>
+            @endforeach
+        </ul>
+    @endforeach
+
+    <form method="POST" action="{{ route('logout') }}" class="mt-6">
+        @csrf
+        <button type="submit" class="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-white text-[15px] font-semibold text-bad-500 ring-1 ring-ivory-300 active:scale-[0.98]">
+            <x-ui.icon name="keluar" class="h-5 w-5" /> Keluar
         </button>
+    </form>
+    <p class="mt-4 text-center text-[11px] text-navy-300">SIATU · SMA Muhammadiyah Kota Gorontalo</p>
 
-        {{-- Notifikasi --}}
-        <a href="{{ route('guru.pengaturan-notifikasi') }}"
-           class="flex items-center gap-4 p-4 hover:bg-paper transition-colors active:bg-paper group">
-            <div class="w-9 h-9 rounded-xl bg-signal-blue/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-signal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-                </svg>
+    {{-- Sheet: data pribadi & password --}}
+    <template x-teleport="body">
+        <div x-show="sheet" x-cloak x-transition.opacity @keydown.escape.window="sheet = null" @click.self="sheet = null"
+             class="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/60 backdrop-blur-[2px] sm:items-center sm:p-6">
+            <div role="dialog" aria-modal="true" class="w-full max-w-md rounded-t-[1.75rem] bg-ivory-50 px-5 pt-3 pb-safe-lg font-body shadow-sheet sm:rounded-[1.75rem] sm:pb-6"
+                 x-show="sheet" x-transition:enter="transition duration-300 ease-out" x-transition:enter-start="translate-y-full">
+                <div class="mb-3 flex justify-center sm:hidden"><span class="h-1.5 w-10 rounded-full bg-navy-200"></span></div>
+
+                <form x-show="sheet === 'data'" wire:submit="updateProfil" class="space-y-4">
+                    <h2 class="font-heading text-lg font-semibold text-navy-900">Data pribadi</h2>
+                    <div>
+                        <label for="no_hp" class="text-[13px] font-semibold text-navy-700">No. HP / WhatsApp</label>
+                        <input id="no_hp" type="tel" inputmode="tel" wire:model="no_hp" autocomplete="tel"
+                               class="mt-1.5 h-12 w-full rounded-2xl border-0 bg-white px-4 text-[15px] ring-1 ring-ivory-300 focus:ring-2 focus:ring-gold-500">
+                        @error('no_hp') <p class="mt-1 text-[12px] text-bad-500">{{ $message }}</p> @enderror
+                    </div>
+                    <div>
+                        <label for="alamat" class="text-[13px] font-semibold text-navy-700">Alamat</label>
+                        <textarea id="alamat" rows="3" wire:model="alamat" autocomplete="street-address"
+                                  class="mt-1.5 w-full resize-none rounded-2xl border-0 bg-white px-4 py-3 text-[15px] ring-1 ring-ivory-300 focus:ring-2 focus:ring-gold-500"></textarea>
+                        @error('alamat') <p class="mt-1 text-[12px] text-bad-500">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="grid grid-cols-2 gap-2.5 pt-1">
+                        <button type="button" @click="sheet = null" class="h-12 rounded-2xl text-[15px] font-semibold text-navy-700 ring-1 ring-ivory-400">Batal</button>
+                        <button type="submit" wire:loading.attr="disabled" class="h-12 rounded-2xl bg-navy-900 text-[15px] font-semibold text-white disabled:opacity-60">Simpan</button>
+                    </div>
+                </form>
+
+                <form x-show="sheet === 'password'" wire:submit="updatePassword" class="space-y-4">
+                    <h2 class="font-heading text-lg font-semibold text-navy-900">Ganti password</h2>
+                    @foreach ([['password_lama', 'Password saat ini', 'current-password'], ['password_baru', 'Password baru', 'new-password'], ['password_baru_confirmation', 'Ulangi password baru', 'new-password']] as [$f, $label, $ac])
+                        <div x-data="{ lihat: false }">
+                            <label for="{{ $f }}" class="text-[13px] font-semibold text-navy-700">{{ $label }}</label>
+                            <div class="relative mt-1.5">
+                                <input id="{{ $f }}" :type="lihat ? 'text' : 'password'" wire:model="{{ $f }}" autocomplete="{{ $ac }}"
+                                       class="h-12 w-full rounded-2xl border-0 bg-white pl-4 pr-12 text-[15px] ring-1 ring-ivory-300 focus:ring-2 focus:ring-gold-500">
+                                <button type="button" @click="lihat = ! lihat" class="absolute right-1 top-1 h-10 rounded-xl px-3 text-[12px] font-semibold text-navy-500" x-text="lihat ? 'Sembunyi' : 'Lihat'"></button>
+                            </div>
+                            @error($f) <p class="mt-1 text-[12px] text-bad-500">{{ $message }}</p> @enderror
+                        </div>
+                    @endforeach
+                    <div class="grid grid-cols-2 gap-2.5 pt-1">
+                        <button type="button" @click="sheet = null" class="h-12 rounded-2xl text-[15px] font-semibold text-navy-700 ring-1 ring-ivory-400">Batal</button>
+                        <button type="submit" wire:loading.attr="disabled" class="h-12 rounded-2xl bg-navy-900 text-[15px] font-semibold text-white disabled:opacity-60">Ganti password</button>
+                    </div>
+                </form>
             </div>
-            <span class="flex-1 text-sm font-medium text-ink-900">Notifikasi</span>
-            <svg class="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-        </a>
-
-        {{-- Ganti Password --}}
-        <button @click="modalPassword = true" type="button"
-                class="w-full flex items-center gap-4 p-4 hover:bg-paper transition-colors active:bg-paper group">
-            <div class="w-9 h-9 rounded-xl bg-signal-blue/10 flex items-center justify-center flex-shrink-0">
-                <svg class="w-5 h-5 text-signal-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-            </div>
-            <span class="flex-1 text-sm font-medium text-ink-900 text-left">Ganti Password</span>
-            <svg class="w-4 h-4 text-slate-400 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-            </svg>
-        </button>
-
-        {{-- Keluar --}}
-        <form method="POST" action="{{ route('logout') }}">
-            @csrf
-            <button type="submit"
-                    class="w-full flex items-center gap-4 p-4 hover:bg-danger-coral/5 transition-colors active:bg-danger-coral/5 group">
-                <div class="w-9 h-9 rounded-xl bg-danger-coral/10 flex items-center justify-center flex-shrink-0">
-                    <svg class="w-5 h-5 text-danger-coral" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-                    </svg>
-                </div>
-                <span class="flex-1 text-sm font-medium text-danger-coral text-left">Keluar</span>
-                <svg class="w-4 h-4 text-danger-coral/50 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                </svg>
-            </button>
-        </form>
-    </div>
-
-    {{-- Version --}}
-    <p class="text-center text-[11px] text-slate-400 font-mono">Versi Aplikasi 2.4.0-build.82</p>
-
-    {{-- ── Modal: Data Pribadi ── --}}
-    <div x-show="modalDataPribadi" style="display: none;" class="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 backdrop-blur-sm" @click="modalDataPribadi = false" x-transition.opacity>
-        <div class="bg-white rounded-t-3xl w-full max-w-md p-6 shadow-2xl" @click.stop 
-             x-show="modalDataPribadi" 
-             x-transition:enter="transition ease-out duration-300" 
-             x-transition:enter-start="translate-y-full" 
-             x-transition:enter-end="translate-y-0" 
-             x-transition:leave="transition ease-in duration-200" 
-             x-transition:leave-start="translate-y-0" 
-             x-transition:leave-end="translate-y-full">
-            <div class="w-10 h-1 bg-line-200 rounded-full mx-auto mb-6"></div>
-            <div class="flex justify-between items-center mb-5">
-                <h3 class="font-bold text-ink-900 text-lg">Data Pribadi</h3>
-                <button type="button" @click="modalDataPribadi = false" class="text-slate-400 hover:text-slate-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <form wire:submit.prevent="updateProfil" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">No. HP / WhatsApp</label>
-                    <input type="text" wire:model.defer="no_hp"
-                           class="w-full bg-paper border border-line-200 focus:bg-white focus:border-navy-mid focus:ring-2 focus:ring-navy-mid/20 rounded-xl text-sm p-3 outline-none transition-all">
-                    @error('no_hp') <span class="text-xs text-danger-coral mt-1 block">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Alamat</label>
-                    <textarea wire:model.defer="alamat" rows="2"
-                              class="w-full bg-paper border border-line-200 focus:bg-white focus:border-navy-mid focus:ring-2 focus:ring-navy-mid/20 rounded-xl text-sm p-3 outline-none transition-all resize-none"></textarea>
-                    @error('alamat') <span class="text-xs text-danger-coral mt-1 block">{{ $message }}</span> @enderror
-                </div>
-                <button type="submit"
-                        class="w-full bg-navy-deep text-white font-bold py-3.5 rounded-xl hover:bg-navy-mid transition-colors active:scale-95 text-sm">
-                    Update Profil
-                </button>
-            </form>
         </div>
-    </div>
-
-    {{-- ── Modal: Ganti Password ── --}}
-    <div x-show="modalPassword" style="display: none;" class="fixed inset-0 z-[70] flex items-end justify-center bg-black/40 backdrop-blur-sm" @click="modalPassword = false" x-transition.opacity>
-        <div class="bg-white rounded-t-3xl w-full max-w-md p-6 shadow-2xl" @click.stop 
-             x-show="modalPassword" 
-             x-transition:enter="transition ease-out duration-300" 
-             x-transition:enter-start="translate-y-full" 
-             x-transition:enter-end="translate-y-0" 
-             x-transition:leave="transition ease-in duration-200" 
-             x-transition:leave-start="translate-y-0" 
-             x-transition:leave-end="translate-y-full">
-            <div class="w-10 h-1 bg-line-200 rounded-full mx-auto mb-6"></div>
-            <div class="flex justify-between items-center mb-5">
-                <h3 class="font-bold text-ink-900 text-lg">Ganti Password</h3>
-                <button type="button" @click="modalPassword = false" class="text-slate-400 hover:text-slate-600">
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-                </button>
-            </div>
-            <form wire:submit.prevent="updatePassword" class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Password Lama</label>
-                    <input type="password" wire:model.defer="password_lama"
-                           class="w-full bg-paper border border-line-200 focus:bg-white focus:border-navy-mid focus:ring-2 focus:ring-navy-mid/20 rounded-xl text-sm p-3 outline-none transition-all">
-                    @error('password_lama') <span class="text-xs text-danger-coral mt-1 block">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Password Baru</label>
-                    <input type="password" wire:model.defer="password_baru"
-                           class="w-full bg-paper border border-line-200 focus:bg-white focus:border-navy-mid focus:ring-2 focus:ring-navy-mid/20 rounded-xl text-sm p-3 outline-none transition-all">
-                    @error('password_baru') <span class="text-xs text-danger-coral mt-1 block">{{ $message }}</span> @enderror
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 mb-1.5">Konfirmasi Password Baru</label>
-                    <input type="password" wire:model.defer="password_baru_confirmation"
-                           class="w-full bg-paper border border-line-200 focus:bg-white focus:border-navy-mid focus:ring-2 focus:ring-navy-mid/20 rounded-xl text-sm p-3 outline-none transition-all">
-                </div>
-                <button type="submit"
-                        class="w-full bg-danger-coral text-white font-bold py-3.5 rounded-xl hover:opacity-90 transition-opacity active:scale-95 text-sm">
-                    Ganti Password
-                </button>
-            </form>
-        </div>
-    </div>
-
+    </template>
 </div>

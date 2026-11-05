@@ -38,6 +38,6 @@ class PengaturanNotifikasi extends Component
 
     public function render()
     {
-        return view('livewire.mobile.guru.pengaturan-notifikasi')->layout('components.layouts.pwa');
+        return view('livewire.mobile.guru.pengaturan-notifikasi')->layout('components.layouts.pwa', ['judul' => 'Pengingat']);
     }
 }

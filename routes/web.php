@@ -177,6 +177,9 @@ Route::middleware('auth')->group(function () {
         Route::get('/jurnal/export', [\App\Http\Controllers\ExportJurnalController::class, 'cetakExcel'])->name('jurnal.export');
     });
 
+    // Portal mobile tenaga kependidikan
+    Route::get('/tendik', \App\Livewire\Mobile\Tendik\BerandaTendik::class)->name('tendik.beranda');
+
     // PWA Mobile Guru
     Route::prefix('guru')->name('guru.')->middleware(['role:guru'])->group(function () {
         Route::get('/dashboard', \App\Livewire\Mobile\Guru\DashboardGuru::class)->name('dashboard');

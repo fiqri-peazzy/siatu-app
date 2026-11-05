@@ -41,7 +41,7 @@ class ReminderJurnalNotification extends Notification implements ShouldQueue
             'title' => 'Reminder Jurnal Harian',
             'body' => $this->pesan,
             'icon' => 'bell',
-            'url' => '/guru/notifikasi'
+            'url' => '/guru/jadwal'
         ];
     }
 
@@ -51,6 +51,6 @@ class ReminderJurnalNotification extends Notification implements ShouldQueue
             ->title('Reminder Jurnal Harian')
             ->icon('/images/logo-removebg-preview.png')
             ->body($this->pesan)
-            ->data(['url' => '/guru/notifikasi']);
+            ->data(['url' => '/guru/jadwal']);
     }
 }

@@ -40,7 +40,7 @@
         @unless ($tanpaHeader)
             <header class="sticky top-0 z-40 bg-navy-900/95 pt-[env(safe-area-inset-top)] text-white backdrop-blur-md">
                 <div class="mx-auto flex h-14 max-w-md items-center justify-between gap-3 px-4">
-                    <a wire:navigate href="{{ $isGuru ? route('guru.dashboard') : route('dashboard') }}" class="flex min-w-0 items-center gap-2.5">
+                    <a wire:navigate href="{{ $isGuru ? route('guru.dashboard') : route('tendik.beranda') }}" class="flex min-w-0 items-center gap-2.5">
                         <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="" class="h-8 w-8 shrink-0 object-contain">
                         <div class="min-w-0 leading-tight">
                             <p class="truncate font-heading text-[15px] font-semibold">{{ $judul ?? 'SIATU' }}</p>
@@ -71,7 +71,7 @@
                             ['Profil', route('guru.profil'), request()->routeIs('guru.profil', 'guru.pengaturan-notifikasi', 'akademik.absensi.guru.riwayat'), 'pengguna'],
                         ]
                         : [
-                            ['Beranda', route('dashboard'), request()->routeIs('dashboard'), 'dashboard'],
+                            ['Beranda', route('tendik.beranda'), request()->routeIs('tendik.beranda'), 'dashboard'],
                             null,
                             ['Riwayat', route('akademik.absensi.tendik.riwayat'), request()->routeIs('akademik.absensi.tendik.riwayat'), 'riwayat'],
                         ];

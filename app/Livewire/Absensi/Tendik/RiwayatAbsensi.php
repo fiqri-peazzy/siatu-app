@@ -51,6 +51,6 @@ class RiwayatAbsensi extends Component
     {
         return view('livewire.absensi.tendik.riwayat-absensi', [
             'riwayat' => $this->riwayat
-        ])->layout('components.layouts.pwa');
+        ])->layout('components.layouts.pwa', ['judul' => 'Riwayat Absensi']);
     }
 }
