@@ -29,6 +29,7 @@
         $user = auth()->user();
         $isGuru = $user?->hasRole('guru');
         $tanpaHeader = $tanpaHeader ?? false;
+        $tanpaNav = $tanpaNav ?? false; // halaman dengan bar aksi sendiri (mis. form jurnal)
         $unreadCount = $user ? $user->unreadNotifications->count() : 0;
         $urlAbsen = $isGuru ? route('akademik.absensi.guru.form') : route('akademik.absensi.tendik.form');
     @endphp
@@ -51,11 +52,12 @@
             </header>
         @endunless
 
-        <main class="mx-auto min-h-dvh w-full max-w-md {{ $tanpaHeader ? '' : 'px-4 pt-4' }} pb-[calc(6rem+env(safe-area-inset-bottom))]">
+        <main class="mx-auto min-h-dvh w-full max-w-md {{ $tanpaHeader ? '' : 'px-4 pt-4' }} {{ $tanpaNav ? 'pb-4' : 'pb-[calc(6rem+env(safe-area-inset-bottom))]' }}">
             {{ $slot }}
         </main>
 
         {{-- Bottom navigation: tombol Absen menonjol di tengah --}}
+        @unless ($tanpaNav)
         <nav id="bottom-nav" aria-label="Navigasi utama"
              class="fixed inset-x-0 bottom-0 z-40 border-t border-ivory-300 bg-ivory-50/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md">
             <div class="mx-auto grid h-16 max-w-md {{ $isGuru ? 'grid-cols-5' : 'grid-cols-3' }} items-stretch px-1">
@@ -98,6 +100,7 @@
                 @endforeach
             </div>
         </nav>
+        @endunless
 
         @include('components.layouts.partials.pwa-onboarding', ['isGuru' => $isGuru, 'user' => $user])
 

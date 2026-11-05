@@ -2,117 +2,67 @@
 
 namespace App\Livewire\Mobile\Guru;
 
-use App\Models\Master\MasterJadwalPelajaran;
-use App\Models\JurnalGuru;
+use App\Enums\Hari;
+use App\Services\JadwalService;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
+use Livewire\Attributes\Url;
 use Livewire\Component;
-use Livewire\Attributes\Layout;
 
-#[Layout('components.layouts.pwa')]
+/**
+ * Jadwal mengajar guru (jadwal v2): strip hari minggu ini + timeline harian
+ * lengkap (pelajaran, istirahat, upacara, kegiatan) dengan status jurnal.
+ */
 class JadwalGuru extends Component
 {
-    public $mode = 'harian'; // 'harian' atau 'mingguan'
-    public $tanggalAktif;
-    public $hariIni;
+    #[Url(as: 'tgl', except: '')]
+    public string $tanggal = '';
 
-    public function mount()
+    public function mount(): void
     {
-        $this->tanggalAktif = Carbon::now()->format('Y-m-d');
-        $this->hariIni = strtolower(Carbon::now()->locale('id')->isoFormat('dddd'));
+        $this->tanggal = $this->tanggalValid($this->tanggal);
     }
 
-    public function setMode($mode)
+    public function pilihHari(string $tanggal): void
     {
-        $this->mode = $mode;
+        $this->tanggal = $this->tanggalValid($tanggal);
     }
 
-    public function render()
+    private function tanggalValid(?string $tanggal): string
     {
-        $guruId = Auth::user()->guru_id ?? Auth::user()->guru->id ?? null;
-
-        // Ambil jadwal guru
-        $queryJadwal = MasterJadwalPelajaran::with(['kelas', 'mapel'])
-            ->where('guru_id', $guruId)
-            ->orderBy('jam_ke');
-
-        if ($this->mode === 'harian') {
-            $queryJadwal->where('hari', $this->hariIni);
-        } else {
-            $queryJadwal->orderByRaw("FIELD(hari, 'senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu', 'minggu')");
+        try {
+            return Carbon::parse($tanggal ?: now())->toDateString();
+        } catch (\Throwable) {
+            return now()->toDateString();
         }
+    }
 
-        $jadwalList = $queryJadwal->get();
+    public function render(JadwalService $service)
+    {
+        $guruId = Auth::user()->guru_id;
+        $dipilih = Carbon::parse($this->tanggal);
+        $awalMinggu = $dipilih->copy()->startOfWeek(Carbon::MONDAY);
+        $ringkasan = $guruId ? $service->ringkasanMingguGuru($guruId) : [];
 
-        // Ambil jurnal yang sudah diisi hari ini
-        $jurnalHariIni = JurnalGuru::where('guru_id', $guruId)
-            ->where('tanggal', $this->tanggalAktif)
-            ->get()
-            ->keyBy('jam_ke');
-
-        $currentTime = Carbon::now()->format('H:i:s');
-        $sesiAktif = null;
-
-        $processedJadwal = collect();
-        $lastGroup = null;
-
-        foreach ($jadwalList as $jadwal) {
-            // Check status for this specific JP
-            $status = 'mendatang';
-            $jurnalRef = null;
-            if (strtolower($jadwal->hari) == $this->hariIni) {
-                if (isset($jurnalHariIni[$jadwal->jam_ke]) && $jurnalHariIni[$jadwal->jam_ke]->status == 'diisi') {
-                    $status = 'sudah_diisi';
-                    $jurnalRef = $jurnalHariIni[$jadwal->jam_ke];
-                } else {
-                    $status = 'belum_diisi';
-                }
-            }
-
-            if ($lastGroup && $lastGroup->hari == $jadwal->hari && $lastGroup->kelas_id == $jadwal->kelas_id && $lastGroup->mapel_id == $jadwal->mapel_id) {
-                // Append to previous group
-                $lastGroup->jam_selesai = $jadwal->jam_selesai;
-                
-                $ids = $lastGroup->jadwal_ids;
-                $ids[] = $jadwal->id;
-                $lastGroup->jadwal_ids = $ids;
-                
-                if ($status == 'sudah_diisi') {
-                    $lastGroup->status_jurnal = 'sudah_diisi';
-                    $lastGroup->jurnal_ref = $jurnalRef;
-                } elseif ($status == 'belum_diisi' && $lastGroup->status_jurnal == 'mendatang') {
-                    $lastGroup->status_jurnal = 'belum_diisi';
-                }
-                
-                if (strtolower($jadwal->hari) == $this->hariIni && $currentTime >= $jadwal->jam_mulai && $currentTime <= $jadwal->jam_selesai) {
-                    $sesiAktif = $lastGroup;
-                }
-            } else {
-                if ($lastGroup) {
-                    $processedJadwal->push($lastGroup);
-                }
-                
-                $lastGroup = clone $jadwal;
-                $lastGroup->jadwal_ids = [$jadwal->id];
-                $lastGroup->status_jurnal = $status;
-                $lastGroup->jurnal_ref = $jurnalRef;
-                
-                if (strtolower($jadwal->hari) == $this->hariIni && $currentTime >= $jadwal->jam_mulai && $currentTime <= $jadwal->jam_selesai) {
-                    $sesiAktif = $lastGroup;
-                }
-            }
-        }
-        if ($lastGroup) {
-            $processedJadwal->push($lastGroup);
-        }
-
-        if ($this->mode === 'mingguan') {
-            $processedJadwal = $processedJadwal->groupBy('hari');
-        }
+        $hari = collect(range(0, 5))
+            ->map(fn ($i) => $awalMinggu->copy()->addDays($i))
+            ->filter(fn ($d) => $d->dayOfWeekIso <= 5 || ($ringkasan[Hari::fromIso($d->dayOfWeekIso)?->value] ?? 0) > 0)
+            ->map(fn ($d) => [
+                'tanggal' => $d->toDateString(),
+                'singkat' => $d->locale('id')->isoFormat('ddd'),
+                'tgl' => $d->day,
+                'jam' => $ringkasan[Hari::fromIso($d->dayOfWeekIso)?->value] ?? 0,
+                'hari_ini' => $d->isToday(),
+                'dipilih' => $d->isSameDay($dipilih),
+            ])
+            ->values();
 
         return view('livewire.mobile.guru.jadwal-guru', [
-            'jadwals' => $processedJadwal,
-            'sesiAktif' => $sesiAktif,
-        ]);
+            'hari' => $hari,
+            'dipilih' => $dipilih,
+            'data' => $guruId ? $service->jadwalGuruHarian($guruId, $dipilih) : ['hari_kerja' => false, 'items' => [], 'jumlah_blok' => 0, 'belum_jurnal' => 0],
+            'mingguLalu' => $awalMinggu->copy()->subWeek()->toDateString(),
+            'mingguDepan' => $awalMinggu->copy()->addWeek()->toDateString(),
+        ])->layout('components.layouts.pwa', ['judul' => 'Jadwal Mengajar']);
     }
 }

@@ -101,50 +101,28 @@ class DashboardGuru extends Component
             $this->totalJurnalTerisi = 0;
         }
 
-        // 4. Get Jadwal Hari Ini
-        $jadwal = MasterJadwalPelajaran::with(['kelas', 'mapel'])
-            ->where('guru_id', $guruId)
-            ->where('hari', $hariIniStr)
-            ->orderBy('jam_mulai')
-            ->get();
+        // 4. Jadwal hari ini (jadwal v2 — memperhitungkan upacara & pengecualian)
+        $harian = app(\App\Services\JadwalService::class)->jadwalGuruHarian($guruId, Carbon::today());
+        // Satu kartu per pertemuan (blok yang hanya dipisah istirahat digabung)
+        $this->jadwalHariIni = collect($harian['items'])
+            ->where('tipe', 'blok')
+            ->groupBy(fn ($b) => implode(',', $b['jurnal_sesi_ids']))
+            ->map(function ($grup) {
+                $b = $grup->first();
 
-        $jurnalFilled = JurnalGuru::where('guru_id', $guruId)
-            ->where('tanggal', $tanggalSekarang)
-            ->where('status', 'diisi')
-            ->pluck('jam_ke')
-            ->toArray();
-
-        $groupedJadwal = [];
-        $lastGroup = null;
-
-        foreach ($jadwal as $j) {
-            $isFilled = in_array($j->jam_ke, $jurnalFilled);
-            
-            if ($lastGroup && $lastGroup['kelas'] == ($j->kelas->nama ?? '-') && $lastGroup['mapel'] == ($j->mapel->nama ?? '-')) {
-                // Group with previous
-                $lastGroup['jam_selesai'] = Carbon::parse($j->jam_selesai)->format('H:i');
-                if ($isFilled) $lastGroup['status'] = 'diisi';
-                $lastGroup['jadwal_ids'][] = $j->id;
-            } else {
-                if ($lastGroup) $groupedJadwal[] = $lastGroup;
-                
-                $lastGroup = [
-                    'id' => $j->id,
-                    'jadwal_ids' => [$j->id],
-                    'jam_ke' => $j->jam_ke,
-                    'jam_mulai' => Carbon::parse($j->jam_mulai)->format('H:i'),
-                    'jam_selesai' => Carbon::parse($j->jam_selesai)->format('H:i'),
-                    'kelas' => $j->kelas ? $j->kelas->nama : '-',
-                    'mapel' => $j->mapel ? $j->mapel->nama : '-',
-                    'status' => $isFilled ? 'diisi' : 'belum_diisi',
+                return [
+                    'sesi_ids' => $b['jurnal_sesi_ids'],
+                    'jam_ke' => $b['jam_ke'][0],
+                    'jam_mulai' => $b['mulai'],
+                    'jam_selesai' => $grup->last()['selesai'],
+                    'kelas' => implode(' + ', $b['kelas']),
+                    'mapel' => $b['mapel'],
+                    'status' => match ($b['jurnal']) { 'diisi' => 'diisi', 'tidak_wajib' => 'tidak_wajib', default => 'belum_diisi' },
+                    'catatan' => $b['catatan'] ?? null,
                 ];
-            }
-        }
-        if ($lastGroup) {
-            $groupedJadwal[] = $lastGroup;
-        }
-
-        $this->jadwalHariIni = $groupedJadwal;
+            })
+            ->values()
+            ->all();
     }
 
     // prosesAbsensiBg() dihapus: method public Livewire bisa dipanggil langsung dari browser dan

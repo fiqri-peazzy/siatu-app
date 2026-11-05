@@ -1,177 +1,230 @@
-<div class="space-y-6">
+@php
+    $statusOpsi = [
+        'hadir' => ['H', 'Hadir', 'bg-ok-500 text-white', 'text-ok-500'],
+        'izin' => ['I', 'Izin', 'bg-info-500 text-white', 'text-info-500'],
+        'sakit' => ['S', 'Sakit', 'bg-warn-500 text-white', 'text-warn-500'],
+        'alfa' => ['A', 'Alfa', 'bg-bad-500 text-white', 'text-bad-500'],
+    ];
+    $siswaPerKelas = collect($siswaList)->groupBy('kelas_id');
+    $namaKelas = collect($kelasList)->pluck('nama', 'id');
+    $hitung = array_count_values($absensi) + ['hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alfa' => 0];
+    $metode = ['Ceramah', 'Diskusi kelompok', 'Tanya jawab', 'Praktikum', 'Presentasi siswa', 'Latihan soal', 'Penugasan'];
+@endphp
 
-    {{-- ── Back Header ── --}}
-    <div class="flex items-center gap-3 mt-2">
-        <a href="{{ route('guru.dashboard') }}"
-           class="w-9 h-9 rounded-full bg-white border border-line-200 shadow-sm flex items-center justify-center text-slate-500 hover:text-navy-deep transition-colors active:scale-95 flex-shrink-0">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-            </svg>
-        </a>
-        <h2 class="text-xl font-bold text-ink-900">Isi Jurnal</h2>
-    </div>
+<div class="font-body"
+     x-data="{
+        absensi: $wire.entangle('absensi'),
+        cari: '',
+        hitung(s) { return Object.values(this.absensi ?? {}).filter((v) => v === s).length },
+        semua(s) { Object.keys(this.absensi).forEach((k) => this.absensi[k] = s) },
+        cocok(nama) { return ! this.cari || nama.toLowerCase().includes(this.cari.toLowerCase()) },
+        tambahMetode(t) {
+            const el = this.$refs.kegiatan; const v = el.value.trim();
+            el.value = v ? `${v}${v.endsWith('.') ? '' : ','} ${t.toLowerCase()}` : t;
+            el.dispatchEvent(new Event('input'));
+        },
+     }">
 
-    {{-- ── Jadwal Pill ── --}}
-    <div class="inline-flex items-center gap-2 bg-white border border-line-200 rounded-full px-4 py-2 shadow-sm">
-        <svg class="w-4 h-4 text-signal-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-        </svg>
-        <span class="text-sm font-bold text-ink-900 font-mono">
-            {{ $jadwal->kelas->nama ?? '-' }} &middot; {{ $jadwal->mapel->nama ?? '-' }} &middot; 
-            {{ \Carbon\Carbon::parse($jadwalList->first()->jam_mulai)->format('H:i') }} - {{ \Carbon\Carbon::parse($jadwalList->last()->jam_selesai)->format('H:i') }}
-        </span>
-    </div>
+    {{-- Kartu sesi --}}
+    <section class="rounded-3xl bg-navy-900 p-5 text-white">
+        <p class="text-[12px] text-white/55">{{ $info['tanggal'] }}</p>
+        <h1 class="mt-1 font-heading text-xl font-semibold leading-snug">{{ $info['mapel'] }}</h1>
+        <div class="mt-3 flex flex-wrap gap-1.5">
+            @foreach ($kelasList as $k)
+                <span class="rounded-full bg-white/10 px-2.5 py-1 text-[12px] font-semibold">{{ $k['nama'] }}</span>
+            @endforeach
+            <span class="rounded-full bg-gold-400/15 px-2.5 py-1 text-[12px] font-semibold text-gold-300">
+                {{ $info['mulai'] }}–{{ $info['selesai'] }} · {{ count($info['jam_ke']) }} JP
+            </span>
+        </div>
+        @if ($modeEdit)
+            <p class="mt-3 inline-flex items-center gap-1.5 text-[12px] text-emerald-300"><x-ui.icon name="cek" class="h-3.5 w-3.5" /> Jurnal sudah pernah diisi — perubahan akan menimpa data sebelumnya.</p>
+        @endif
+    </section>
 
-    {{-- ── Form ── --}}
-    <form wire:submit.prevent="submit" class="space-y-4">
+    {{-- Stepper --}}
+    <ol class="mt-4 grid grid-cols-3 gap-2" aria-label="Langkah pengisian">
+        @foreach ([1 => 'Kehadiran', 2 => 'Materi', 3 => 'Simpan'] as $n => $label)
+            <li>
+                <button type="button" wire:click="keLangkah({{ $n }})" @if ($langkah === $n) aria-current="step" @endif
+                        class="flex w-full flex-col gap-1.5 text-left">
+                    <span class="h-1 rounded-full {{ $langkah >= $n ? 'bg-navy-900' : 'bg-ivory-400' }}"></span>
+                    <span class="text-[12px] font-semibold {{ $langkah === $n ? 'text-navy-900' : 'text-navy-400' }}">{{ $n }}. {{ $label }}</span>
+                </button>
+            </li>
+        @endforeach
+    </ol>
 
-        {{-- KD / CP (Opsional) --}}
-        <div class="bg-white rounded-2xl border border-line-200 shadow-sm overflow-hidden">
-            <div class="flex items-center gap-2 px-4 pt-4 pb-2">
-                <svg class="w-4 h-4 text-signal-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
-                </svg>
-                <label class="text-[10px] font-bold text-signal-blue uppercase tracking-[0.1em]">KD / CP (Opsional)</label>
-            </div>
-            <textarea wire:model.defer="kd_cp" rows="2"
-                      class="w-full px-4 pb-4 text-sm text-ink-900 bg-transparent outline-none resize-none placeholder:text-slate-400"
-                      placeholder="Tuliskan Kompetensi Dasar atau Capaian Pembelajaran..."></textarea>
-            @error('kd_cp') <p class="px-4 pb-3 text-xs text-danger-coral">{{ $message }}</p> @enderror
+    {{-- ===== Langkah 1: Kehadiran ===== --}}
+    @if ($langkah === 1)
+    <section class="mt-5" aria-labelledby="judul-kehadiran">
+        <div class="flex items-center justify-between">
+            <h2 id="judul-kehadiran" class="font-heading text-[17px] font-semibold text-navy-900">Kehadiran siswa</h2>
+            <span class="text-[13px] text-navy-400">{{ count($siswaList) }} siswa</span>
         </div>
 
-        {{-- Materi Pembelajaran --}}
-        <div class="bg-white rounded-2xl border border-line-200 shadow-sm overflow-hidden">
-            <div class="flex items-center gap-2 px-4 pt-4 pb-2">
-                <svg class="w-4 h-4 text-signal-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                </svg>
-                <label class="text-[10px] font-bold text-signal-blue uppercase tracking-[0.1em]">Materi Pembelajaran</label>
-            </div>
-            <textarea wire:model.defer="materi" rows="3"
-                      class="w-full px-4 pb-4 text-sm text-ink-900 bg-transparent outline-none resize-none placeholder:text-slate-400"
-                      placeholder="Tuliskan topik atau KD yang dibahas hari ini..."></textarea>
-            @error('materi') <p class="px-4 pb-3 text-xs text-danger-coral">{{ $message }}</p> @enderror
+        <div class="mt-3 grid grid-cols-4 gap-2">
+            @foreach ($statusOpsi as $kode => [$h, $label, , $warna])
+                <div class="rounded-2xl bg-white px-2 py-2.5 text-center ring-1 ring-ivory-300">
+                    <p class="font-heading text-lg font-semibold tabular-nums {{ $warna }}" x-text="hitung('{{ $kode }}')">{{ $hitung[$kode] }}</p>
+                    <p class="text-[11px] text-navy-400">{{ $label }}</p>
+                </div>
+            @endforeach
         </div>
 
-        {{-- Kegiatan Pembelajaran --}}
-        <div class="bg-white rounded-2xl border border-line-200 shadow-sm overflow-hidden">
-            <div class="flex items-center gap-2 px-4 pt-4 pb-2">
-                <svg class="w-4 h-4 text-signal-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
-                </svg>
-                <label class="text-[10px] font-bold text-signal-blue uppercase tracking-[0.1em]">Kegiatan Pembelajaran</label>
-            </div>
-            <textarea wire:model.defer="kegiatan" rows="4"
-                      class="w-full px-4 pb-4 text-sm text-ink-900 bg-transparent outline-none resize-none placeholder:text-slate-400"
-                      placeholder="Deskripsikan metode, aktivitas, dan interaksi di kelas..."></textarea>
-            @error('kegiatan') <p class="px-4 pb-3 text-xs text-danger-coral">{{ $message }}</p> @enderror
+        <div class="mt-3 flex gap-2">
+            <label class="relative flex-1">
+                <span class="sr-only">Cari siswa</span>
+                <input type="search" x-model="cari" placeholder="Cari nama siswa…"
+                       class="h-11 w-full rounded-2xl border-0 bg-white pl-10 pr-3 text-[14px] ring-1 ring-ivory-300 placeholder:text-navy-300 focus:ring-2 focus:ring-gold-500">
+                <svg class="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-navy-300" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" d="M21 21l-4.35-4.35M17 10.5a6.5 6.5 0 11-13 0 6.5 6.5 0 0113 0z"/></svg>
+            </label>
+            <button type="button" @click="semua('hadir')" class="h-11 shrink-0 rounded-2xl bg-white px-3.5 text-[13px] font-semibold text-ok-500 ring-1 ring-ivory-300 active:scale-95">Semua hadir</button>
         </div>
 
-        {{-- Dokumentasi (Opsional) --}}
+        @forelse ($siswaPerKelas as $kelasId => $daftar)
+            @if (count($kelasList) > 1)
+                <h3 class="mt-5 mb-2 text-[12px] font-semibold uppercase tracking-wider text-navy-400">{{ $namaKelas[$kelasId] ?? 'Rombel' }} · {{ count($daftar) }}</h3>
+            @endif
+            <ul class="mt-3 divide-y divide-ivory-300 overflow-hidden rounded-2xl bg-white ring-1 ring-ivory-300">
+                @foreach ($daftar as $i => $s)
+                    <li x-show="cocok(@js($s['nama']))" class="px-3.5 py-3">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 shrink-0 text-right text-[12px] tabular-nums text-navy-300">{{ $loop->iteration }}</span>
+                            <div class="min-w-0 flex-1">
+                                <p class="truncate text-[14px] font-semibold text-navy-900">{{ $s['nama'] }}</p>
+                                <p class="text-[11px] tabular-nums text-navy-400">{{ $s['nis'] ?: '—' }}</p>
+                            </div>
+                            <div class="flex shrink-0 gap-1" role="radiogroup" aria-label="Status {{ $s['nama'] }}">
+                                @foreach ($statusOpsi as $kode => [$h, $label, $aktif])
+                                    <button type="button" role="radio" :aria-checked="absensi[{{ $s['id'] }}] === '{{ $kode }}'"
+                                            @click="absensi[{{ $s['id'] }}] = '{{ $kode }}'" title="{{ $label }}"
+                                            :class="absensi[{{ $s['id'] }}] === '{{ $kode }}' ? '{{ $aktif }}' : 'bg-ivory-200 text-navy-400'"
+                                            class="h-9 w-9 rounded-xl text-[13px] font-bold transition active:scale-90">{{ $h }}</button>
+                                @endforeach
+                            </div>
+                        </div>
+                        <div x-show="['izin','sakit'].includes(absensi[{{ $s['id'] }}])" x-cloak class="mt-2 pl-9">
+                            <label class="flex cursor-pointer items-center gap-2 rounded-xl bg-ivory-100 px-3 py-2 text-[12px] text-navy-600 ring-1 ring-dashed ring-ivory-400">
+                                <x-ui.icon name="salin" class="h-4 w-4 text-navy-400" />
+                                <span wire:loading.remove wire:target="bukti_izin.{{ $s['id'] }}">{{ isset($bukti_izin[$s['id']]) ? 'Bukti terlampir ✓' : 'Lampirkan surat izin (opsional)' }}</span>
+                                <span wire:loading wire:target="bukti_izin.{{ $s['id'] }}">Mengunggah…</span>
+                                <input type="file" class="sr-only" accept=".pdf,image/*" wire:model="bukti_izin.{{ $s['id'] }}">
+                            </label>
+                        </div>
+                    </li>
+                @endforeach
+            </ul>
+        @empty
+            <div class="mt-4 rounded-2xl border border-dashed border-ivory-400 bg-ivory-50 p-6 text-center text-[13px] text-navy-500">
+                Belum ada siswa di rombel ini{{ count($kelasList) ? '' : '' }}. Hubungi Admin TU untuk melengkapi data siswa.
+            </div>
+        @endforelse
+    </section>
+
+    {{-- ===== Langkah 2: Materi ===== --}}
+    @elseif ($langkah === 2)
+    <section class="mt-5 space-y-4" aria-labelledby="judul-materi">
+        <h2 id="judul-materi" class="font-heading text-[17px] font-semibold text-navy-900">Materi & kegiatan</h2>
+
+        @if ($sebelumnya && ! $modeEdit)
+            <div class="flex items-center gap-3 rounded-2xl bg-info-50 p-3.5 ring-1 ring-info-500/15">
+                <x-ui.icon name="salin" class="h-5 w-5 text-info-500" />
+                <div class="min-w-0 flex-1">
+                    <p class="text-[13px] font-semibold text-navy-900">Lanjutan pertemuan {{ $sebelumnya['tanggal'] }}?</p>
+                    <p class="truncate text-[12px] text-navy-500">{{ $sebelumnya['materi'] }}</p>
+                </div>
+                <button type="button" wire:click="salinSebelumnya" class="h-9 shrink-0 rounded-full bg-white px-3 text-[13px] font-semibold text-info-500 ring-1 ring-info-500/20">Salin</button>
+            </div>
+        @endif
+
         <div>
-            <div class="flex items-center gap-2 mb-3">
-                <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                <span class="text-[10px] font-bold text-slate-400 uppercase tracking-[0.1em]">Dokumentasi (Opsional)</span>
+            <label for="kd_cp" class="text-[13px] font-semibold text-navy-700">KD / Capaian Pembelajaran <span class="font-normal text-navy-400">(opsional)</span></label>
+            <input id="kd_cp" type="text" wire:model.blur="kd_cp" placeholder="Contoh: 3.2 Menganalisis struktur teks…"
+                   class="mt-1.5 h-12 w-full rounded-2xl border-0 bg-white px-4 text-[15px] ring-1 ring-ivory-300 placeholder:text-navy-300 focus:ring-2 focus:ring-gold-500">
+        </div>
+
+        <div>
+            <label for="materi" class="text-[13px] font-semibold text-navy-700">Materi yang diajarkan</label>
+            <textarea id="materi" rows="3" wire:model.blur="materi" placeholder="Pokok bahasan hari ini…"
+                      class="mt-1.5 w-full resize-none rounded-2xl border-0 bg-white px-4 py-3 text-[15px] leading-relaxed ring-1 placeholder:text-navy-300 focus:ring-2 focus:ring-gold-500 {{ $errors->has('materi') ? 'ring-bad-400' : 'ring-ivory-300' }}"></textarea>
+            @error('materi') <p class="mt-1 text-[12px] font-medium text-bad-500">{{ $message }}</p> @enderror
+        </div>
+
+        <div>
+            <label for="kegiatan" class="text-[13px] font-semibold text-navy-700">Kegiatan pembelajaran</label>
+            <div class="mt-1.5 flex flex-wrap gap-1.5">
+                @foreach ($metode as $m)
+                    <button type="button" @click="tambahMetode(@js($m))" class="h-8 rounded-full bg-white px-3 text-[12px] font-medium text-navy-700 ring-1 ring-ivory-400 active:scale-95">+ {{ $m }}</button>
+                @endforeach
             </div>
-            
-            <!-- File Input & Previews -->
-            <div class="flex flex-wrap gap-3">
-                @if($dokumentasi)
-                    @foreach($dokumentasi as $foto)
-                        <div class="w-24 h-24 rounded-xl overflow-hidden border border-line-200 relative group">
-                            <img src="{{ $foto->temporaryUrl() }}" class="w-full h-full object-cover">
-                        </div>
-                    @endforeach
+            <textarea id="kegiatan" x-ref="kegiatan" rows="3" wire:model.blur="kegiatan" placeholder="Metode & aktivitas di kelas…"
+                      class="mt-2 w-full resize-none rounded-2xl border-0 bg-white px-4 py-3 text-[15px] leading-relaxed ring-1 placeholder:text-navy-300 focus:ring-2 focus:ring-gold-500 {{ $errors->has('kegiatan') ? 'ring-bad-400' : 'ring-ivory-300' }}"></textarea>
+            @error('kegiatan') <p class="mt-1 text-[12px] font-medium text-bad-500">{{ $message }}</p> @enderror
+        </div>
+    </section>
+
+    {{-- ===== Langkah 3: Dokumentasi & ringkasan ===== --}}
+    @else
+    <section class="mt-5 space-y-4" aria-labelledby="judul-simpan">
+        <h2 id="judul-simpan" class="font-heading text-[17px] font-semibold text-navy-900">Dokumentasi & ringkasan</h2>
+
+        <div>
+            <p class="text-[13px] font-semibold text-navy-700">Foto kegiatan <span class="font-normal text-navy-400">(opsional, maks. 4)</span></p>
+            <div class="mt-2 grid grid-cols-4 gap-2">
+                @foreach ($dokumentasi as $i => $foto)
+                    <div class="relative aspect-square overflow-hidden rounded-xl ring-1 ring-ivory-300">
+                        <img src="{{ $foto->temporaryUrl() }}" alt="Foto {{ $i + 1 }}" class="h-full w-full object-cover">
+                        <button type="button" wire:click="hapusFoto({{ $i }})" aria-label="Hapus foto"
+                                class="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-navy-950/70 text-white"><x-ui.icon name="tutup" class="h-3.5 w-3.5" /></button>
+                    </div>
+                @endforeach
+                @if (count($dokumentasi) < 4)
+                    <label class="flex aspect-square cursor-pointer flex-col items-center justify-center gap-1 rounded-xl border-2 border-dashed border-ivory-400 bg-white text-navy-400 active:scale-95">
+                        <x-ui.icon name="kamera" class="h-6 w-6" />
+                        <span class="text-[11px] font-medium" wire:loading.remove wire:target="dokumentasi">Tambah</span>
+                        <span class="text-[11px] font-medium" wire:loading wire:target="dokumentasi">…</span>
+                        <input type="file" accept="image/*" multiple class="sr-only" wire:model="dokumentasi">
+                    </label>
                 @endif
-                
-                <label class="w-24 h-24 border-2 border-dashed border-line-200 rounded-xl flex flex-col items-center justify-center gap-1 text-slate-400 bg-paper hover:border-signal-blue/30 hover:bg-signal-blue/5 transition-colors cursor-pointer relative overflow-hidden">
-                    <input type="file" wire:model="dokumentasi" multiple accept="image/*" class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
-                    <div wire:loading wire:target="dokumentasi" class="absolute inset-0 bg-white/80 flex items-center justify-center z-20">
-                        <svg class="animate-spin w-5 h-5 text-signal-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                    </div>
-                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                    </svg>
-                    <span class="text-[10px] font-semibold text-center leading-tight mt-0.5">Tambah<br>Foto</span>
-                </label>
             </div>
-            @error('dokumentasi.*') <p class="mt-2 text-xs text-danger-coral">{{ $message }}</p> @enderror
+            @error('dokumentasi') <p class="mt-1 text-[12px] font-medium text-bad-500">{{ $message }}</p> @enderror
+            @error('dokumentasi.*') <p class="mt-1 text-[12px] font-medium text-bad-500">{{ $message }}</p> @enderror
         </div>
 
-        {{-- Absensi Siswa --}}
-        <div class="bg-white rounded-2xl border border-line-200 shadow-sm overflow-hidden">
-            <div class="flex items-center justify-between px-4 pt-4 pb-2 border-b border-line-200">
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 h-4 text-signal-blue flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                    <label class="text-[10px] font-bold text-signal-blue uppercase tracking-[0.1em]">Kehadiran Siswa</label>
-                </div>
-                <div class="flex gap-2">
-                    <button type="button" wire:click="setSemuaAbsensi('hadir')" class="text-[10px] bg-green-100 text-green-700 px-2 py-1 rounded">Semua Hadir</button>
-                </div>
-            </div>
-            
-            <div class="divide-y divide-line-200">
-                @forelse($siswas as $siswa)
-                <div wire:key="siswa-{{ $siswa->id }}" class="p-3 flex flex-col gap-2 border-b border-line-200 last:border-0" x-data="{ status: @entangle('absensi.'.$siswa->id) }">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <p class="text-sm font-semibold text-ink-900">{{ $siswa->nama }}</p>
-                            <p class="text-[10px] text-slate-500">{{ $siswa->nisn ?? $siswa->nis }}</p>
-                        </div>
-                        <div class="flex gap-1">
-                            <label class="cursor-pointer">
-                                <input type="radio" name="absensi_{{ $siswa->id }}" x-model="status" value="hadir" class="peer sr-only">
-                                <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-green-500 peer-checked:text-white peer-checked:border-green-500 transition-colors">H</span>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="absensi_{{ $siswa->id }}" x-model="status" value="izin" class="peer sr-only">
-                                <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-blue-500 peer-checked:text-white peer-checked:border-blue-500 transition-colors">I</span>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="absensi_{{ $siswa->id }}" x-model="status" value="sakit" class="peer sr-only">
-                                <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-yellow-500 peer-checked:text-white peer-checked:border-yellow-500 transition-colors">S</span>
-                            </label>
-                            <label class="cursor-pointer">
-                                <input type="radio" name="absensi_{{ $siswa->id }}" x-model="status" value="alfa" class="peer sr-only">
-                                <span class="w-8 h-8 flex items-center justify-center rounded-full text-xs font-medium border border-line-200 text-slate-400 peer-checked:bg-red-500 peer-checked:text-white peer-checked:border-red-500 transition-colors">A</span>
-                            </label>
-                        </div>
-                    </div>
-                    
-                    <div x-show="status === 'izin' || status === 'sakit'" x-cloak x-transition style="display: none;" class="mt-1 bg-slate-50 p-2 rounded-lg border border-slate-100">
-                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1 block">Upload Bukti (PDF/Foto)</label>
-                        <input type="file" wire:model="bukti_izin.{{ $siswa->id }}" accept=".pdf,image/*" class="block w-full text-xs text-slate-500 file:mr-3 file:py-1 file:px-3 file:rounded-full file:border-0 file:text-[10px] file:font-semibold file:bg-signal-blue/10 file:text-signal-blue hover:file:bg-signal-blue/20 transition-colors cursor-pointer border border-line-200 rounded-md p-1 bg-white">
-                        <div wire:loading wire:target="bukti_izin.{{ $siswa->id }}" class="mt-1 text-[10px] text-signal-blue flex items-center gap-1">
-                            <svg class="animate-spin w-3 h-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            Mengunggah...
-                        </div>
-                        @error('bukti_izin.'.$siswa->id) <span class="text-[10px] text-danger-coral mt-1 block">{{ $message }}</span> @enderror
-                    </div>
-                </div>
-                @empty
-                <div class="p-4 text-center text-xs text-slate-500">
-                    Tidak ada data siswa untuk jadwal ini.
-                </div>
-                @endforelse
-            </div>
-        </div>
+        <dl class="divide-y divide-ivory-300 rounded-2xl bg-white ring-1 ring-ivory-300">
+            <div class="flex justify-between gap-4 px-4 py-3 text-[14px]"><dt class="text-navy-500">Kehadiran</dt>
+                <dd class="text-right font-semibold text-navy-900">{{ $hitung['hadir'] }} hadir · {{ $hitung['izin'] + $hitung['sakit'] }} izin/sakit · <span class="text-bad-500">{{ $hitung['alfa'] }}</span> alfa</dd></div>
+            <div class="px-4 py-3 text-[14px]"><dt class="text-navy-500">Materi</dt><dd class="mt-0.5 font-semibold text-navy-900">{{ $materi ?: '—' }}</dd></div>
+            <div class="px-4 py-3 text-[14px]"><dt class="text-navy-500">Kegiatan</dt><dd class="mt-0.5 text-navy-800">{{ $kegiatan ?: '—' }}</dd></div>
+        </dl>
+    </section>
 
-        {{-- Submit Button (Inline) --}}
-        <div class="pt-4">
-            <button type="submit"
-                    class="w-full bg-signal-blue text-white font-bold py-4 rounded-2xl shadow-lg shadow-signal-blue/25 hover:opacity-90 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-                <svg wire:loading.remove wire:target="submit" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                </svg>
-                <span wire:loading.remove wire:target="submit">Simpan Jurnal</span>
-                <span wire:loading wire:target="submit">Menyimpan...</span>
-            </button>
-        </div>
-    </form>
+    @endif
 
+    {{-- Bar aksi --}}
+    <div class="sticky bottom-0 -mx-4 mt-6 border-t border-ivory-300 bg-ivory-50/95 px-4 pt-3 pb-safe backdrop-blur-md">
+        <div class="flex gap-2.5">
+            @if ($langkah > 1)
+                <button type="button" wire:click="keLangkah({{ $langkah - 1 }})" class="flex h-12 w-14 shrink-0 items-center justify-center rounded-2xl text-navy-700 ring-1 ring-ivory-400" aria-label="Langkah sebelumnya">
+                    <x-ui.icon name="chevron-kanan" class="h-5 w-5 rotate-180" />
+                </button>
+            @else
+                <a wire:navigate href="{{ route('guru.jadwal') }}" class="flex h-12 shrink-0 items-center justify-center rounded-2xl px-4 text-[15px] font-semibold text-navy-700 ring-1 ring-ivory-400">Batal</a>
+            @endif
+
+            @if ($langkah < 3)
+                <button type="button" wire:click="keLangkah({{ $langkah + 1 }})" wire:loading.attr="disabled"
+                        class="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-navy-900 text-[15px] font-semibold text-white active:scale-[0.98] disabled:opacity-60">
+                    Lanjut ke {{ $langkah === 1 ? 'materi' : 'ringkasan' }} <x-ui.icon name="chevron-kanan" class="h-4 w-4" />
+                </button>
+            @else
+                <button type="button" wire:click="simpan" wire:loading.attr="disabled" wire:target="simpan,dokumentasi"
+                        class="flex h-12 flex-1 items-center justify-center gap-2 rounded-2xl bg-gold-400 text-[15px] font-semibold text-navy-950 shadow-lg shadow-gold-500/20 active:scale-[0.98] disabled:opacity-60">
+                    <span wire:loading.remove wire:target="simpan">{{ $modeEdit ? 'Simpan perubahan' : 'Simpan jurnal' }}</span>
+                    <span wire:loading wire:target="simpan">Menyimpan…</span>
+                </button>
+            @endif
+        </div>
+    </div>
 </div>

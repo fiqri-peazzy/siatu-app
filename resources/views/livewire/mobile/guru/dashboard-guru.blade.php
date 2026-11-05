@@ -108,8 +108,8 @@
                 </p>
                 <h2 class="relative mt-3 font-heading text-xl font-semibold leading-snug">{{ $sorotan['mapel'] }}</h2>
                 <p class="relative mt-0.5 text-sm text-white/70">{{ $sorotan['kelas'] }} · {{ $sorotan['jam_mulai'] }}–{{ $sorotan['jam_selesai'] }}</p>
-                @if ($sorotan['status'] !== 'diisi')
-                    <a wire:navigate href="{{ route('guru.jurnal.form', implode(',', $sorotan['jadwal_ids'])) }}"
+                @if ($sorotan['status'] === 'belum_diisi')
+                    <a wire:navigate href="{{ route('guru.jurnal.form', implode(',', $sorotan['sesi_ids'])) }}"
                        class="relative mt-4 inline-flex h-11 items-center gap-2 rounded-2xl bg-gold-400 px-4 text-sm font-semibold text-navy-950 transition hover:bg-gold-300 active:scale-[0.98]">
                         <x-ui.icon name="jurnal" class="h-4 w-4" /> Isi jurnal
                     </a>
@@ -141,7 +141,7 @@
 
         @forelse ($jadwalHariIni as $j)
             @php $lewat = $j['jam_selesai'] <= $jamSekarang; @endphp
-            <article class="mb-3 flex gap-3.5 rounded-2xl bg-white p-4 ring-1 {{ $j['status'] === 'diisi' ? 'ring-ivory-300' : 'ring-gold-300/70' }}">
+            <article class="mb-3 flex gap-3.5 rounded-2xl bg-white p-4 ring-1 {{ $j['status'] === 'belum_diisi' ? 'ring-gold-300/70' : 'ring-ivory-300' }}">
                 <div class="w-14 shrink-0 text-center">
                     <p class="font-heading text-[15px] font-semibold tabular-nums text-navy-900">{{ $j['jam_mulai'] }}</p>
                     <p class="text-[12px] tabular-nums text-navy-400">{{ $j['jam_selesai'] }}</p>
@@ -152,9 +152,11 @@
                     <div class="mt-2.5 flex items-center justify-between gap-2">
                         @if ($j['status'] === 'diisi')
                             <span class="inline-flex items-center gap-1 rounded-full bg-ok-50 px-2 py-0.5 text-[11px] font-semibold text-ok-500"><x-ui.icon name="cek" class="h-3 w-3" /> Jurnal terisi</span>
+                        @elseif ($j['status'] === 'tidak_wajib')
+                            <span class="rounded-full bg-ivory-200 px-2 py-0.5 text-[11px] font-semibold text-navy-500">{{ $j['catatan'] ?? 'Tergeser kegiatan' }}</span>
                         @else
                             <span class="inline-flex items-center gap-1 rounded-full bg-warn-50 px-2 py-0.5 text-[11px] font-semibold text-warn-500">{{ $lewat ? 'Jurnal belum diisi' : 'Belum dimulai' }}</span>
-                            <a wire:navigate href="{{ route('guru.jurnal.form', implode(',', $j['jadwal_ids'])) }}" class="inline-flex h-9 items-center gap-1 rounded-full bg-navy-900 px-3.5 text-[13px] font-semibold text-white active:scale-95">Isi jurnal</a>
+                            <a wire:navigate href="{{ route('guru.jurnal.form', implode(',', $j['sesi_ids'])) }}" class="inline-flex h-9 items-center gap-1 rounded-full bg-navy-900 px-3.5 text-[13px] font-semibold text-white active:scale-95">Isi jurnal</a>
                         @endif
                     </div>
                 </div>

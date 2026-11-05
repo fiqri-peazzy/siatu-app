@@ -32,3 +32,4 @@ scratch.php
 test_*.php
 *.xlsx
 *.csv
+/public/_preview

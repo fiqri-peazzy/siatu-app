@@ -373,3 +373,8 @@ masuk_buka ─── masuk_tepat (+toleransi) ─── masuk_tutup        pulan
 
 > Status baru pada `absensi_gurus.status` / `absensi_tendiks.status`: `pulang_cepat` (Enum `StatusAbsensiGuru::PULANG_CEPAT`).
 > Pengaturan `batas_telat` di tabel `pengaturans` tidak dipakai lagi — digantikan `aturan_absensis.masuk_tepat` per hari.
+
+### Perubahan: `jurnal_gurus.jadwal_sesi_id` & `absensi_siswas.jadwal_sesi_id`
+Kolom `jadwal_sesi_id` (`bigint unsigned`, Nullable, FK ke `jadwal_sesis.id`, Set Null on Delete) menautkan jurnal & absensi siswa ke sesi jadwal v2. Data lama (dari `master_jadwal_pelajarans`) tetap valid dengan nilai `NULL`. Index tambahan: `jurnal_gurus (guru_id, tanggal)`, `absensi_siswas (kelas_id, tanggal)`.
+
+Jurnal tetap disimpan **satu baris per jam × per rombel** (kompatibel dengan rekap lama). Satu *pertemuan* (blok sesi berurutan yang hanya dipisah istirahat) diisi sekali lewat `JurnalService::simpan()`.

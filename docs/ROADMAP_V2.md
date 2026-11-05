@@ -23,7 +23,9 @@ Branch kerja: `v2`. Merge ke `main` **per tahap**, setelah dites — setiap push
 - [ ] Modul admin: Guru Pengampu (matriks mapel × rombel)
 - [ ] Modul admin: Jadwal (grid per hari, edit sesi, deteksi bentrok guru)
 - [ ] Migrasi pemakai tabel lama `master_jadwal_pelajarans` (portal guru, jurnal, supervisi) → pensiunkan tabel lama
-- [ ] Jurnal per sesi (multi-rombel) + absensi per rombel
+- [x] Jurnal per pertemuan (multi-rombel, lintas istirahat) + absensi per rombel — `JurnalService`, form 3 langkah
+- [x] Jadwal mengajar guru v2: strip hari + timeline lengkap (istirahat, upacara, kegiatan, pengecualian) — `JadwalService::jadwalGuruHarian()`
+- [ ] Pindahkan pemakai tabel lama yang tersisa ke v2: reminder jurnal (routes/console.php), BadgeJurnal, supervisi realtime, admin ListJadwal
 
 ### Tahap 1b — Aturan absensi & Pengaturan Sistem
 - [x] Tabel `aturan_absensis` + `AturanAbsensiService::evaluasi()` (jendela check-in/out per kategori per hari, toleransi, pulang cepat + alasan, cegah absen ganda, hormati hari libur)

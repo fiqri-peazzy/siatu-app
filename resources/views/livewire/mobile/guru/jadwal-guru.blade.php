@@ -1,139 +1,120 @@
-<div class="space-y-6 pb-24 bg-slate-50 min-h-screen">
+@php
+    $hariIni = $dipilih->isToday();
+    $urlJurnal = route('guru.jurnal.form', ['sesi' => '__SESI__']);
+@endphp
 
-    {{-- ── Header ── --}}
-    <div class="px-5 pt-6 pb-2">
-        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{{ \Carbon\Carbon::parse($tanggalAktif)->locale('id')->isoFormat('dddd, D MMM YYYY') }}</p>
-        <h2 class="text-[22px] font-extrabold text-[#121A2F] tracking-tight">Jadwal Mengajar</h2>
-    </div>
+<div class="pb-4 font-body"
+     x-data="{
+        detail: null,
+        urlJurnal: @js($urlJurnal),
+        hariIni: @js($hariIni),
+        bisaIsi(d) { return this.hariIni && d && d.fase !== 'mendatang' && d.jurnal !== 'tidak_wajib' },
+        link(d) { return this.urlJurnal.replace('__SESI__', d.jurnal_sesi_ids.join(',')) },
+     }"
+     @jadwal:detail.window="detail = $event.detail">
 
-    {{-- ── Tabs ── --}}
-    <div class="px-5">
-        <div class="bg-white rounded-xl p-1 flex shadow-sm border border-slate-100">
-            <button wire:click="setMode('harian')"
-                    class="flex-1 py-2 text-[13px] font-bold rounded-lg transition-all
-                           {{ $mode === 'harian' ? 'bg-[#3B65F3] text-white shadow-md' : 'text-slate-400 hover:text-slate-600' }}">
-                Harian
-            </button>
-            <button wire:click="setMode('mingguan')"
-                    class="flex-1 py-2 text-[13px] font-bold rounded-lg transition-all
-                           {{ $mode === 'mingguan' ? 'bg-[#3B65F3] text-white shadow-md' : 'text-slate-400 hover:text-slate-600' }}">
-                Mingguan
-            </button>
+    {{-- Judul + navigasi minggu --}}
+    <div class="flex items-end justify-between gap-3">
+        <div>
+            <p class="text-[12px] font-medium text-navy-400">{{ $dipilih->locale('id')->isoFormat('MMMM YYYY') }}</p>
+            <h1 class="font-heading text-[1.35rem] font-semibold leading-tight text-navy-900">{{ $dipilih->locale('id')->isoFormat('dddd, D MMM') }}</h1>
+        </div>
+        <div class="flex items-center gap-1">
+            <button type="button" wire:click="pilihHari('{{ $mingguLalu }}')" aria-label="Minggu sebelumnya"
+                    class="flex h-10 w-10 items-center justify-center rounded-full text-navy-600 ring-1 ring-ivory-300 hover:bg-white"><x-ui.icon name="chevron-kanan" class="h-4 w-4 rotate-180" /></button>
+            @unless ($hariIni)
+                <button type="button" wire:click="pilihHari('{{ now()->toDateString() }}')" class="h-10 rounded-full px-3 text-[13px] font-semibold text-navy-700 ring-1 ring-ivory-300 hover:bg-white">Hari ini</button>
+            @endunless
+            <button type="button" wire:click="pilihHari('{{ $mingguDepan }}')" aria-label="Minggu berikutnya"
+                    class="flex h-10 w-10 items-center justify-center rounded-full text-navy-600 ring-1 ring-ivory-300 hover:bg-white"><x-ui.icon name="chevron-kanan" class="h-4 w-4" /></button>
         </div>
     </div>
 
-    @if($mode === 'harian')
-        {{-- ── Sesi Aktif ── --}}
-        @if($sesiAktif)
-        <div class="px-5">
-            <div class="bg-[#121A2F] rounded-2xl p-5 shadow-lg relative overflow-hidden flex items-center justify-between">
-                <div class="absolute right-0 top-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl"></div>
-                <div class="relative z-10">
-                    <p class="text-[10px] text-sky-300 font-bold uppercase tracking-wider mb-1">Sesi Aktif</p>
-                    <h3 class="text-xl font-extrabold text-white mb-1">{{ $sesiAktif->mapel->nama ?? '-' }}</h3>
-                    <p class="text-[11px] font-medium text-slate-300 font-mono">
-                        {{ substr($sesiAktif->jam_mulai, 0, 5) }} - {{ substr($sesiAktif->jam_selesai, 0, 5) }} (Sesi {{ $sesiAktif->jam_ke }})
-                    </p>
-                </div>
-                <div class="relative z-10 w-12 h-12 rounded-full bg-[#3B65F3]/20 flex items-center justify-center border border-[#3B65F3]/30">
-                    <svg class="w-6 h-6 text-[#3B65F3]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                </div>
-            </div>
-        </div>
+    {{-- Strip hari --}}
+    <div class="mt-4 grid gap-1.5" style="grid-template-columns: repeat({{ $hari->count() }}, minmax(0, 1fr))" role="tablist" aria-label="Pilih hari">
+        @foreach ($hari as $h)
+            <button type="button" role="tab" aria-selected="{{ $h['dipilih'] ? 'true' : 'false' }}"
+                    wire:click="pilihHari('{{ $h['tanggal'] }}')"
+                    @class([
+                        'flex flex-col items-center rounded-2xl py-2.5 transition active:scale-95',
+                        'bg-navy-900 text-white shadow-float' => $h['dipilih'],
+                        'bg-white text-navy-800 ring-1 ring-ivory-300' => ! $h['dipilih'],
+                    ])>
+                <span class="text-[11px] font-medium {{ $h['dipilih'] ? 'text-white/60' : 'text-navy-400' }}">{{ $h['singkat'] }}</span>
+                <span class="font-heading text-lg font-semibold leading-tight">{{ $h['tgl'] }}</span>
+                <span class="mt-0.5 h-1.5 w-1.5 rounded-full {{ $h['jam'] > 0 ? ($h['dipilih'] ? 'bg-gold-300' : 'bg-navy-800') : 'bg-transparent' }} {{ $h['hari_ini'] && ! $h['dipilih'] ? 'ring-2 ring-gold-400' : '' }}"></span>
+            </button>
+        @endforeach
+    </div>
+
+    {{-- Ringkasan hari --}}
+    <div class="mt-4 flex items-center gap-2 text-[13px]" wire:loading.class="opacity-50">
+        @if ($data['jumlah_blok'] > 0)
+            <span class="rounded-full bg-white px-3 py-1 font-semibold text-navy-800 ring-1 ring-ivory-300">{{ $data['jumlah_blok'] }} kelas</span>
+            @if ($data['belum_jurnal'] > 0)
+                <span class="rounded-full bg-warn-50 px-3 py-1 font-semibold text-warn-500">{{ $data['belum_jurnal'] }} jurnal belum diisi</span>
+            @elseif ($hariIni)
+                <span class="rounded-full bg-ok-50 px-3 py-1 font-semibold text-ok-500">Jurnal aman</span>
+            @endif
         @endif
+    </div>
 
-        {{-- ── Daftar Jadwal (Card Stack) ── --}}
-        <div class="px-5 mt-8">
-            <div class="space-y-4">
-                @forelse($jadwals as $jadwal)
-                    <div class="bg-white rounded-[16px] p-4 shadow-sm ring-1 {{ $jadwal->status_jurnal === 'sudah_diisi' ? 'ring-slate-100' : ($jadwal->status_jurnal === 'belum_diisi' ? 'ring-[#FCD34D] shadow-[#FEF3C7]/50' : 'ring-slate-200 opacity-70') }}">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-2 h-2 rounded-full {{ $jadwal->status_jurnal === 'sudah_diisi' ? 'bg-[#059669]' : ($jadwal->status_jurnal === 'belum_diisi' ? 'bg-[#D97706]' : 'bg-slate-400') }}"></div>
-                                <span class="font-mono text-sm font-bold text-slate-700 tracking-tight">
-                                    {{ substr($jadwal->jam_mulai, 0, 5) }} - {{ substr($jadwal->jam_selesai, 0, 5) }}
-                                </span>
-                            </div>
-                            @if($jadwal->status_jurnal === 'sudah_diisi')
-                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-md bg-[#ECFDF5] text-[#059669] uppercase tracking-wider">
-                                    Sudah Diisi
-                                </span>
-                            @elseif($jadwal->status_jurnal === 'belum_diisi')
-                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-md bg-[#FFFBEB] text-[#D97706] uppercase tracking-wider">
-                                    Belum Diisi
-                                </span>
-                            @else
-                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-md bg-slate-100 text-slate-500 uppercase tracking-wider">
-                                    Mendatang
-                                </span>
-                            @endif
-                        </div>
-                        <h4 class="font-bold text-ink-900 text-lg mb-1">{{ $jadwal->kelas->nama ?? '-' }}</h4>
-                        <p class="text-sm text-slate-600 font-medium flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477-4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                            {{ $jadwal->mapel->nama ?? '-' }}
-                        </p>
+    {{-- Timeline --}}
+    <div class="mt-3" wire:loading.class="opacity-50">
+        @if (! $data['hari_kerja'])
+            <div class="rounded-3xl border border-dashed border-ivory-400 bg-ivory-50 px-6 py-12 text-center">
+                <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-navy-300 ring-1 ring-ivory-300"><x-ui.icon name="kegiatan" /></span>
+                <h3 class="mt-3 font-heading text-[15px] font-semibold text-navy-800">Tidak ada jadwal sekolah</h3>
+                <p class="mt-1 text-[13px] text-navy-400">Hari ini bukan hari belajar.</p>
+            </div>
+        @elseif ($data['jumlah_blok'] === 0)
+            <div class="mb-3 rounded-2xl bg-white p-4 text-[13px] text-navy-500 ring-1 ring-ivory-300">
+                Anda tidak mengajar pada hari ini. Jadwal sekolah tetap ditampilkan di bawah.
+            </div>
+            <ol class="mt-2">@foreach ($data['items'] as $item)<x-jadwal.item :item="$item" />@endforeach</ol>
+        @else
+            <ol>@foreach ($data['items'] as $item)<x-jadwal.item :item="$item" />@endforeach</ol>
+        @endif
+    </div>
 
-                        @if($jadwal->status_jurnal === 'sudah_diisi')
-                            <div class="mt-4 flex items-center justify-center gap-1.5 text-[11px] font-bold text-slate-400 bg-slate-50 py-2 rounded-lg border border-slate-100">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                Jurnal Pelajaran #JRN-{{ \Carbon\Carbon::parse($jadwal->jurnal_ref->tanggal)->format('Ymd') }}-{{ str_pad($jadwal->jurnal_ref->id, 2, '0', STR_PAD_LEFT) }}
+    {{-- Detail sesi (bottom sheet) --}}
+    <template x-teleport="body">
+        <div x-show="detail" x-cloak class="fixed inset-0 z-50 flex items-end justify-center bg-navy-950/60 backdrop-blur-[2px] sm:items-center sm:p-6"
+             @keydown.escape.window="detail = null" @click.self="detail = null" x-transition.opacity>
+            <div role="dialog" aria-modal="true" class="w-full max-w-md rounded-t-[1.75rem] bg-ivory-50 px-5 pt-3 pb-safe-lg font-body shadow-sheet sm:rounded-[1.75rem] sm:pb-6"
+                 x-show="detail" x-transition:enter="transition duration-300 ease-out" x-transition:enter-start="translate-y-full">
+                <div class="mb-3 flex justify-center sm:hidden"><span class="h-1.5 w-10 rounded-full bg-navy-200"></span></div>
+                <template x-if="detail">
+                    <div>
+                        <p class="text-[12px] font-medium text-navy-400" x-text="`${detail.mulai}–${detail.selesai} · Jam ke-${detail.jam_ke.join(', ')}`"></p>
+                        <h2 class="mt-1 font-heading text-xl font-semibold text-navy-900" x-text="detail.mapel"></h2>
+
+                        <dl class="mt-4 divide-y divide-ivory-300 rounded-2xl bg-white ring-1 ring-ivory-300">
+                            <div class="flex justify-between gap-4 px-4 py-3 text-[14px]"><dt class="text-navy-500">Rombel</dt><dd class="text-right font-semibold text-navy-900" x-text="detail.kelas.join(', ')"></dd></div>
+                            <div class="flex justify-between gap-4 px-4 py-3 text-[14px]"><dt class="text-navy-500">Durasi</dt><dd class="font-semibold text-navy-900" x-text="`${detail.jam_ke.length} JP`"></dd></div>
+                            <div class="flex justify-between gap-4 px-4 py-3 text-[14px]" x-show="detail.grup_pilihan"><dt class="text-navy-500">Kelompok pilihan</dt><dd class="font-semibold text-navy-900" x-text="detail.grup_pilihan"></dd></div>
+                            <div class="flex justify-between gap-4 px-4 py-3 text-[14px]">
+                                <dt class="text-navy-500">Jurnal</dt>
+                                <dd class="font-semibold" :class="{ 'text-ok-500': detail.jurnal === 'diisi', 'text-warn-500': ['belum','sebagian'].includes(detail.jurnal), 'text-navy-500': detail.jurnal === 'tidak_wajib' }"
+                                    x-text="{ diisi: 'Sudah diisi', sebagian: 'Sebagian', belum: 'Belum diisi', tidak_wajib: 'Tidak wajib (tergeser)' }[detail.jurnal]"></dd>
                             </div>
-                        @elseif($jadwal->status_jurnal === 'belum_diisi')
-                            <a href="{{ route('guru.jurnal.form', implode(',', $jadwal->jadwal_ids)) }}" class="mt-4 w-full bg-[#121A2F] hover:bg-[#1f2937] text-white text-sm font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-[0.98]">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                Isi Jurnal Sekarang
+                        </dl>
+
+                        <p x-show="detail.catatan" class="mt-3 rounded-xl bg-warn-50 px-3 py-2 text-[13px] text-warn-500" x-text="detail.catatan"></p>
+
+                        <div class="mt-5 grid gap-2.5">
+                            <a x-show="bisaIsi(detail)" :href="link(detail)" wire:navigate
+                               class="flex h-12 items-center justify-center gap-2 rounded-2xl bg-navy-900 text-[15px] font-semibold text-white active:scale-[0.98]">
+                                <x-ui.icon name="jurnal" class="h-5 w-5 text-gold-300" />
+                                <span x-text="detail.jurnal === 'diisi' ? 'Lihat / ubah jurnal' : 'Isi jurnal & absensi'"></span>
                             </a>
-                        @else
-                            <div class="mt-4 w-full bg-slate-50 border border-slate-200 text-slate-400 text-center py-2.5 rounded-xl text-xs font-bold cursor-not-allowed">
-                                Belum Dapat Diisi
-                            </div>
-                        @endif
-                    </div>
-                @empty
-                    <div class="bg-slate-50/50 rounded-2xl p-8 border border-slate-100 border-dashed text-center">
-                        <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                            <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
+                            <p x-show="! bisaIsi(detail) && detail.jurnal !== 'tidak_wajib'" class="rounded-xl bg-ivory-200 px-3 py-2.5 text-center text-[13px] text-navy-500"
+                               x-text="hariIni ? 'Jurnal dapat diisi setelah kelas dimulai.' : 'Jurnal hanya dapat diisi pada hari mengajar.'"></p>
+                            <button type="button" @click="detail = null" class="h-12 rounded-2xl text-[15px] font-semibold text-navy-700 ring-1 ring-ivory-400">Tutup</button>
                         </div>
-                        <h4 class="text-slate-800 font-bold mb-1">Hari yang Kosong</h4>
-                        <p class="text-sm text-slate-500 font-medium">Anda tidak memiliki jadwal mengajar hari ini.</p>
                     </div>
-                @endforelse
+                </template>
             </div>
         </div>
-    @else
-        {{-- ── Mingguan ── --}}
-        <div class="px-5 mt-6 space-y-6">
-            @forelse($jadwals as $hari => $listJadwal)
-                <div>
-                    <h3 class="text-sm font-bold text-[#121A2F] uppercase tracking-wider mb-3 bg-white px-3 py-1.5 rounded-lg border border-slate-200 inline-block">{{ $hari }}</h3>
-                    <div class="space-y-3">
-                        @foreach($listJadwal as $jadwal)
-                            <div class="bg-white rounded-xl p-3 shadow-sm border border-slate-100 flex gap-3">
-                                <div class="w-1.5 bg-[#3B65F3] rounded-full shrink-0"></div>
-                                <div class="flex-1">
-                                    <div class="flex justify-between items-start mb-1">
-                                        <h4 class="font-bold text-sm text-[#121A2F]">{{ $jadwal->kelas->nama ?? '-' }}</h4>
-                                        <span class="text-[10px] font-bold text-slate-500 font-mono">{{ substr($jadwal->jam_mulai, 0, 5) }}</span>
-                                    </div>
-                                    <p class="text-xs text-slate-500">{{ $jadwal->mapel->nama ?? '-' }}</p>
-                                </div>
-                            </div>
-                        @endforeach
-                    </div>
-                </div>
-            @empty
-                <div class="text-center py-10">
-                    <p class="text-sm text-slate-500">Tidak ada jadwal minggu ini.</p>
-                </div>
-            @endforelse
-        </div>
-    @endif
-
-    {{-- Floating Action Button (FAB) --}}
-    <a href="#" class="fixed bottom-24 right-5 w-14 h-14 bg-[#121A2F] text-white rounded-full shadow-xl flex items-center justify-center hover:bg-slate-800 active:scale-90 transition-all z-40 border border-white/10">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"></path></svg>
-    </a>
+    </template>
 </div>

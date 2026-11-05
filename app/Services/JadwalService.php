@@ -8,6 +8,7 @@ use App\Enums\JenisSesi;
 use App\Enums\JenisSlotJam;
 use App\Models\JadwalPengecualian;
 use App\Models\JadwalSesi;
+use App\Models\JurnalGuru;
 use App\Models\Master\MasterSlotJam;
 use Carbon\Carbon;
 use App\Models\Master\MasterGuru;
@@ -222,6 +223,180 @@ class JadwalService
         });
 
         return $items->concat($sisipan)->sortBy('mulai')->values();
+    }
+
+    /**
+     * Timeline satu hari untuk seorang guru, siap ditampilkan.
+     *
+     * items[] berurutan waktu, tipe:
+     *  - 'blok'  : mengajar (sesi berurutan, mapel & rombel sama digabung)
+     *  - 'jeda'  : istirahat / upacara / kegiatan sekolah / kegiatan sisipan
+     *  - 'kosong': jam tanpa tugas mengajar (berurutan digabung)
+     *
+     * @return array{hari_kerja: bool, items: list<array<string, mixed>>, jumlah_blok: int, belum_jurnal: int}
+     */
+    public function jadwalGuruHarian(int $guruId, Carbon $tanggal, ?Carbon $sekarang = null): array
+    {
+        $sekarang ??= now();
+        $efektif = $this->jadwalEfektif($tanggal);
+
+        if ($efektif->isEmpty()) {
+            return ['hari_kerja' => false, 'items' => [], 'jumlah_blok' => 0, 'belum_jurnal' => 0];
+        }
+
+        $slotIds = $efektif->pluck('slot.id')->filter()->all();
+
+        $sesiGuru = JadwalSesi::query()
+            ->with(['mapel:id,nama', 'kelas:id,kode,nama'])
+            ->whereIn('slot_jam_id', $slotIds)
+            ->where('guru_id', $guruId)
+            ->get()
+            ->groupBy('slot_jam_id');
+
+        $kegiatan = JadwalSesi::query()
+            ->whereIn('slot_jam_id', $slotIds)
+            ->where('jenis', JenisSesi::KEGIATAN)
+            ->get()
+            ->keyBy('slot_jam_id');
+
+        $terisi = JurnalGuru::query()
+            ->where('guru_id', $guruId)
+            ->whereDate('tanggal', $tanggal)
+            ->where('status', 'diisi')
+            ->whereNotNull('jadwal_sesi_id')
+            ->pluck('jadwal_sesi_id')
+            ->flip();
+
+        $hariIni = $tanggal->isSameDay($sekarang);
+        $jamSekarang = $sekarang->format('H:i');
+        $fase = function (string $mulai, string $selesai) use ($hariIni, $tanggal, $sekarang, $jamSekarang): string {
+            if (! $hariIni) {
+                return $tanggal->lt($sekarang->copy()->startOfDay()) ? 'lewat' : 'mendatang';
+            }
+
+            return match (true) {
+                $selesai <= $jamSekarang => 'lewat',
+                $mulai <= $jamSekarang => 'berlangsung',
+                default => 'mendatang',
+            };
+        };
+
+        $items = [];
+        foreach ($efektif as $e) {
+            $slotId = $e['slot']?->id;
+            $baru = null;
+
+            if ($e['jenis'] === JenisSlotJam::PELAJARAN->value && $slotId && ($sesis = $sesiGuru->get($slotId))) {
+                $sesi = $sesis->first();
+                $tergeser = in_array($e['status'], ['tergeser', 'ditiadakan'], true);
+                $baru = [
+                    'tipe' => 'blok',
+                    'kunci' => $sesi->mapel_id.'|'.$sesi->kelas->pluck('id')->sort()->implode(',').'|'.($tergeser ? 'x' : 'ok'),
+                    'mulai' => $e['mulai'],
+                    'selesai' => $e['selesai'],
+                    'jam_ke' => [$e['jam_ke']],
+                    'mapel' => $sesi->mapel?->nama ?? $sesi->label ?? '-',
+                    'mapel_id' => $sesi->mapel_id,
+                    'kelas' => $sesi->kelas->pluck('nama')->all(),
+                    'kelas_ids' => $sesi->kelas->pluck('id')->all(),
+                    'jenis' => $sesi->jenis->value,
+                    'grup_pilihan' => $sesi->grup_pilihan,
+                    'sesi_ids' => [$sesi->id],
+                    'terisi' => isset($terisi[$sesi->id]) ? 1 : 0,
+                    'status_slot' => $e['status'],
+                    'catatan' => $e['catatan'],
+                ];
+            } elseif ($e['jenis'] === JenisSlotJam::PELAJARAN->value && $slotId && $kegiatan->has($slotId)) {
+                $label = $kegiatan[$slotId]->label;
+                $baru = ['tipe' => 'jeda', 'jenis' => 'kegiatan', 'kunci' => 'k|'.$label, 'label' => $label, 'mulai' => $e['mulai'], 'selesai' => $e['selesai']];
+            } elseif ($e['jenis'] === JenisSlotJam::PELAJARAN->value) {
+                $baru = ['tipe' => 'kosong', 'kunci' => 'kosong', 'label' => 'Tidak ada jadwal mengajar', 'mulai' => $e['mulai'], 'selesai' => $e['selesai']];
+            } elseif ($e['status'] !== 'ditiadakan') {
+                $baru = ['tipe' => 'jeda', 'jenis' => $e['jenis'], 'kunci' => 'j|'.$e['label'], 'label' => $e['label'] ?? 'Kegiatan', 'mulai' => $e['mulai'], 'selesai' => $e['selesai']];
+            }
+
+            if (! $baru) {
+                continue;
+            }
+
+            // Gabungkan dengan item sebelumnya bila sama & bersambung
+            $akhir = array_key_last($items);
+            if ($akhir !== null && $items[$akhir]['tipe'] === $baru['tipe'] && $items[$akhir]['kunci'] === $baru['kunci'] && $items[$akhir]['selesai'] === $baru['mulai']) {
+                $items[$akhir]['selesai'] = $baru['selesai'];
+                if ($baru['tipe'] === 'blok') {
+                    $items[$akhir]['jam_ke'][] = $baru['jam_ke'][0];
+                    $items[$akhir]['sesi_ids'][] = $baru['sesi_ids'][0];
+                    $items[$akhir]['terisi'] += $baru['terisi'];
+                }
+
+                continue;
+            }
+
+            $items[] = $baru;
+        }
+
+        // Satu "pertemuan" = blok-blok dengan mapel & rombel sama yang hanya dipisah
+        // istirahat → satu jurnal (guru tidak mengisi dua kali untuk materi yang sama).
+        $grupDari = [];
+        $terakhirBlok = null;
+        foreach ($items as $i => $item) {
+            if ($item['tipe'] === 'blok') {
+                $grupDari[$i] = ($terakhirBlok !== null && $items[$terakhirBlok]['kunci'] === $item['kunci']) ? $grupDari[$terakhirBlok] : $i;
+                $terakhirBlok = $i;
+            } elseif (! ($item['tipe'] === 'jeda' && $item['jenis'] === JenisSlotJam::ISTIRAHAT->value)) {
+                $terakhirBlok = null;
+            }
+        }
+        $pertemuan = collect($grupDari)->groupBy(fn ($g) => $g, true)->map(fn ($anggota) => [
+            'sesi_ids' => collect($anggota->keys())->flatMap(fn ($i) => $items[$i]['sesi_ids'])->all(),
+            'terisi' => collect($anggota->keys())->sum(fn ($i) => $items[$i]['terisi']),
+        ]);
+
+        // Status jurnal & fase per item
+        foreach ($items as $i => &$item) {
+            $item['fase'] = $fase($item['mulai'], $item['selesai']);
+            if ($item['tipe'] === 'blok') {
+                $p = $pertemuan[$grupDari[$i]];
+                $item['jurnal_sesi_ids'] = $p['sesi_ids'];
+                $item['lanjutan'] = $grupDari[$i] !== $i;
+                $item['jurnal'] = match (true) {
+                    in_array($item['status_slot'], ['tergeser', 'ditiadakan'], true) => 'tidak_wajib',
+                    $p['terisi'] >= count($p['sesi_ids']) => 'diisi',
+                    $p['terisi'] > 0 => 'sebagian',
+                    default => 'belum',
+                };
+            }
+        }
+        unset($item);
+
+        // Hitung per pertemuan (bukan per potongan blok)
+        $blok = collect($items)->where('tipe', 'blok')->where('lanjutan', false);
+
+        return [
+            'hari_kerja' => true,
+            'items' => array_values($items),
+            'jumlah_blok' => $blok->count(),
+            'belum_jurnal' => $blok->whereIn('jurnal', ['belum', 'sebagian'])->where('fase', '!=', 'mendatang')->count(),
+        ];
+    }
+
+    /** Jumlah jam mengajar guru per hari (untuk strip hari) — ['senin' => 4, ...] */
+    public function ringkasanMingguGuru(int $guruId): array
+    {
+        $pola = $this->polaAktif();
+        if (! $pola) {
+            return [];
+        }
+
+        return JadwalSesi::query()
+            ->join('master_slot_jams', 'master_slot_jams.id', '=', 'jadwal_sesis.slot_jam_id')
+            ->where('master_slot_jams.pola_jam_id', $pola->id)
+            ->where('jadwal_sesis.guru_id', $guruId)
+            ->selectRaw('master_slot_jams.hari, COUNT(*) as jumlah')
+            ->groupBy('master_slot_jams.hari')
+            ->pluck('jumlah', 'hari')
+            ->map(fn ($n) => (int) $n)
+            ->all();
     }
 
     /** Pola jam aktif pada tahun ajaran aktif */

@@ -2,236 +2,206 @@
 
 namespace App\Livewire\Mobile\Guru;
 
-use Livewire\Component;
-use App\Models\Master\MasterJadwalPelajaran;
-use App\Models\JurnalGuru;
-use App\Models\AbsensiSiswa;
-use App\Models\Master\MasterTahunAjaran;
-use App\Models\Master\MasterSiswa;
+use App\Services\JurnalService;
 use Carbon\Carbon;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
+use InvalidArgumentException;
+use Livewire\Component;
 use Livewire\WithFileUploads;
 
+/**
+ * Form jurnal mengajar 3 langkah untuk satu blok sesi (jadwal v2):
+ *   1. Kehadiran siswa  2. Materi & kegiatan  3. Dokumentasi & simpan
+ * Aturan (kepemilikan sesi, jam tergeser, peserta mapel pilihan) ada di JurnalService.
+ */
 class FormJurnal extends Component
 {
     use WithFileUploads;
 
-    public $jadwalList;
-    public $jadwal; // For displaying the first class's info
-    public $kd_cp;
-    public $materi;
-    public $kegiatan;
-    public $dokumentasi = [];
-    
-    public $siswas = [];
-    public $absensi = []; // Array to store attendance status keyed by siswa_id
-    public $bukti_izin = []; // Array to store file uploads keyed by siswa_id
+    public string $sesi = '';
 
-    public function mount($jadwal_ids)
+    /** Langkah aktif tersimpan di URL: refresh / tombol back tidak mengulang dari awal */
+    #[\Livewire\Attributes\Url(except: 1)]
+    public int $langkah = 1;
+
+    public array $info = [];
+    public array $kelasList = [];
+    public array $siswaList = [];
+    public array $absensi = [];
+    public ?array $sebelumnya = null;
+    public bool $modeEdit = false;
+
+    public ?string $kd_cp = null;
+    public string $materi = '';
+    public string $kegiatan = '';
+    public array $dokumentasi = [];
+    public array $bukti_izin = [];
+
+    public function mount(string $sesi, JurnalService $service)
     {
-        $ids = explode(',', $jadwal_ids);
-        $this->jadwalList = MasterJadwalPelajaran::whereIn('id', $ids)->get();
+        $this->sesi = $sesi;
+        $this->langkah = max(1, min(3, $this->langkah));
 
-        if ($this->jadwalList->isEmpty()) {
-            abort(404);
+        try {
+            $ctx = $service->siapkan(Auth::user()->guru_id, $this->sesiIds(), Carbon::today());
+        } catch (AuthorizationException) {
+            abort(403);
+        } catch (InvalidArgumentException $e) {
+            session()->flash('error', $e->getMessage());
+
+            return $this->redirectRoute('guru.jadwal', navigate: true);
         }
 
-        $this->jadwal = $this->jadwalList->first();
-        $guruId = Auth::user()->guru_id ?? Auth::user()->guru->id ?? null;
+        $this->info = [
+            'mapel' => $ctx['mapel']?->nama ?? '-',
+            'mulai' => $ctx['mulai'],
+            'selesai' => $ctx['selesai'],
+            'jam_ke' => $ctx['jam_ke'],
+            'tanggal' => Carbon::today()->locale('id')->isoFormat('dddd, D MMMM YYYY'),
+        ];
+        $this->kelasList = $ctx['kelas']->map(fn ($k) => ['id' => $k->id, 'nama' => $k->nama])->all();
+        $this->siswaList = $ctx['siswa']->map(fn ($s) => ['id' => $s->id, 'nama' => $s->nama, 'nis' => $s->nis, 'kelas_id' => $s->kelas_id])->all();
+        $this->absensi = array_map('strval', $ctx['absensi']);
 
-        foreach ($this->jadwalList as $j) {
-            if ($j->guru_id != $guruId) {
-                abort(403);
-            }
+        if ($j = $ctx['jurnal']) {
+            $this->modeEdit = true;
+            $this->kd_cp = $j->kd_cp;
+            $this->materi = (string) $j->materi;
+            $this->kegiatan = (string) $j->kegiatan;
         }
-
-        $this->loadSiswas();
+        if ($p = $ctx['sebelumnya']) {
+            $this->sebelumnya = [
+                'tanggal' => $p->tanggal->locale('id')->isoFormat('D MMM'),
+                'kd_cp' => $p->kd_cp,
+                'materi' => $p->materi,
+                'kegiatan' => $p->kegiatan,
+            ];
+        }
     }
 
-    private function loadSiswas()
+    private function sesiIds(): array
     {
-        $kelasIds = $this->jadwalList->pluck('kelas_id')->unique();
-        $mapelId = $this->jadwal->mapel_id;
-        $ta = MasterTahunAjaran::where('is_active', true)->first();
+        return array_values(array_filter(array_map('intval', explode(',', $this->sesi))));
+    }
 
-        if (!$ta) {
-            $this->siswas = [];
+    protected function rules(): array
+    {
+        return [
+            'kd_cp' => ['nullable', 'string', 'max:500'],
+            'materi' => ['required', 'string', 'min:5', 'max:2000'],
+            'kegiatan' => ['required', 'string', 'min:5', 'max:2000'],
+            'absensi.*' => ['in:hadir,izin,sakit,alfa'],
+            'dokumentasi' => ['array', 'max:4'],
+            'dokumentasi.*' => ['image', 'max:5120'],
+            'bukti_izin.*' => ['nullable', 'file', 'mimes:pdf,jpg,jpeg,png', 'max:5120'],
+        ];
+    }
+
+    protected function messages(): array
+    {
+        return [
+            'materi.required' => 'Materi pembelajaran wajib diisi.',
+            'materi.min' => 'Materi minimal 5 karakter.',
+            'kegiatan.required' => 'Kegiatan pembelajaran wajib diisi.',
+            'kegiatan.min' => 'Kegiatan minimal 5 karakter.',
+            'dokumentasi.max' => 'Maksimal 4 foto dokumentasi.',
+            'dokumentasi.*.image' => 'Dokumentasi harus berupa foto.',
+            'dokumentasi.*.max' => 'Ukuran foto maksimal 5MB.',
+        ];
+    }
+
+    public function salinSebelumnya(): void
+    {
+        if (! $this->sebelumnya) {
+            return;
+        }
+        $this->kd_cp = $this->sebelumnya['kd_cp'];
+        $this->materi = (string) $this->sebelumnya['materi'];
+        $this->kegiatan = (string) $this->sebelumnya['kegiatan'];
+    }
+
+    public function keLangkah(int $tujuan): void
+    {
+        if ($tujuan > 2 && $this->langkah <= 2) {
+            $this->validateOnly('materi');
+            $this->validateOnly('kegiatan');
+            $this->validateOnly('kd_cp');
+        }
+        $this->langkah = max(1, min(3, $tujuan));
+    }
+
+    public function hapusFoto(int $i): void
+    {
+        unset($this->dokumentasi[$i]);
+        $this->dokumentasi = array_values($this->dokumentasi);
+    }
+
+    public function simpan(JurnalService $service)
+    {
+        $this->validate();
+
+        try {
+            $dokumentasi = $this->unggahDokumentasi();
+            $bukti = $this->unggahBuktiIzin();
+
+            $service->simpan(
+                guruId: Auth::user()->guru_id,
+                userId: Auth::id(),
+                sesiIds: $this->sesiIds(),
+                tanggal: Carbon::today(),
+                isi: ['kd_cp' => $this->kd_cp, 'materi' => $this->materi, 'kegiatan' => $this->kegiatan],
+                absensi: $this->absensi,
+                buktiIzin: $bukti,
+                dokumentasi: $dokumentasi,
+            );
+        } catch (InvalidArgumentException $e) {
+            $this->dispatch('swal:error', $e->getMessage());
+
+            return;
+        } catch (\Throwable $e) {
+            Log::error('Simpan jurnal gagal: '.$e->getMessage());
+            $this->dispatch('swal:error', 'Jurnal gagal disimpan. Coba lagi beberapa saat.');
+
             return;
         }
 
-        // Check if this mapel has any peminatan assignments in this TA
-        $isPeminatan = DB::table('peminatan_siswas')
-            ->where('mapel_id', $mapelId)
-            ->where('tahun_ajaran_id', $ta->id)
-            ->exists();
+        session()->flash('success', $this->modeEdit ? 'Jurnal berhasil diperbarui.' : 'Jurnal & absensi siswa tersimpan.');
 
-        if ($isPeminatan) {
-            $assignedSiswaIds = DB::table('peminatan_siswas')
-                ->where('mapel_id', $mapelId)
-                ->where('tahun_ajaran_id', $ta->id)
-                ->pluck('siswa_id');
-
-            $this->siswas = MasterSiswa::whereIn('kelas_id', $kelasIds)
-                ->whereIn('id', $assignedSiswaIds)
-                ->where('status', 'aktif')
-                ->orderBy('nama', 'asc')
-                ->get();
-        } else {
-            $this->siswas = MasterSiswa::whereIn('kelas_id', $kelasIds)
-                ->where('status', 'aktif')
-                ->orderBy('nama', 'asc')
-                ->get();
-        }
-
-        foreach ($this->siswas as $siswa) {
-            $this->absensi[$siswa->id] = 'hadir'; // Default
-        }
+        return $this->redirectRoute('guru.jadwal', navigate: true);
     }
 
-    public function setSemuaAbsensi($status)
+    private function unggahDokumentasi(): array
     {
-        foreach ($this->siswas as $siswa) {
-            $this->absensi[$siswa->id] = $status;
+        $paths = [];
+        $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver);
+        foreach ($this->dokumentasi as $foto) {
+            $image = $manager->decodePath($foto->getRealPath())->scaleDown(width: 1280, height: 1280);
+            $path = 'jurnal/'.now()->format('Y/m').'/'.uniqid().'.jpg';
+            Storage::disk('r2')->put($path, (string) $image->encodeUsingFileExtension('jpg', quality: 70));
+            $paths[] = $path;
         }
+
+        return $paths;
     }
 
-    public function submit()
+    private function unggahBuktiIzin(): array
     {
-        $this->validate([
-            'kd_cp' => 'nullable|string',
-            'materi' => 'required|min:5',
-            'kegiatan' => 'required|min:5',
-            'dokumentasi.*' => 'image|max:5120',
-            'bukti_izin.*' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
-        ]);
-
-        $guruId = Auth::user()->guru_id ?? Auth::user()->guru->id ?? null;
-        
-        $dokumentasiPaths = [];
-        if (!empty($this->dokumentasi)) {
-            try {
-                $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver());
-                foreach ($this->dokumentasi as $foto) {
-                    $image = $manager->decodePath($foto->getRealPath());
-                    $image->scaleDown(width: 800, height: 800);
-                    $encoded = $image->encodeUsingFileExtension('jpg', quality: 60);
-                    
-                    $filename = uniqid() . '.jpg';
-                    $path = 'jurnal/' . $filename;
-                    
-                    \Illuminate\Support\Facades\Storage::disk('r2')->put($path, (string) $encoded);
-                    $dokumentasiPaths[] = $path;
-                }
-            } catch (\Exception $e) {
-                session()->flash('error', 'Gagal mengunggah dokumentasi: ' . $e->getMessage());
-                return;
+        $paths = [];
+        foreach ($this->bukti_izin as $siswaId => $file) {
+            if ($file && in_array($this->absensi[$siswaId] ?? null, ['izin', 'sakit'], true)) {
+                $paths[(int) $siswaId] = $file->storeAs('bukti_izin', "bukti_izin_{$siswaId}_".uniqid().'.'.$file->getClientOriginalExtension(), 'r2');
             }
         }
-        
-        $buktiIzinPaths = [];
-        if (!empty($this->bukti_izin)) {
-            foreach ($this->absensi as $siswaId => $status) {
-                if (in_array($status, ['izin', 'sakit']) && isset($this->bukti_izin[$siswaId])) {
-                    $file = $this->bukti_izin[$siswaId];
-                    if ($file instanceof \Illuminate\Http\UploadedFile) {
-                        try {
-                            $filename = 'bukti_izin_' . $siswaId . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
-                            $path = $file->storeAs('bukti_izin', $filename, 'r2');
-                            $buktiIzinPaths[$siswaId] = $path;
-                        } catch (\Exception $e) {
-                            session()->flash('error', 'Gagal mengunggah bukti izin: ' . $e->getMessage());
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-        
-        DB::beginTransaction();
-        try {
-            $tanggal = Carbon::today()->format('Y-m-d');
-            $userId = Auth::id();
 
-            // Calculate overall stats for all students fetched
-            $stats = [
-                'hadir' => 0,
-                'izin' => 0,
-                'sakit' => 0,
-                'alfa' => 0,
-            ];
-
-            foreach ($this->absensi as $siswaId => $status) {
-                if (isset($stats[$status])) {
-                    $stats[$status]++;
-                }
-            }
-
-            foreach ($this->jadwalList as $j) {
-                // Filter students for this specific class to record individual attendance
-                $siswasInKelas = $this->siswas->where('kelas_id', $j->kelas_id);
-                
-                // Calculate stats for this specific class/jurnal entry
-                $kelasStats = ['hadir' => 0, 'izin' => 0, 'sakit' => 0, 'alfa' => 0];
-
-                foreach ($siswasInKelas as $siswa) {
-                    $status = $this->absensi[$siswa->id] ?? 'hadir';
-                    if (isset($kelasStats[$status])) {
-                        $kelasStats[$status]++;
-                    }
-
-                    // Save AbsensiSiswa
-                    AbsensiSiswa::updateOrCreate(
-                        [
-                            'siswa_id' => $siswa->id,
-                            'kelas_id' => $j->kelas_id,
-                            'tanggal' => $tanggal,
-                            'jam_ke' => $j->jam_ke,
-                        ],
-                        [
-                            'status' => $status,
-                            'dicatat_oleh' => $userId,
-                            'bukti_file' => $buktiIzinPaths[$siswa->id] ?? null,
-                        ]
-                    );
-                }
-
-                JurnalGuru::updateOrCreate(
-                    [
-                        'guru_id' => $guruId,
-                        'kelas_id' => $j->kelas_id,
-                        'mapel_id' => $j->mapel_id,
-                        'tanggal' => $tanggal,
-                        'jam_ke' => $j->jam_ke,
-                    ],
-                    [
-                        'kd_cp' => $this->kd_cp,
-                        'materi' => $this->materi,
-                        'kegiatan' => $this->kegiatan,
-                        'dokumentasi' => $dokumentasiPaths,
-                        'status' => 'diisi',
-                        'jumlah_hadir' => $kelasStats['hadir'],
-                        'jumlah_izin' => $kelasStats['izin'],
-                        'jumlah_sakit' => $kelasStats['sakit'],
-                        'jumlah_alfa' => $kelasStats['alfa'],
-                    ]
-                );
-            }
-
-            DB::commit();
-
-            $this->dispatch('jurnalSubmitted');
-            session()->flash('success', 'Jurnal dan Absensi berhasil disimpan!');
-            return redirect()->route('guru.dashboard');
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            session()->flash('error', 'Gagal menyimpan: ' . $e->getMessage());
-        }
+        return $paths;
     }
 
     public function render()
     {
-        return view('livewire.mobile.guru.form-jurnal')->layout('components.layouts.pwa');
+        return view('livewire.mobile.guru.form-jurnal')
+            ->layout('components.layouts.pwa', ['judul' => 'Isi Jurnal', 'tanpaNav' => true]);
     }
 }
