@@ -25,3 +25,9 @@ Thumbs.db
 /CLAUDE.md
 /PRD.md
 /.agent*
+
+# Scratch & ad-hoc test files
+scratch.php
+test_*.php
+*.xlsx
+*.csv

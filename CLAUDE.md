@@ -79,6 +79,12 @@ resources/
 routes/
 ├── web.php
 └── api.php
+
+docs/
+├── README.md               # Pusat indeks dokumentasi
+├── DB_SCHEMA.md            # Dokumentasi skema & relasi database
+├── design.md               # Spesifikasi desain UI/UX & PWA mobile
+└── prd/                    # Product Requirement Documents per modul
 ```
 
 ---
@@ -389,7 +395,7 @@ albums              → permohonan_kegiatan (nullable, many-to-one)
 
 ### Perubahan Database
 
-- **Wajib Update `DB_SCHEMA.md`:** Jika ada perubahan pada struktur database (menambah tabel, menambah/mengubah kolom, mengubah relasi, dsb), Anda **wajib secara otomatis memperbarui file `DB_SCHEMA.md`**. Hal ini untuk memastikan aplikasi selalu memiliki dokumentasi skema database yang lengkap dan *up-to-date* seiring pengembangan fitur.
+- **Wajib Update `docs/DB_SCHEMA.md`:** Jika ada perubahan pada struktur database (menambah tabel, menambah/mengubah kolom, mengubah relasi, dsb), Anda **wajib secara otomatis memperbarui file `docs/DB_SCHEMA.md`**. Hal ini untuk memastikan aplikasi selalu memiliki dokumentasi skema database yang lengkap dan *up-to-date* seiring pengembangan fitur.
 
 ### Validasi Wajib di Form Request
 

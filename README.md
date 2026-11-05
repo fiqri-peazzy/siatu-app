@@ -147,6 +147,21 @@ Setelah menjalankan seeder, gunakan akun-akun berikut untuk masuk dan menguji si
 
 ---
 
+## 📚 Dokumentasi & Arsitektur
+
+Dokumentasi teknis dan spesifikasi kebutuhan proyek tersimpan rapi pada direktori [`docs/`](docs/):
+
+* **[Pusat Dokumentasi](docs/README.md)**: Indeks lengkap dan panduan pemeliharaan dokumen proyek.
+* **[Skema Database & Model](docs/DB_SCHEMA.md)**: Struktur tabel, relasi foreign key, tipe data, dan model Eloquent.
+* **[Spesifikasi Desain UI/UX](docs/design.md)**: Pedoman desain PWA Guru Mobile, token palet warna *Navy Family*, tipografi, dan layout screen.
+* **[Product Requirement Documents (PRD)](docs/prd/)**:
+  * [Modul Data Master Guru, Tendik, & Siswa](docs/prd/PRD-Modul-DataMaster-Guru-Tendik-SITU-SMA.md)
+  * [Modul Administrasi & Persuratan](docs/prd/PRD-Modul-Administrasi-SITU-SMA.md)
+  * [Modul Absensi & Jurnal Mengajar](docs/prd/PRD-Modul-Absensi-Jurnal-SITU-SMA.md)
+  * [Modul Guru Mobile PWA & Supervisi Realtime](docs/prd/PRD-Modul-Guru-Mobile-Jurnal-SITU-SMA.md)
+
+---
+
 ## 📄 Lisensi
 
 Project ini dilisensikan di bawah **[MIT License](LICENSE)**.
