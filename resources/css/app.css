@@ -167,3 +167,52 @@
     table, time, .tabular-nums { font-variant-numeric: tabular-nums; }
     ::selection { background: rgb(212 175 55 / 0.28); color: var(--color-navy-950); }
 }
+
+/* --------------------------------------------------------------------------
+   Panel admin: tabel otomatis menjadi kartu di layar < 640px
+   (label kolom diisi oleh skrip di layouts/app.blade.php → data-label)
+   -------------------------------------------------------------------------- */
+@media (max-width: 639.98px) {
+    .tabel-kartu, .tabel-kartu tbody, .tabel-kartu tr, .tabel-kartu td { display: block; width: 100%; }
+    .tabel-kartu thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    .tabel-kartu { border: 0; background: transparent; min-width: 0 !important; }
+    .tabel-kartu tbody { display: grid; gap: 0.625rem; }
+    .tabel-kartu tr {
+        background: #fff; border-radius: 1rem; padding: 0.75rem 1rem;
+        box-shadow: 0 0 0 1px var(--color-ivory-300); border: 0 !important;
+    }
+    .tabel-kartu td {
+        display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem;
+        padding: 0.4rem 0 !important; border: 0 !important; text-align: right; font-size: 0.875rem;
+        white-space: normal !important;
+    }
+    .tabel-kartu td + td { border-top: 1px dashed var(--color-ivory-300) !important; }
+    .tabel-kartu td::before {
+        content: attr(data-label); flex-shrink: 0; max-width: 45%; text-align: left;
+        font-size: 0.75rem; font-weight: 600; color: var(--color-navy-400); padding-top: 0.1rem;
+    }
+    .tabel-kartu td[data-label=""]::before { display: none; }
+    .tabel-kartu td[data-label=""] { justify-content: flex-end; }
+    .tabel-kartu td[colspan] { justify-content: center; text-align: center; }
+    .tabel-kartu td[colspan]::before { display: none; }
+    /* Wadah tabel lama yang memaksa scroll horizontal tidak diperlukan lagi */
+    #konten .overflow-x-auto:has(> .tabel-kartu) { overflow: visible; }
+}
+
+/* Panel admin di HP: rapatkan komponen yang terlalu besar */
+@media (max-width: 639.98px) {
+    #konten :is(.p-8, .p-10) { padding: 1.25rem; }
+    #konten :is(.text-3xl, .text-4xl) { font-size: 1.5rem; line-height: 2rem; }
+    #konten :is(.rounded-\[2rem\], .rounded-\[2\.5rem\], .rounded-3xl) { border-radius: 1.25rem; }
+    #konten :is(.gap-8, .gap-10) { gap: 1rem; }
+}
+
+/* Scrollbar tipis untuk permukaan gelap (sidebar console) */
+@layer utilities {
+    .scroll-gelap { scrollbar-width: thin; scrollbar-color: rgb(255 255 255 / 0.12) transparent; }
+    .scroll-gelap:hover { scrollbar-color: rgb(255 255 255 / 0.28) transparent; }
+    .scroll-gelap::-webkit-scrollbar { width: 6px; }
+    .scroll-gelap::-webkit-scrollbar-track { background: transparent; }
+    .scroll-gelap::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 0.12); border-radius: 9999px; }
+    .scroll-gelap:hover::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 0.28); }
+}

@@ -47,6 +47,20 @@ class RiwayatAbsensi extends Component
         return $grouped;
     }
 
+    /** Geser bulan filter (navigasi ‹ › di mobile); tidak melewati bulan berjalan */
+    public function geserBulan(int $arah): void
+    {
+        $tgl = CarbonCarbon::create((int) $this->filterTahun, (int) $this->filterBulan, 1)->addMonths($arah > 0 ? 1 : -1);
+        if ($tgl->greaterThan(now()->startOfMonth())) {
+            return;
+        }
+        $this->filterBulan = $tgl->format('m');
+        $this->filterTahun = $tgl->format('Y');
+        if (method_exists($this, 'resetPage')) {
+            $this->resetPage();
+        }
+    }
+
     public function render()
     {
         return view('livewire.absensi.tendik.riwayat-absensi', [

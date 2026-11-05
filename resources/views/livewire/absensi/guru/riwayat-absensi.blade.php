@@ -15,15 +15,7 @@
             <p class="text-[12px] font-medium text-navy-400">Absensi saya</p>
             <h1 class="font-heading text-[1.35rem] font-semibold leading-tight text-navy-900">Riwayat</h1>
         </div>
-        <label class="relative">
-            <span class="sr-only">Bulan</span>
-            <select wire:model.live="filterBulan" class="h-10 appearance-none rounded-full border-0 bg-white pl-4 pr-9 text-[13px] font-semibold text-navy-800 ring-1 ring-ivory-300 focus:ring-2 focus:ring-gold-500">
-                @for ($i = 1; $i <= 12; $i++)
-                    <option value="{{ str_pad($i, 2, '0', STR_PAD_LEFT) }}">{{ \Carbon\Carbon::create()->month($i)->locale('id')->isoFormat('MMMM') }}</option>
-                @endfor
-            </select>
-            <x-ui.icon name="chevron-kanan" class="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 rotate-90 text-navy-400" />
-        </label>
+        <x-ui.pilih-bulan :bulan="$filterBulan" :tahun="$filterTahun" class="shrink-0" />
     </div>
 
     <div class="mt-4 grid grid-cols-3 gap-2" wire:loading.class="opacity-50">
