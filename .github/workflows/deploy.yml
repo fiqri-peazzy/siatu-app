@@ -48,6 +48,24 @@ jobs:
           npm ci
           npm run build
 
+      # ---------- Paketkan release ----------
+      # Server cPanel tidak punya rsync, jadi kirim sebagai tarball lewat SSH.
+      # storage/ dan .env TIDAK ikut, supaya file upload & config di server aman.
+      - name: Buat tarball release
+        run: |
+          tar -czf /tmp/release.tgz \
+            --exclude='./.git' \
+            --exclude='./.github' \
+            --exclude='./node_modules' \
+            --exclude='./tests' \
+            --exclude='./.env' \
+            --exclude='./storage' \
+            --exclude='./public/storage' \
+            --exclude='./public/hot' \
+            --exclude='./bootstrap/cache/*.php' \
+            .
+          ls -lh /tmp/release.tgz
+
       # ---------- Deploy ----------
       - name: Setup SSH key
         run: |
@@ -56,33 +74,39 @@ jobs:
           chmod 600 ~/.ssh/id_deploy
           ssh-keyscan -p "${{ secrets.SSH_PORT }}" -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Upload file (rsync)
+      - name: Upload release
         run: |
-          rsync -az --delete \
-            -e "ssh -i ~/.ssh/id_deploy -p ${{ secrets.SSH_PORT }}" \
-            --exclude='/.git/' \
-            --exclude='/.github/' \
-            --exclude='/node_modules/' \
-            --exclude='/tests/' \
-            --exclude='/.env' \
-            --exclude='/storage/' \
-            --exclude='/public/storage' \
-            --exclude='/bootstrap/cache/*.php' \
-            ./ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.DEPLOY_PATH }}/"
+          ssh -i ~/.ssh/id_deploy -p "${{ secrets.SSH_PORT }}" \
+            "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
+            "cat > ~/siatu-release.tgz" < /tmp/release.tgz
 
-      - name: Post-deploy (migrate & cache)
+      - name: Extract, migrate & cache
         run: |
           ssh -i ~/.ssh/id_deploy -p "${{ secrets.SSH_PORT }}" \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" bash -s <<'EOF'
           set -e
-          cd "${{ secrets.DEPLOY_PATH }}"
+          APP="${{ secrets.DEPLOY_PATH }}"
           PHP="${{ secrets.PHP_BIN || 'php' }}"
+          mkdir -p "$APP"
+          cd "$APP"
 
-          mkdir -p storage/app/public storage/logs \
+          mkdir -p storage/app/public storage/app/private storage/logs \
                    storage/framework/cache/data storage/framework/sessions storage/framework/views \
                    bootstrap/cache
 
-          $PHP artisan down --retry=15 || true
+          # Maintenance mode (hanya jika app sudah pernah ter-deploy)
+          if [ -f artisan ] && [ -d vendor ]; then $PHP artisan down --retry=15 || true; fi
+
+          # Bersihkan folder hasil build agar tidak ada file usang, lalu extract
+          rm -rf vendor public/build
+          tar -xzf ~/siatu-release.tgz -C "$APP"
+          rm -f ~/siatu-release.tgz
+
+          if [ ! -f .env ]; then
+            echo "::error::File .env belum ada di $APP — buat dulu di server."
+            exit 1
+          fi
+
           $PHP artisan migrate --force
           [ -e public/storage ] || $PHP artisan storage:link || true
           $PHP artisan optimize:clear
