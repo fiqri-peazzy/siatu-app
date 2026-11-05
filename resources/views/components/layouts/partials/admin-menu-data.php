@@ -38,7 +38,7 @@ return (function () {
             ['Jadwal Pelajaran', 'master.jadwal.index', 'master.jadwal.*', 'jadwal', null],
         ],
         'Sistem' => [
-            ['Pengaturan Lokasi', 'administrasi.pengaturan-lokasi', 'administrasi.pengaturan-lokasi', 'lokasi', $admin],
+            ['Pengaturan Sistem', 'sistem.pengaturan', 'sistem.pengaturan', 'pengaturan', $admin],
             ['Pengguna', 'sistem.user', 'sistem.user', 'pengguna', $admin],
         ],
     ];

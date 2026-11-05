@@ -104,7 +104,7 @@
             @endif
         </x-ui.panel>
 
-        <x-ui.panel judul="Siswa alfa berulang" keterangan="≥ 3 hari alfa bulan ini">
+        <x-ui.panel judul="Siswa alfa berulang" :keterangan="'≥ '.$ambangAlfa.' hari alfa bulan ini'">
             @forelse ($alfa as $a)
                 <div class="flex items-center justify-between gap-2 border-b border-dashed border-ivory-300 py-2 last:border-0">
                     <div class="min-w-0"><p class="truncate text-[14px] font-semibold text-navy-800">{{ $a['nama'] }}</p><p class="text-[12px] text-navy-400">{{ $a['kelas'] }}</p></div>

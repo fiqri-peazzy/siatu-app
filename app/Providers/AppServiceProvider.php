@@ -11,7 +11,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(\App\Services\PengaturanService::class);
     }
 
     /**
@@ -20,5 +20,10 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Schema::defaultStringLength(191);
+
+        // Identitas sekolah dari Pengaturan Sistem menimpa config('sekolah')
+        if (! $this->app->runningUnitTests()) {
+            app(\App\Services\PengaturanService::class)->terapkanIdentitas();
+        }
     }
 }

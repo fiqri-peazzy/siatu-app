@@ -11,7 +11,8 @@ Artisan::command('inspire', function () {
 // jam yang tergeser upacara/kegiatan tidak ditagih. Hari libur dilewati.
 \Illuminate\Support\Facades\Schedule::call(function () {
     $hariIni = \Carbon\Carbon::today();
-    if (\App\Services\HolidayService::isHoliday($hariIni)) {
+    if (! app(\App\Services\PengaturanService::class)->aktif('reminder_jurnal_aktif')
+        || \App\Services\HolidayService::isHoliday($hariIni)) {
         return;
     }
 
@@ -32,4 +33,5 @@ Artisan::command('inspire', function () {
             $guru->user->notify(new \App\Notifications\ReminderJurnalNotification($pesan));
         }
     }
-})->name('reminder-jurnal-harian')->dailyAt('14:00');
+})->name('reminder-jurnal-harian')
+    ->dailyAt(app(\App\Services\PengaturanService::class)->nilai('reminder_jurnal_jam', '14:00'));

@@ -378,3 +378,17 @@ masuk_buka ─── masuk_tepat (+toleransi) ─── masuk_tutup        pulan
 Kolom `jadwal_sesi_id` (`bigint unsigned`, Nullable, FK ke `jadwal_sesis.id`, Set Null on Delete) menautkan jurnal & absensi siswa ke sesi jadwal v2. Data lama (dari `master_jadwal_pelajarans`) tetap valid dengan nilai `NULL`. Index tambahan: `jurnal_gurus (guru_id, tanggal)`, `absensi_siswas (kelas_id, tanggal)`.
 
 Jurnal tetap disimpan **satu baris per jam × per rombel** (kompatibel dengan rekap lama). Satu *pertemuan* (blok sesi berurutan yang hanya dipisah istirahat) diisi sekali lewat `JurnalService::simpan()`.
+
+### Key tabel `pengaturans` (Pengaturan Sistem, `/sistem/pengaturan`)
+Tidak ada perubahan struktur; baris key–value dikelola `App\Services\PengaturanService` (di-cache, cache dihapus saat simpan).
+
+| Key | Tipe | Keterangan |
+|---|---|---|
+| `lat_sekolah`, `lng_sekolah` | location | Titik koordinat absen |
+| `radius_absen` | number | Radius absen (meter, 10–1000) |
+| `reminder_jurnal_aktif` | notifikasi | `1`/`0` — pengingat jurnal harian (web push) |
+| `reminder_jurnal_jam` | notifikasi | Jam kirim pengingat (`HH:MM`, default `14:00`) |
+| `ambang_alfa_siswa` | notifikasi | Hari alfa/bulan untuk ditandai (default `3`) |
+| `sekolah.{nama,npsn,akreditasi,alamat,kota,provinsi,telepon,email,kepala,nip_kepala,kepala_tu,nip_ka_tu}` | text | Identitas sekolah; bila terisi menimpa `config('sekolah.*')` saat boot (kop surat & laporan) |
+
+Jam absensi guru/tendik per hari tetap di tabel `aturan_absensis` dan kini dapat diubah dari tab **Jam absensi**.

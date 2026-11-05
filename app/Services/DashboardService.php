@@ -144,8 +144,10 @@ class DashboardService
     }
 
     /** Siswa dengan alfa ≥ 3 hari pada bulan berjalan (aturan bisnis CLAUDE.md 5.3) */
-    public function siswaAlfaBerulang(int $minimal = 3, int $batas = 6): array
+    public function siswaAlfaBerulang(?int $minimal = null, int $batas = 6): array
     {
+        $minimal ??= (int) app(PengaturanService::class)->nilai('ambang_alfa_siswa', 3);
+
         return AbsensiSiswa::query()
             ->where('status', 'alfa')
             ->whereYear('tanggal', now()->year)->whereMonth('tanggal', now()->month)

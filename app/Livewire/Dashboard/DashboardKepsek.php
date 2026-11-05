@@ -21,6 +21,7 @@ class DashboardKepsek extends Component
             'belumAbsen' => $d->guruBelumAbsen(),
             'alfa' => $d->siswaAlfaBerulang(),
             'surat' => $d->surat(),
+            'ambangAlfa' => (int) app(\App\Services\PengaturanService::class)->nilai('ambang_alfa_siswa', 3),
         ]);
     }
 }

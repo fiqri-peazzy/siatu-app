@@ -34,7 +34,8 @@ Route::middleware('auth')->group(function () {
     // Administrasi
     Route::prefix('administrasi')->name('administrasi.')->group(function () {
         // Surat Masuk
-        Route::get('/pengaturan-lokasi', \App\Livewire\Administrasi\PengaturanLokasi::class)->name('pengaturan-lokasi');
+        // Dipindah ke Pengaturan Sistem; nama route dipertahankan untuk tautan lama
+        Route::redirect('/pengaturan-lokasi', '/sistem/pengaturan?tab=lokasi')->name('pengaturan-lokasi');
         Route::get('/surat-masuk', \App\Livewire\Administrasi\SuratMasuk\ListSuratMasuk::class)->name('surat-masuk.index');
         Route::get('/surat-masuk/create', \App\Livewire\Administrasi\SuratMasuk\FormSuratMasuk::class)->name('surat-masuk.create');
         Route::get('/surat-masuk/{surat}/edit', \App\Livewire\Administrasi\SuratMasuk\FormSuratMasuk::class)->name('surat-masuk.edit');
@@ -204,6 +205,7 @@ Route::middleware('auth')->group(function () {
     // Sistem / Pengaturan (Hanya Super Admin & Admin TU)
     Route::prefix('sistem')->name('sistem.')->middleware(['role:super-admin|admin-tu'])->group(function () {
         Route::get('/pengguna', \App\Livewire\Sistem\User\ListUser::class)->name('user');
+        Route::get('/pengaturan', \App\Livewire\Sistem\PengaturanSistem::class)->name('pengaturan');
     });
 
     Route::post('/logout', function () {
