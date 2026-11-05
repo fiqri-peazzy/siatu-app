@@ -55,19 +55,16 @@
             </div>
         </header>
 
-        {{-- Bingkai wajah --}}
-        <div x-show="!loadingLokasi && !errorLokasi && !verifikasiBerhasil" aria-hidden="true"
-             class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center pb-24">
-            <div class="aspect-[3/4] w-[64vw] max-w-[17rem] rounded-[50%] shadow-[0_0_0_200vmax_rgb(7_20_42/0.45)] ring-2 ring-white/80">
-                <div class="h-full w-full rounded-[50%] ring-[6px] ring-gold-400/25"></div>
-            </div>
-        </div>
-
         {{-- Panel bawah --}}
         <div x-show="!loadingLokasi && !errorLokasi && !verifikasiBerhasil"
              class="absolute inset-x-0 bottom-0 z-30 flex flex-col items-center px-6 pb-[max(env(safe-area-inset-bottom),1.75rem)] text-white">
-            <p class="mb-5 max-w-[17rem] text-center text-[14px] leading-relaxed text-white/80">Posisikan wajah di dalam bingkai dengan cahaya cukup, lalu ketuk tombol.</p>
-            <button type="button" @click="triggerSuccessCapture()" :disabled="isCapturing" aria-label="Ambil swafoto & absen"
+            {{-- Status deteksi wajah (hanya ada/tidaknya wajah, bukan pencocokan) --}}
+            <p class="mb-5 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-semibold backdrop-blur-md" aria-live="polite"
+               :class="bolehFoto ? 'bg-ok-500/90 text-white' : 'bg-white/15 text-white'">
+                <span class="h-2 w-2 rounded-full" :class="bolehFoto ? 'bg-white' : 'animate-pulse bg-gold-300'"></span>
+                <span x-text="statusWajah">Menyiapkan kamera…</span>
+            </p>
+            <button type="button" @click="triggerSuccessCapture()" :disabled="isCapturing || ! bolehFoto" aria-label="Ambil swafoto & absen"
                     class="group relative flex h-[4.75rem] w-[4.75rem] items-center justify-center rounded-full ring-4 ring-white/90 transition active:scale-95 focus-visible:outline-none focus-visible:ring-gold-400 disabled:opacity-60">
                 <span class="h-[3.9rem] w-[3.9rem] rounded-full bg-white transition group-hover:scale-95 group-disabled:bg-white/70"></span>
                 <span x-show="isCapturing" x-cloak class="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-gold-400"></span>
@@ -146,7 +143,27 @@
             
             isCapturing: false,
             verifikasiBerhasil: false,
-            
+
+            // Deteksi wajah (deteksi keberadaan saja — resources/js/deteksi-wajah.js)
+            jumlahWajah: null,      // null = memuat, 0 = tidak ada, n = jumlah wajah
+            deteksiTersedia: true,  // false bila model gagal dimuat → swafoto tetap diizinkan
+            hentikanDeteksi: null,
+            get bolehFoto() { return ! this.deteksiTersedia || this.jumlahWajah >= 1 },
+            get statusWajah() {
+                if (! this.deteksiTersedia) return 'Ambil swafoto dengan wajah terlihat jelas';
+                if (this.jumlahWajah === null) return 'Menyiapkan deteksi wajah…';
+                if (this.jumlahWajah === 0) return 'Arahkan wajah ke kamera';
+                return this.jumlahWajah > 1 ? 'Wajah terdeteksi — pastikan hanya Anda' : 'Wajah terdeteksi ✓';
+            },
+            mulaiDeteksi() {
+                this.hentikanDeteksi?.();
+                this.hentikanDeteksi = window.siatuPantauWajah?.(this.videoEl, ({ tersedia, wajah }) => {
+                    this.deteksiTersedia = tersedia;
+                    this.jumlahWajah = wajah;
+                }) ?? null;
+                if (! window.siatuPantauWajah) this.deteksiTersedia = false;
+            },
+
             async init() {
                 // Jangan nyalakan kamera/GPS bila di luar jendela waktu absen
                 if (@js($waktuDitolak)) return;
@@ -159,6 +176,7 @@
             },
             
             closeModalAndGoBack() {
+                this.hentikanDeteksi?.();
                 if (this.stream) {
                     this.stream.getTracks().forEach(track => track.stop());
                 }
@@ -222,7 +240,8 @@
                     this.videoEl.srcObject = this.stream;
                     
                     await this.videoEl.play();
-                    this.modelLoading = false; // We use modelLoading flag for initial camera load now
+                    this.modelLoading = false;
+                    this.mulaiDeteksi(); // We use modelLoading flag for initial camera load now
                 } catch (err) {
                     console.warn("Kamera depan (user) gagal, mencoba fallback ke kamera default...", err);
                     try {
@@ -232,6 +251,7 @@
                         
                         await this.videoEl.play();
                         this.modelLoading = false;
+                    this.mulaiDeteksi();
                     } catch (fallbackErr) {
                         console.error("Kamera tetap gagal diakses:", fallbackErr);
                         Swal.fire({
@@ -247,6 +267,8 @@
             },
 
             triggerSuccessCapture() {
+                if (! this.bolehFoto || this.isCapturing) return;
+                this.hentikanDeteksi?.();
                 // Show loading state while submitting to backend
                 this.isCapturing = true;
                 this.loadingLokasi = true;

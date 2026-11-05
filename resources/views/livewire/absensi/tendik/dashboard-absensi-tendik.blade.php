@@ -106,6 +106,14 @@
                         <svg class="w-4 h-4 group-hover:-translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
                         Export Excel
                     </button>
+
+                    {{-- Rekap bulanan: matriks 1–31 + detail harian (2 sheet, kop resmi) --}}
+                    <form method="GET" action="{{ route('akademik.absensi.rekap-bulanan') }}" class="flex w-full items-center gap-2 md:w-auto">
+                        <input type="hidden" name="kategori" value="tendik">
+                        <input type="month" name="bulan" value="{{ now()->format('Y-m') }}" max="{{ now()->format('Y-m') }}" required aria-label="Bulan rekap"
+                               class="h-10 flex-1 rounded-xl border-0 bg-white px-3 text-sm text-navy-800 ring-1 ring-ivory-400 focus:ring-2 focus:ring-gold-500 md:flex-none">
+                        <button type="submit" class="inline-flex h-10 shrink-0 items-center gap-2 rounded-xl bg-navy-900 px-4 text-sm font-semibold text-white hover:bg-navy-800">Rekap bulanan</button>
+                    </form>
                 </div>
             </div>
 

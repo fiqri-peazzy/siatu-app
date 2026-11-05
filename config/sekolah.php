@@ -10,7 +10,10 @@ return [
     |
     */
 
-    'nama'        => env('SEKOLAH_NAMA', 'SMA Negeri 1 Contoh'),
+    // Baris kop di atas nama sekolah (pisahkan baris dengan |)
+    'induk'       => env('SEKOLAH_INDUK', 'MAJELIS PENDIDIKAN DASAR DAN MENENGAH|PIMPINAN DAERAH MUHAMMADIYAH KOTA GORONTALO'),
+    'nama'        => env('SEKOLAH_NAMA', 'SMA Muhammadiyah Kota Gorontalo'),
+    'akreditasi'  => env('SEKOLAH_AKREDITASI', ''),
     'npsn'        => env('SEKOLAH_NPSN', ''),
     'alamat'      => env('SEKOLAH_ALAMAT', ''),
     'kota'        => env('SEKOLAH_KOTA', ''),

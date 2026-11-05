@@ -168,6 +168,10 @@ Route::middleware('auth')->group(function () {
         // Monitoring (Web Dashboard)
         Route::get('/absensi/monitoring', \App\Livewire\Absensi\DashboardAbsensiHariIni::class)->name('absensi.monitoring');
         Route::get('/absensi/tendik/monitoring', \App\Livewire\Absensi\Tendik\DashboardAbsensiTendik::class)->name('absensi.tendik.monitoring');
+
+        // Rekap kehadiran bulanan (Excel 2 sheet, kop resmi) — pimpinan & TU
+        Route::get('/absensi/rekap-bulanan', \App\Http\Controllers\Akademik\ExportRekapKehadiranController::class)
+            ->middleware('role:admin-tu|kepala-sekolah|super-admin')->name('absensi.rekap-bulanan');
     });
 
     // Supervisi

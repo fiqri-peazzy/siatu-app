@@ -33,6 +33,9 @@ Branch kerja: `v2`. Merge ke `main` **per tahap**, setelah dites — setiap push
 - [x] Integrasi ke form absen guru & tendik (cek sebelum kamera dibuka)
 - [ ] Halaman Pengaturan Sistem (tab: Lokasi & Radius, Jam Absensi, Notifikasi, Identitas Sekolah) — dibangun dengan design system Tahap 2
 
+### Catatan teknologi tambahan
+- Deteksi keberadaan wajah saat swafoto absen: MediaPipe Face Detector (`@mediapipe/tasks-vision` via CDN, model blaze_face_short_range). Hanya deteksi, bukan pengenalan wajah; bila gagal dimuat absen tetap bisa.
+
 ### Tahap 2 — Design system
 - [x] Token awal di `resources/css/app.css` (navy · gold · ivory, status, font Poppins + Plus Jakarta Sans, safe-area, varian `short:` untuk landscape)
 - [x] Komponen pertama: `<x-absensi.jendela-waktu>`, layar absen di luar jam, sheet pulang cepat, banner tendik — diuji di 320/390/430/768/landscape

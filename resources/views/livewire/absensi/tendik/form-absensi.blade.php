@@ -173,9 +173,14 @@
     
                                     <!-- Manual Capture Button -->
                                     <div x-show="!modelLoading && !verifikasiBerhasil" class="absolute inset-x-0 bottom-12 z-20 flex flex-col items-center justify-center">
-                                        <button type="button" 
-                                                @click="triggerSuccessCapture()" 
-                                                :disabled="isCapturing"
+                                        <p class="mb-4 inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-[13px] font-semibold text-white backdrop-blur-md" aria-live="polite"
+                                           :class="bolehFoto ? 'bg-ok-500/90' : 'bg-navy-950/50'">
+                                            <span class="h-2 w-2 rounded-full" :class="bolehFoto ? 'bg-white' : 'animate-pulse bg-gold-300'"></span>
+                                            <span x-text="statusWajah">Menyiapkan kamera…</span>
+                                        </p>
+                                        <button type="button"
+                                                @click="triggerSuccessCapture()"
+                                                :disabled="isCapturing || ! bolehFoto"
                                                 class="relative group focus:outline-none focus:ring-4 focus:ring-gold-400/30 rounded-full transition-all duration-300 transform active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
                                             <!-- Outer ring -->
                                             <div class="absolute inset-0 bg-white/20 rounded-full backdrop-blur-sm group-hover:bg-white/30 transition-colors"></div>
@@ -253,6 +258,7 @@
             closeModal() {
                 this.showLivenessModal = false;
                 if (this.stream) {
+                    this.hentikanDeteksi?.();
                     this.stream.getTracks().forEach(track => track.stop());
                 }
                 if (this.detectionInterval) clearInterval(this.detectionInterval);
@@ -316,13 +322,37 @@
                     video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } } 
                 });
                 this.videoEl.srcObject = this.stream;
+                await this.videoEl.play().catch(() => {});
+                this.mulaiDeteksi();
             } catch (err) {
                 console.error(err);
                 window.showAppAlert.error('Gagal mengakses kamera depan.');
             }
         },
 
+        // Deteksi wajah (deteksi keberadaan saja — resources/js/deteksi-wajah.js)
+        jumlahWajah: null,
+        deteksiTersedia: true,
+        hentikanDeteksi: null,
+        get bolehFoto() { return ! this.deteksiTersedia || this.jumlahWajah >= 1 },
+        get statusWajah() {
+            if (! this.deteksiTersedia) return 'Ambil swafoto dengan wajah terlihat jelas';
+            if (this.jumlahWajah === null) return 'Menyiapkan deteksi wajah…';
+            if (this.jumlahWajah === 0) return 'Arahkan wajah ke kamera';
+            return this.jumlahWajah > 1 ? 'Wajah terdeteksi — pastikan hanya Anda' : 'Wajah terdeteksi ✓';
+        },
+        mulaiDeteksi() {
+            this.hentikanDeteksi?.();
+            this.hentikanDeteksi = window.siatuPantauWajah?.(this.videoEl, ({ tersedia, wajah }) => {
+                this.deteksiTersedia = tersedia;
+                this.jumlahWajah = wajah;
+            }) ?? null;
+            if (! window.siatuPantauWajah) this.deteksiTersedia = false;
+        },
+
         triggerSuccessCapture() {
+            if (! this.bolehFoto || this.isCapturing) return;
+            this.hentikanDeteksi?.();
             this.isCapturing = true;
             this.verifikasiBerhasil = true;
             
