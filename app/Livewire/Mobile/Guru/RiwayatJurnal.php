@@ -63,7 +63,7 @@ class RiwayatJurnal extends Component
     /** Geser bulan filter (navigasi ‹ › di mobile); tidak melewati bulan berjalan */
     public function geserBulan(int $arah): void
     {
-        $tgl = CarbonCarbon::create((int) $this->filterTahun, (int) $this->filterBulan, 1)->addMonths($arah > 0 ? 1 : -1);
+        $tgl = now()->startOfDay()->setDate((int) $this->filterTahun, (int) $this->filterBulan, 1)->addMonths($arah > 0 ? 1 : -1);
         if ($tgl->greaterThan(now()->startOfMonth())) {
             return;
         }

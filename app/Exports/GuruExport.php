@@ -29,11 +29,12 @@ class GuruExport implements FromCollection, WithHeadings, WithMapping, WithStyle
             $guru->tanggal_lahir ? $guru->tanggal_lahir->format('d/m/Y') : '-',
             $guru->jabatan ?? '-',
             $guru->mapel ? $guru->mapel->nama : '-',
-            $guru->status_kepegawaian ?? '-',
+            // Kolom ber-cast Enum → label teks (Enum tidak bisa langsung ditulis ke sel)
+            $guru->status_kepegawaian?->label() ?? '-',
             $guru->no_hp ?? '-',
             $guru->email ?? '-',
             $guru->alamat ?? '-',
-            $guru->status === 'aktif' ? 'Aktif' : 'Nonaktif',
+            $guru->status?->label() ?? '-',
         ];
     }
 

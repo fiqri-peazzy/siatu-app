@@ -35,7 +35,7 @@
             <th style="text-align: center; font-weight: bold; width: 150px;">Nama Guru</th>
             <th style="text-align: center; font-weight: bold; width: 150px;">Mapel</th>
             <th style="text-align: center; font-weight: bold; width: 100px;">Rombel</th>
-            <th style="text-align: center; font-weight: bold; width: 200px;">KD / CP & Materi</th>
+            <th style="text-align: center; font-weight: bold; width: 200px;">KD / CP &amp; Materi</th>
             <th style="text-align: center; font-weight: bold; width: 200px;">Kegiatan / Tugas</th>
             <th style="text-align: center; font-weight: bold; width: 40px; color: green;">H</th>
             <th style="text-align: center; font-weight: bold; width: 40px; color: blue;">I</th>
