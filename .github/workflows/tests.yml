@@ -37,4 +37,14 @@ jobs:
           php artisan key:generate
 
       - name: Run tests
-        run: php artisan test
+        shell: bash
+        run: |
+          set +e
+          php artisan test --compact 2>&1 | tee test-output.txt
+          status=${PIPESTATUS[0]}
+          if [ "$status" -ne 0 ]; then
+            # Ringkasan kegagalan sebagai annotation (bisa dibaca tanpa login ke log job)
+            summary=$(grep -vE '^\s*$' test-output.txt | tail -80 | sed -e 's/%/%25/g' | awk '{printf "%s%%0A", $0}')
+            echo "::error title=Test gagal::${summary}"
+          fi
+          exit $status
