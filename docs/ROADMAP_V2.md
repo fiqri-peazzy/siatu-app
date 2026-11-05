@@ -15,7 +15,9 @@ Branch kerja: `v2`. Merge ke `main` **per tahap**, setelah dites — setiap push
 
 ### Tahap 1 — Fondasi jadwal fleksibel
 - [x] Skema: `master_pola_jams`, `master_slot_jams`, `master_pengampus`, `jadwal_sesis`, `jadwal_sesi_kelas`, kolom `master_kelas.kode`
-- [x] Data jadwal Semester Ganjil 2026/2027 (transkripsi foto) — **perlu verifikasi** (lihat `database/seeders/data/jadwal_2026_2027_ganjil.php`)
+- [x] Data jadwal Semester Ganjil 2026/2027 (transkripsi foto, diverifikasi developer)
+- [x] Pengecualian jadwal per tanggal (`jadwal_pengecualians`): upacara ditiadakan/molor, kegiatan sisipan → `JadwalService::jadwalEfektif()`
+- [ ] Modul admin: Pengecualian jadwal (kalender harian)
 - [x] Seeder: 6 rombel, mapel baru, pola jam, sesi, pengampu acak
 - [ ] Modul admin: Guru Pengampu (matriks mapel × rombel)
 - [ ] Modul admin: Jadwal (grid per hari, edit sesi, deteksi bentrok guru)

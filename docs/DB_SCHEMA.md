@@ -327,3 +327,21 @@ Pembagian tugas mengajar: guru pengampu satu mapel di satu rombel.
 | `mapel_id` | `bigint(20) unsigned` | FK ke `master_mapels.id` (Cascade Delete) |
 | `guru_id` | `bigint(20) unsigned` | FK ke `master_gurus.id` (Nullable = belum ditentukan, Set Null) |
 | `created_at`, `updated_at` | `timestamp` | Timestamps. Unique (`tahun_ajaran_id`, `kelas_id`, `mapel_id`) |
+
+### 17. `jadwal_pengecualians` (Model: `JadwalPengecualian`)
+Penyesuaian jadwal untuk satu tanggal tanpa mengubah pola jam induk. Dihitung oleh `JadwalService::jadwalEfektif($tanggal)`: jam pelajaran yang tertutup penuh oleh upacara/kegiatan sisipan berstatus `tergeser` (tidak wajib jurnal), yang tertutup sebagian berstatus `terpotong` (jam disesuaikan).
+
+Contoh: upacara Senin (07.00–07.45) menimpa jam ke-I; bila upacara **ditiadakan** (hujan), jam ke-I berjalan normal; bila **molor** sampai 08.00, jam ke-II terpotong mulai 08.00.
+
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | `bigint(20) unsigned` | Primary Key |
+| `tanggal` | `date` | Tanggal berlaku (Index) |
+| `slot_jam_id` | `bigint(20) unsigned` | FK ke `master_slot_jams.id` (Nullable untuk aksi `tambah`, Cascade Delete) |
+| `aksi` | `varchar(30)` | `tiadakan` / `ubah_waktu` / `tambah` (Enum `AksiPengecualianJadwal`) |
+| `label` | `varchar(255)` | Nama kegiatan sisipan (Nullable) |
+| `jam_mulai`, `jam_selesai` | `time` | Waktu baru (`ubah_waktu`) atau waktu kegiatan (`tambah`) — Nullable |
+| `keterangan` | `text` | Alasan, mis. "Hujan" (Nullable) |
+| `dibuat_oleh` | `bigint(20) unsigned` | FK ke `users.id` (Nullable, Set Null) |
+| `deleted_at` | `timestamp` | Soft Deletes |
+| `created_at`, `updated_at` | `timestamp` | Timestamps |

@@ -2,9 +2,14 @@
 
 namespace App\Services;
 
+use App\Enums\AksiPengecualianJadwal;
+use App\Enums\Hari;
 use App\Enums\JenisSesi;
 use App\Enums\JenisSlotJam;
+use App\Models\JadwalPengecualian;
 use App\Models\JadwalSesi;
+use App\Models\Master\MasterSlotJam;
+use Carbon\Carbon;
 use App\Models\Master\MasterGuru;
 use App\Models\Master\MasterKelas;
 use App\Models\Master\MasterMapel;
@@ -122,6 +127,111 @@ class JadwalService
                     }
                 }
             });
+    }
+
+    /**
+     * Jadwal yang benar-benar berlaku pada satu tanggal: pola jam induk +
+     * pengecualian tanggal itu (tiadakan / ubah waktu / kegiatan sisipan).
+     *
+     * Jam pelajaran yang bertabrakan dengan upacara/kegiatan sisipan:
+     *  - tertutup penuh → status 'tergeser' (tidak berlangsung, tidak wajib jurnal)
+     *  - tertutup sebagian → status 'terpotong', jam mulai/selesai disesuaikan
+     *
+     * Libur sehari penuh (master_hari_liburs / HolidayService) ditangani pemanggil.
+     *
+     * @return Collection<int, array{slot: ?MasterSlotJam, jenis: string, jam_ke: ?int, label: ?string,
+     *                               mulai: string, selesai: string, status: string, catatan: ?string}>
+     */
+    public function jadwalEfektif(Carbon $tanggal, ?MasterPolaJam $pola = null): Collection
+    {
+        $pola ??= $this->polaAktif();
+        $hari = Hari::fromIso($tanggal->dayOfWeekIso);
+
+        if (! $pola || ! $hari) {
+            return collect();
+        }
+
+        $pengecualian = JadwalPengecualian::query()->whereDate('tanggal', $tanggal)->get();
+        $perSlot = $pengecualian->whereNotNull('slot_jam_id')->keyBy('slot_jam_id');
+
+        $items = $pola->slots()->where('hari', $hari->value)->get()->map(function (MasterSlotJam $slot) use ($perSlot) {
+            $p = $perSlot->get($slot->id);
+
+            return [
+                'slot' => $slot,
+                'jenis' => $slot->jenis->value,
+                'jam_ke' => $slot->jam_ke,
+                'label' => $slot->label,
+                'mulai' => substr($p?->jam_mulai ?? $slot->jam_mulai, 0, 5),
+                'selesai' => substr($p?->jam_selesai ?? $slot->jam_selesai, 0, 5),
+                'status' => match ($p?->aksi) {
+                    AksiPengecualianJadwal::TIADAKAN => 'ditiadakan',
+                    AksiPengecualianJadwal::UBAH_WAKTU => 'diubah',
+                    default => 'normal',
+                },
+                'catatan' => $p?->keterangan,
+            ];
+        });
+
+        $sisipan = $pengecualian
+            ->where('aksi', AksiPengecualianJadwal::TAMBAH)
+            ->map(fn (JadwalPengecualian $p) => [
+                'slot' => null,
+                'jenis' => 'sisipan',
+                'jam_ke' => null,
+                'label' => $p->label,
+                'mulai' => substr($p->jam_mulai, 0, 5),
+                'selesai' => substr($p->jam_selesai, 0, 5),
+                'status' => 'sisipan',
+                'catatan' => $p->keterangan,
+            ]);
+
+        // Blok penghalang: upacara yang tetap berlangsung + kegiatan sisipan
+        $penghalang = $items
+            ->filter(fn ($i) => $i['jenis'] === JenisSlotJam::UPACARA->value && $i['status'] !== 'ditiadakan')
+            ->concat($sisipan);
+
+        $items = $items->map(function (array $item) use ($penghalang) {
+            if ($item['jenis'] !== JenisSlotJam::PELAJARAN->value || $item['status'] === 'ditiadakan') {
+                return $item;
+            }
+
+            foreach ($penghalang as $blok) {
+                $tumpangTindih = $blok['mulai'] < $item['selesai'] && $blok['selesai'] > $item['mulai'];
+                if (! $tumpangTindih) {
+                    continue;
+                }
+
+                $tertutupAwal = $blok['mulai'] <= $item['mulai'];
+                $tertutupAkhir = $blok['selesai'] >= $item['selesai'];
+
+                if ($tertutupAwal && $tertutupAkhir) {
+                    return [...$item, 'status' => 'tergeser', 'catatan' => 'Tergeser oleh '.($blok['label'] ?? 'kegiatan')];
+                }
+
+                $item = [
+                    ...$item,
+                    'mulai' => $tertutupAwal ? $blok['selesai'] : $item['mulai'],
+                    'selesai' => $tertutupAkhir ? $blok['mulai'] : $item['selesai'],
+                    'status' => 'terpotong',
+                    'catatan' => 'Terpotong oleh '.($blok['label'] ?? 'kegiatan'),
+                ];
+            }
+
+            return $item;
+        });
+
+        return $items->concat($sisipan)->sortBy('mulai')->values();
+    }
+
+    /** Pola jam aktif pada tahun ajaran aktif */
+    public function polaAktif(): ?MasterPolaJam
+    {
+        return MasterPolaJam::query()
+            ->aktif()
+            ->whereHas('tahunAjaran', fn ($q) => $q->where('is_active', true))
+            ->latest('id')
+            ->first();
     }
 
     // ------------------------------------------------------------------

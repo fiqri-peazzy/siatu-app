@@ -4,7 +4,7 @@
  * Jadwal Pelajaran Semester Ganjil TP 2026/2027 — SMAMGo Islamic Global School
  * Transkripsi dari foto dokumen resmi (ditandatangani Kepala Sekolah & Wakasek Kurikulum, Juli 2026).
  *
- * ⚠ PERLU VERIFIKASI: foto diputar & beresolusi rendah. Baris bertanda "⚠" paling meragukan.
+ * Diverifikasi developer 6 Nov 2026. Tanda "⚠" = sel yang sempat diragukan saat transkripsi.
  *
  * FORMAT SLOT
  *   [jam_ke, mulai, selesai, isi]
@@ -73,7 +73,9 @@ return [
 
     'hari' => [
         'senin' => [
-            [null, '07:00', '07:15', ['upacara', 'Upacara Bendera']], // ⚠ foto: 07.00–07.45, bentrok dgn jam ke-I
+            // Upacara menimpa jam ke-I. Jika upacara ditiadakan pada suatu tanggal
+            // (tabel jadwal_pengecualians), jam ke-I berjalan normal.
+            [null, '07:00', '07:45', ['upacara', 'Upacara Bendera']],
             [1, '07:15', '07:45', ['X' => 'PAI', 'XI' => 'PKN', 'XII' => 'BING-TKA']],  // ⚠
             [2, '07:45', '08:15', ['X' => 'PKN', 'XI' => 'BIND', 'XII' => 'BING-TKA']], // ⚠
             [3, '08:15', '08:45', ['X' => 'BIND', 'XI' => 'PAI', 'XII' => 'BIO|MATL|BINGTL']], // ⚠

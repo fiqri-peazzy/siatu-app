@@ -40,4 +40,8 @@ return [
         'endpoint' => env('FONNTE_ENDPOINT', 'https://api.fonnte.com/send'),
     ],
 
+    'api_indonesia' => [
+        'key' => env('API_INDONESIA_KEYS'),
+    ],
+
 ];

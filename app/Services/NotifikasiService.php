@@ -13,8 +13,9 @@ class NotifikasiService
      */
     public function sendWhatsApp(string $nomorHp, string $pesan): bool
     {
-        $token = env('FONNTE_TOKEN');
-        $endpoint = env('FONNTE_ENDPOINT', 'https://api.fonnte.com/send');
+        // Lewat config(), bukan env(): env() bernilai null saat config di-cache (production)
+        $token = config('services.fonnte.token');
+        $endpoint = config('services.fonnte.endpoint', 'https://api.fonnte.com/send');
 
         if (empty($token) || empty($nomorHp)) {
             Log::info('--- SIMULASI WHATSAPP TERKIRIM ---');

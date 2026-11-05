@@ -20,7 +20,8 @@ class HolidayService
 
         return Cache::remember($cacheKey, 60 * 60 * 24 * 30, function () use ($year) {
             try {
-                $apiKey = env('API_INDONESIA_KEYS');
+                // Lewat config(), bukan env(): env() bernilai null saat config di-cache (production)
+                $apiKey = config('services.api_indonesia.key');
                 if (!$apiKey) {
                     Log::warning("API_INDONESIA_KEYS is not set in .env");
                     return [];
