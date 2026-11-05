@@ -9,7 +9,8 @@ Branch kerja: `v2`. Merge ke `main` **per tahap**, setelah dites — setiap push
 | Rombel | 1 rombel per program: X/XI/XII × Science (IPA) / Social (IPS) = 6 rombel |
 | Sesi gabungan | 1 jurnal per sesi; absensi siswa tetap dicatat per rombel |
 | Guru pengampu | Diatur per **mapel × rombel** (bukan per jam); awalnya diisi acak, lalu disetel admin |
-| Palet warna | Menunggu referensi dari developer (logo/warna resmi sekolah) |
+| Palet warna | Mengikuti website sekolah (smamg-platform.vercel.app): navy `#0e2a55`, gold `#d4af37`, ivory `#f6f4ee`; font Poppins + Plus Jakarta Sans — diolah jadi gaya "console" yang lebih kaya |
+| Upacara Senin | 07.00–07.45, menimpa jam ke-I; fleksibel per tanggal via `jadwal_pengecualians` |
 
 ## Tahap
 
