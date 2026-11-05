@@ -12,6 +12,7 @@ class MasterKelas extends Model
 
 
     protected $fillable = [
+        'kode',
         'nama',
         'tingkat',
         'jurusan',
@@ -32,5 +33,15 @@ class MasterKelas extends Model
     public function siswa(): HasMany
     {
         return $this->hasMany(MasterSiswa::class, 'kelas_id');
+    }
+
+    public function pengampus(): HasMany
+    {
+        return $this->hasMany(MasterPengampu::class, 'kelas_id');
+    }
+
+    public function jadwalSesis(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(\App\Models\JadwalSesi::class, 'jadwal_sesi_kelas', 'kelas_id', 'jadwal_sesi_id');
     }
 }

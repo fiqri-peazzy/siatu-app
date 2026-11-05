@@ -67,9 +67,10 @@ Menyimpan data rombongan belajar (kelas).
 | Kolom | Tipe Data | Keterangan |
 | :--- | :--- | :--- |
 | `id` | `bigint(20) unsigned` | Primary Key |
-| `nama` | `varchar(255)` | Nama kelas |
+| `kode` | `varchar(20)` | Kode rombel stabil untuk import/referensi, mis. `X-SCI`, `XI-SOC` (Nullable; Unique per `tahun_ajaran_id`) |
+| `nama` | `varchar(255)` | Nama kelas (mis. "X Science") |
 | `tingkat` | `varchar(255)` | Tingkat kelas (X, XI, XII) |
-| `jurusan` | `varchar(255)` | Jurusan (IPA, IPS, Bahasa, dll) |
+| `jurusan` | `varchar(255)` | Program: `IPA` (Science) / `IPS` (Social) (Nullable) |
 | `wali_kelas_id` | `bigint(20) unsigned` | FK ke `master_gurus.id` (Nullable, Set Null on Delete) |
 | `tahun_ajaran_id` | `bigint(20) unsigned` | FK ke `master_tahun_ajarans.id` (Cascade Delete) |
 | `deleted_at` | `timestamp` | Soft Deletes |
@@ -250,3 +251,79 @@ Menyimpan riwayat disposisi surat masuk berjenjang.
    - `dari_user_id` -> `users.id`
    - `ke_user_id` -> `users.id`
 
+
+---
+
+## Jadwal v2 (Pola Jam, Sesi, Pengampu)
+
+Struktur jadwal fleksibel yang menggantikan `master_jadwal_pelajarans` (tabel lama tetap ada sampai semua pemakainya dimigrasi). Lihat `docs/ROADMAP_V2.md`.
+
+```
+master_tahun_ajarans 1─* master_pola_jams 1─* master_slot_jams 1─* jadwal_sesis *─* master_kelas
+                                                                     │  (pivot jadwal_sesi_kelas)
+                                                                     ├─ master_mapels (nullable)
+                                                                     └─ master_gurus  (nullable, sinkron dari pengampu)
+master_pengampus: tahun_ajaran × kelas × mapel → guru
+```
+
+### 12. `master_pola_jams` (Model: `Master\MasterPolaJam`)
+Template struktur waktu sekolah per tahun ajaran. Format jadwal baru (kurikulum/jam masuk berubah) cukup dibuat sebagai pola baru.
+
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | `bigint(20) unsigned` | Primary Key |
+| `tahun_ajaran_id` | `bigint(20) unsigned` | FK ke `master_tahun_ajarans.id` (Cascade Delete) |
+| `nama` | `varchar(255)` | Nama pola, mis. "Pola Jam Semester Ganjil 2026/2027" |
+| `keterangan` | `text` | Nullable |
+| `is_active` | `tinyint(1)` | Pola yang berlaku (satu aktif per tahun ajaran) |
+| `created_at`, `updated_at` | `timestamp` | Timestamps |
+
+### 13. `master_slot_jams` (Model: `Master\MasterSlotJam`)
+Satu baris waktu dalam satu hari pada sebuah pola.
+
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | `bigint(20) unsigned` | Primary Key |
+| `pola_jam_id` | `bigint(20) unsigned` | FK ke `master_pola_jams.id` (Cascade Delete) |
+| `hari` | `varchar(10)` | `senin`..`sabtu` (Enum `Hari`) |
+| `urutan` | `tinyint unsigned` | Urutan dalam hari. Unique (`pola_jam_id`, `hari`, `urutan`) |
+| `jam_ke` | `tinyint unsigned` | Nomor jam pelajaran; Nullable untuk istirahat/upacara |
+| `jam_mulai`, `jam_selesai` | `time` | Rentang waktu |
+| `jenis` | `varchar(30)` | `pelajaran` / `istirahat` / `upacara` (Enum `JenisSlotJam`) |
+| `label` | `varchar(255)` | Nullable, mis. "Istirahat / Shalat Dhuha", "ISHOMA" |
+| `created_at`, `updated_at` | `timestamp` | Timestamps |
+
+### 14. `jadwal_sesis` (Model: `JadwalSesi`)
+Isi sebuah slot untuk satu/lebih rombel.
+
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | `bigint(20) unsigned` | Primary Key |
+| `slot_jam_id` | `bigint(20) unsigned` | FK ke `master_slot_jams.id` (Cascade Delete) |
+| `jenis` | `varchar(30)` | `pembelajaran` / `pilihan` / `kegiatan` (Enum `JenisSesi`) |
+| `mapel_id` | `bigint(20) unsigned` | FK ke `master_mapels.id` (Nullable untuk kegiatan, Set Null on Delete) |
+| `guru_id` | `bigint(20) unsigned` | FK ke `master_gurus.id` (Nullable, Set Null). Disinkronkan dari `master_pengampus` |
+| `guru_manual` | `tinyint(1)` | `true` = guru diatur manual, tidak ditimpa sinkronisasi pengampu |
+| `label` | `varchar(255)` | Nama kegiatan (Tahfidz, Pembinaan ORTOM, dll) — Nullable |
+| `grup_pilihan` | `varchar(50)` | Penanda sesi paralel mapel pilihan, mis. `BIO/MATL/BINGTL` — Nullable |
+| `created_at`, `updated_at` | `timestamp` | Timestamps |
+
+### 15. `jadwal_sesi_kelas` (pivot)
+Rombel peserta sebuah sesi. Lebih dari satu baris = sesi gabungan.
+
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `jadwal_sesi_id` | `bigint(20) unsigned` | FK ke `jadwal_sesis.id` (Cascade Delete) — PK komposit |
+| `kelas_id` | `bigint(20) unsigned` | FK ke `master_kelas.id` (Cascade Delete) — PK komposit |
+
+### 16. `master_pengampus` (Model: `Master\MasterPengampu`)
+Pembagian tugas mengajar: guru pengampu satu mapel di satu rombel.
+
+| Kolom | Tipe Data | Keterangan |
+| :--- | :--- | :--- |
+| `id` | `bigint(20) unsigned` | Primary Key |
+| `tahun_ajaran_id` | `bigint(20) unsigned` | FK ke `master_tahun_ajarans.id` (Cascade Delete) |
+| `kelas_id` | `bigint(20) unsigned` | FK ke `master_kelas.id` (Cascade Delete) |
+| `mapel_id` | `bigint(20) unsigned` | FK ke `master_mapels.id` (Cascade Delete) |
+| `guru_id` | `bigint(20) unsigned` | FK ke `master_gurus.id` (Nullable = belum ditentukan, Set Null) |
+| `created_at`, `updated_at` | `timestamp` | Timestamps. Unique (`tahun_ajaran_id`, `kelas_id`, `mapel_id`) |
