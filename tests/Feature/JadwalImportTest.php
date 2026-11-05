@@ -12,16 +12,20 @@ use Database\Seeders\MasterKelasTableSeeder;
 use Database\Seeders\MasterMapelsTableSeeder;
 use Database\Seeders\MasterTahunAjaransTableSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Schema;
 
-uses(RefreshDatabase::class);
+uses(DatabaseMigrations::class);
 
 beforeEach(function () {
+    // Seeder data real saling merujuk (users ↔ master_gurus); FK dimatikan hanya saat memuat data dasar.
+    Schema::disableForeignKeyConstraints();
     $this->seed([
         MasterTahunAjaransTableSeeder::class,
         MasterMapelsTableSeeder::class,
         MasterGurusTableSeeder::class,
         MasterKelasTableSeeder::class,
     ]);
+    Schema::enableForeignKeyConstraints();
     $this->ta = MasterTahunAjaran::where('nama', '2026/2027')->where('semester', 'Ganjil')->firstOrFail();
 });
 
