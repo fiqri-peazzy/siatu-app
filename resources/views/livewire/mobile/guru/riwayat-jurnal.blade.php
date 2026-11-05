@@ -137,9 +137,9 @@
                         </div>
                     @endif
                 </div>
-                <div class="grid gap-2.5 border-t border-ivory-300 px-5 pt-4 pb-safe-lg {{ $first->tanggal->isToday() && $sesiIds ? 'grid-cols-2' : '' }}">
-                    @if ($first->tanggal->isToday() && $sesiIds)
-                        <a wire:navigate href="{{ str_replace('__SESI__', $sesiIds, $urlIsi) }}" class="flex h-12 items-center justify-center rounded-2xl bg-navy-900 text-[15px] font-semibold text-white">Ubah jurnal</a>
+                <div class="grid gap-2.5 border-t border-ivory-300 px-5 pt-4 pb-safe-lg {{ $sesiIds ? 'grid-cols-2' : '' }}">
+                    @if ($sesiIds)
+                        <a wire:navigate href="{{ str_replace('__SESI__', $sesiIds, $urlIsi) }}?tgl={{ $first->tanggal->toDateString() }}" class="flex h-12 items-center justify-center rounded-2xl bg-navy-900 text-[15px] font-semibold text-white">Ubah jurnal</a>
                     @endif
                     <button type="button" wire:click="closeModal" class="h-12 rounded-2xl text-[15px] font-semibold text-navy-700 ring-1 ring-ivory-400">Tutup</button>
                 </div>

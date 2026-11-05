@@ -218,7 +218,7 @@
                 series: [{
                     name: 'Surat Masuk',
                     data: dataMasuk,
-                    color: '#6366f1' // indigo-500
+                    color: '#1b3a6c' // indigo-500
                 }, {
                     name: 'Surat Keluar',
                     data: dataKeluar,

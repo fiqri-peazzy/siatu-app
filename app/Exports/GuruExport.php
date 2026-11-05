@@ -89,7 +89,7 @@ class GuruExport implements FromCollection, WithHeadings, WithMapping, WithStyle
             ],
             'fill' => [
                 'fillType' => \PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID,
-                'color' => ['argb' => 'FF4F46E5'], 
+                'color' => ['argb' => 'FF0E2A55'], 
             ],
             'alignment' => [
                 'horizontal' => Alignment::HORIZONTAL_CENTER,

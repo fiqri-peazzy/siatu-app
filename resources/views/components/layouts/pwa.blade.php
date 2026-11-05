@@ -155,11 +155,5 @@
                 document.addEventListener('DOMContentLoaded', () => window.showAppAlert?.error(@js(session('error'))));
             </script>
         @endif
-
-        <script type="module">
-            const pesan = (e) => e.detail?.message ?? e.detail?.[0]?.message ?? e.detail?.[0] ?? e.detail;
-            ['success', 'error', 'warning', 'info'].forEach((jenis) =>
-                window.addEventListener(`swal:${jenis}`, (e) => window.showAppAlert?.[jenis]?.(pesan(e))));
-        </script>
     </body>
 </html>

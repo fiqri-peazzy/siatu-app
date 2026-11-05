@@ -27,6 +27,19 @@ class FormJurnal extends Component
     #[\Livewire\Attributes\Url(except: 1)]
     public int $langkah = 1;
 
+    /** Tanggal pertemuan (Y-m-d); kosong = hari ini. Boleh tanggal lampau, tidak boleh mendatang. */
+    #[\Livewire\Attributes\Url(except: '')]
+    public string $tgl = '';
+
+    private function tanggal(): Carbon
+    {
+        try {
+            return $this->tgl ? Carbon::createFromFormat('Y-m-d', $this->tgl)->startOfDay() : Carbon::today();
+        } catch (\Throwable) {
+            return Carbon::today();
+        }
+    }
+
     public array $info = [];
     public array $kelasList = [];
     public array $siswaList = [];
@@ -46,7 +59,7 @@ class FormJurnal extends Component
         $this->langkah = max(1, min(3, $this->langkah));
 
         try {
-            $ctx = $service->siapkan(Auth::user()->guru_id, $this->sesiIds(), Carbon::today());
+            $ctx = $service->siapkan(Auth::user()->guru_id, $this->sesiIds(), $this->tanggal());
         } catch (AuthorizationException) {
             abort(403);
         } catch (InvalidArgumentException $e) {
@@ -60,7 +73,8 @@ class FormJurnal extends Component
             'mulai' => $ctx['mulai'],
             'selesai' => $ctx['selesai'],
             'jam_ke' => $ctx['jam_ke'],
-            'tanggal' => Carbon::today()->locale('id')->isoFormat('dddd, D MMMM YYYY'),
+            'tanggal' => $this->tanggal()->locale('id')->isoFormat('dddd, D MMMM YYYY'),
+            'lampau' => $this->tanggal()->lt(Carbon::today()),
         ];
         $this->kelasList = $ctx['kelas']->map(fn ($k) => ['id' => $k->id, 'nama' => $k->nama])->all();
         $this->siswaList = $ctx['siswa']->map(fn ($s) => ['id' => $s->id, 'nama' => $s->nama, 'nis' => $s->nis, 'kelas_id' => $s->kelas_id])->all();
@@ -151,7 +165,7 @@ class FormJurnal extends Component
                 guruId: Auth::user()->guru_id,
                 userId: Auth::id(),
                 sesiIds: $this->sesiIds(),
-                tanggal: Carbon::today(),
+                tanggal: $this->tanggal(),
                 isi: ['kd_cp' => $this->kd_cp, 'materi' => $this->materi, 'kegiatan' => $this->kegiatan],
                 absensi: $this->absensi,
                 buktiIzin: $bukti,
@@ -170,7 +184,7 @@ class FormJurnal extends Component
 
         session()->flash('success', $this->modeEdit ? 'Jurnal berhasil diperbarui.' : 'Jurnal & absensi siswa tersimpan.');
 
-        return $this->redirectRoute('guru.jadwal', navigate: true);
+        return $this->redirect(route('guru.jadwal', ['tgl' => $this->tanggal()->toDateString()]), navigate: true);
     }
 
     private function unggahDokumentasi(): array

@@ -1,6 +1,6 @@
 @php
     $hariIni = $dipilih->isToday();
-    $urlJurnal = route('guru.jurnal.form', ['sesi' => '__SESI__']);
+    $urlJurnal = route('guru.jurnal.form', ['sesi' => '__SESI__', 'tgl' => $dipilih->toDateString()]);
 @endphp
 
 <div class="pb-4 font-body"
@@ -8,7 +8,8 @@
         detail: null,
         urlJurnal: @js($urlJurnal),
         hariIni: @js($hariIni),
-        bisaIsi(d) { return this.hariIni && d && d.fase !== 'mendatang' && d.jurnal !== 'tidak_wajib' },
+        // Hari ini (kelas sudah mulai) atau hari yang sudah lewat → boleh isi; hari mendatang → belum
+        bisaIsi(d) { return d && d.fase !== 'mendatang' && d.jurnal !== 'tidak_wajib' },
         link(d) { return this.urlJurnal.replace('__SESI__', d.jurnal_sesi_ids.join(',')) },
      }"
      @jadwal:detail.window="detail = $event.detail">
@@ -109,7 +110,7 @@
                                 <span x-text="detail.jurnal === 'diisi' ? 'Lihat / ubah jurnal' : 'Isi jurnal & absensi'"></span>
                             </a>
                             <p x-show="! bisaIsi(detail) && detail.jurnal !== 'tidak_wajib'" class="rounded-xl bg-ivory-200 px-3 py-2.5 text-center text-[13px] text-navy-500"
-                               x-text="hariIni ? 'Jurnal dapat diisi setelah kelas dimulai.' : 'Jurnal hanya dapat diisi pada hari mengajar.'"></p>
+                               x-text="hariIni ? 'Jurnal dapat diisi setelah kelas dimulai.' : 'Jurnal dapat diisi setelah hari mengajar tiba.'"></p>
                             <button type="button" @click="detail = null" class="h-12 rounded-2xl text-[15px] font-semibold text-navy-700 ring-1 ring-ivory-400">Tutup</button>
                         </div>
                     </div>

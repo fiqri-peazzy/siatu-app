@@ -38,6 +38,9 @@ beforeEach(function () {
     Schema::enableForeignKeyConstraints();
     $this->seed(JadwalGanjil20262027Seeder::class);
 
+    // Waktu sekarang setelah tanggal uji (jurnal hanya untuk hari ini / yang sudah lewat)
+    Carbon::setTestNow('2026-11-13 16:00');
+
     $this->jadwal = app(JadwalService::class);
     $this->jurnal = app(JurnalService::class);
 });
@@ -154,7 +157,7 @@ test('sesi di hari lain ditolak', function () {
     $sesi = sesiMengajar('selasa', 7);
 
     $this->jurnal->siapkan($sesi->guru_id, [$sesi->id], Carbon::parse(SENIN_JURNAL));
-})->throws(InvalidArgumentException::class, 'hari ini');
+})->throws(InvalidArgumentException::class, 'tidak sesuai dengan hari');
 
 test('mapel pilihan hanya menampilkan siswa peminat', function () {
     $pilihan = JadwalSesi::where('jenis', JenisSesi::PILIHAN)->whereNotNull('guru_id')
@@ -172,3 +175,19 @@ test('mapel pilihan hanya menampilkan siswa peminat', function () {
 
     expect($siswa->pluck('id')->sort()->values()->all())->toBe($peminat->sort()->values()->all());
 });
+
+afterEach(fn () => Carbon::setTestNow());
+
+test('jurnal dapat diisi untuk hari mengajar yang sudah lewat', function () {
+    Carbon::setTestNow('2026-11-20 08:00'); // seminggu lebih setelah Selasa 10 Nov
+    $sesi = sesiMengajar('selasa', 7);
+
+    expect($this->jurnal->siapkan($sesi->guru_id, [$sesi->id], Carbon::parse(SELASA_JURNAL))['sesis'])->toHaveCount(1);
+});
+
+test('jurnal tidak dapat diisi untuk tanggal yang belum terjadi', function () {
+    Carbon::setTestNow('2026-11-06 08:00');
+    $sesi = sesiMengajar('selasa', 7);
+
+    $this->jurnal->siapkan($sesi->guru_id, [$sesi->id], Carbon::parse(SELASA_JURNAL));
+})->throws(InvalidArgumentException::class, 'belum terjadi');

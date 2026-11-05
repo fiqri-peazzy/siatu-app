@@ -37,6 +37,11 @@
                 {{ $info['mulai'] }}–{{ $info['selesai'] }} · {{ count($info['jam_ke']) }} JP
             </span>
         </div>
+        @if ($info['lampau'] ?? false)
+            <p class="mt-3 inline-flex items-center gap-1.5 rounded-full bg-gold-400/15 px-2.5 py-1 text-[12px] font-semibold text-gold-300">
+                <x-ui.icon name="riwayat" class="h-3.5 w-3.5" /> Mengisi jurnal untuk tanggal yang sudah lewat
+            </p>
+        @endif
         @if ($modeEdit)
             <p class="mt-3 inline-flex items-center gap-1.5 text-[12px] text-emerald-300"><x-ui.icon name="cek" class="h-3.5 w-3.5" /> Jurnal sudah pernah diisi — perubahan akan menimpa data sebelumnya.</p>
         @endif

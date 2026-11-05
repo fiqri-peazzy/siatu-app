@@ -46,8 +46,12 @@ class JurnalService
         if ($sesis->contains(fn ($s) => $s->jenis === JenisSesi::KEGIATAN)) {
             throw new InvalidArgumentException('Kegiatan sekolah tidak memerlukan jurnal mengajar.');
         }
+        // Jurnal boleh diisi untuk hari ini atau hari yang sudah lewat, tidak untuk hari mendatang
+        if ($tanggal->copy()->startOfDay()->gt(now()->startOfDay())) {
+            throw new InvalidArgumentException('Jurnal belum bisa diisi untuk tanggal yang belum terjadi.');
+        }
         if ($sesis->pluck('slot.hari')->unique()->count() > 1 || $sesis->first()->slot->hari->iso() !== $tanggal->dayOfWeekIso) {
-            throw new InvalidArgumentException('Sesi tidak sesuai dengan hari ini.');
+            throw new InvalidArgumentException('Sesi tidak sesuai dengan hari pada tanggal tersebut.');
         }
 
         // Jam yang tergeser upacara/kegiatan tidak wajib & tidak bisa diisi

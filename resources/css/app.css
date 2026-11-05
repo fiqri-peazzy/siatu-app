@@ -216,3 +216,34 @@
     .scroll-gelap::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 0.12); border-radius: 9999px; }
     .scroll-gelap:hover::-webkit-scrollbar-thumb { background: rgb(255 255 255 / 0.28); }
 }
+
+/* --------------------------------------------------------------------------
+   Peta warna lama → identitas sekolah (transisi). Layar lama yang masih memakai
+   indigo/violet/purple & token "primary"/"signal-blue" otomatis menjadi navy.
+   Layar baru sebaiknya langsung memakai navy-* / gold-* / ivory-*.
+   -------------------------------------------------------------------------- */
+@theme {
+    --color-indigo-50: #eef2f8;  --color-indigo-100: #d9e1ee; --color-indigo-200: #b3c3dd;
+    --color-indigo-300: #8099c2; --color-indigo-400: #4d6ea3; --color-indigo-500: #1b3a6c;
+    --color-indigo-600: #0e2a55; --color-indigo-700: #0b1d3a; --color-indigo-800: #0b1d3a;
+    --color-indigo-900: #07142a; --color-indigo-950: #07142a;
+    --color-violet-50: #eef2f8;  --color-violet-100: #d9e1ee; --color-violet-200: #b3c3dd;
+    --color-violet-300: #8099c2; --color-violet-400: #4d6ea3; --color-violet-500: #1b3a6c;
+    --color-violet-600: #0e2a55; --color-violet-700: #0b1d3a; --color-violet-800: #0b1d3a; --color-violet-900: #07142a;
+    --color-purple-50: #eef2f8;  --color-purple-100: #d9e1ee; --color-purple-200: #b3c3dd;
+    --color-purple-300: #8099c2; --color-purple-400: #4d6ea3; --color-purple-500: #1b3a6c;
+    --color-purple-600: #0e2a55; --color-purple-700: #0b1d3a; --color-purple-800: #0b1d3a; --color-purple-900: #07142a;
+
+    --color-primary: #0e2a55;
+    --color-primary-container: #16345e;
+    --color-signal-blue: #1b3a6c;
+    --color-sky-mist: #eef2f8;
+    --color-background: #f6f4ee;
+    --color-surface: #f6f4ee;
+    --color-surface-container-lowest: #ffffff;
+    --color-surface-container-low: #faf9f6;
+    --color-surface-container: #ece8dd;
+    --color-surface-container-high: #e5e1d8;
+    --color-surface-container-highest: #dcd7cb;
+    --color-paper: #f6f4ee;
+}

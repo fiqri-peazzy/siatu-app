@@ -101,8 +101,8 @@
             
             // Add Circle for radius
             circle = L.circle([startLat, startLng], {
-                color: '#4f46e5',
-                fillColor: '#4f46e5',
+                color: '#0e2a55',
+                fillColor: '#0e2a55',
                 fillOpacity: 0.2,
                 radius: radius || 50
             }).addTo(map);
