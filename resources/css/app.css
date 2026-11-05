@@ -142,3 +142,28 @@
             linear-gradient(180deg, var(--color-navy-900), var(--color-navy-950));
     }
 }
+
+/* --------------------------------------------------------------------------
+   Tipografi global v2 — menimpa Inter/Outfit lama di SEMUA layar.
+   Isi: Plus Jakarta Sans · Judul: Poppins
+   -------------------------------------------------------------------------- */
+@theme {
+    --font-sans: 'Plus Jakarta Sans', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Poppins', ui-sans-serif, system-ui, sans-serif;
+}
+
+@layer base {
+    html {
+        font-family: var(--font-body);
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+        text-rendering: optimizeLegibility;
+    }
+    h1, h2, h3, .font-display {
+        font-family: var(--font-heading);
+        letter-spacing: -0.015em;
+    }
+    /* Angka rata (jam, NIP, jumlah) agar kolom tabel tidak "goyang" */
+    table, time, .tabular-nums { font-variant-numeric: tabular-nums; }
+    ::selection { background: rgb(212 175 55 / 0.28); color: var(--color-navy-950); }
+}

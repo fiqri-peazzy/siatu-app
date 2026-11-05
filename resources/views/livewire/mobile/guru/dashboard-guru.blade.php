@@ -1,123 +1,172 @@
-<div class="space-y-6 animate-fade-in pb-10" x-data="{ openCalendar: false }">
-    <!-- Status Absensi & Top Card -->
-    <div class="bg-[#121A2F] rounded-xl p-5 shadow-sm mt-4 flex flex-col gap-4 text-white relative overflow-hidden">
-        <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-white/5 blur-2xl"></div>
-        <div class="flex justify-between items-start relative z-10">
-            <div>
-                <p class="text-slate-400 text-sm">Selamat Pagi,</p>
-                <h2 class="text-lg font-bold mt-0.5">{{ explode(' ', Auth::user()->name)[0] }}</h2>
+@php
+    $sekarang = now();
+    $jam = (int) $sekarang->format('H');
+    $sapaan = match (true) { $jam < 11 => 'Selamat pagi', $jam < 15 => 'Selamat siang', $jam < 18 => 'Selamat sore', default => 'Selamat malam' };
+    $namaDepan = \Illuminate\Support\Str::of(auth()->user()->name)->explode(' ')->first();
+    $unreadCount = auth()->user()->unreadNotifications->count();
+    $jamSekarang = $sekarang->format('H:i');
+
+    // Kelas yang sedang / berikutnya berlangsung
+    $sorotan = collect($jadwalHariIni)->first(fn ($j) => $j['jam_selesai'] > $jamSekarang);
+    $sedangBerlangsung = $sorotan && $sorotan['jam_mulai'] <= $jamSekarang;
+    $belumIsi = collect($jadwalHariIni)->where('status', '!=', 'diisi')->count();
+
+    $aksiCepat = [
+        ['Jadwal', route('guru.jadwal'), 'jadwal', false],
+        ['Isi Jurnal', route('guru.jurnal.riwayat'), 'jurnal', $belumIsi > 0],
+        ['Riwayat Absen', route('akademik.absensi.guru.riwayat'), 'riwayat', false],
+        ['Notifikasi', route('guru.notifikasi'), 'lonceng', $unreadCount > 0],
+        ['Kalender', null, 'kegiatan', false],
+    ];
+@endphp
+
+<div class="pb-6 font-body" x-data="{ openCalendar: false }">
+
+    {{-- HERO --}}
+    <section class="relative overflow-hidden rounded-b-[2rem] bg-console px-5 pt-[max(env(safe-area-inset-top),1rem)] pb-20 text-white">
+        <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="" aria-hidden="true"
+             class="pointer-events-none absolute -right-10 -bottom-12 h-56 w-56 object-contain opacity-[0.07]">
+
+        <div class="relative flex h-14 items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <img src="{{ asset('images/logo-removebg-preview.png') }}" alt="" class="h-8 w-8 object-contain">
+                <span class="font-heading text-[15px] font-semibold tracking-tight">SIATU <span class="text-white/50">·</span> <span class="text-gold-300">Guru</span></span>
             </div>
-            <div class="text-right">
-                <h1 class="text-3xl font-extrabold font-mono tracking-tight">{{ \Carbon\Carbon::now()->format('H:i') }}</h1>
-                <p class="text-slate-400 text-xs mt-1">{{ \Carbon\Carbon::now()->locale('id')->isoFormat('dddd, D MMM') }}</p>
-            </div>
+            @include('components.layouts.partials.pwa-lonceng', ['unreadCount' => $unreadCount, 'isGuru' => true])
         </div>
 
-        <div class="flex gap-3 mt-2 relative z-10">
-            <a href="{{ ($absenMasuk && $absenPulang) ? '#' : route('akademik.absensi.guru.form') }}" class="flex-1 bg-[#3B65F3] hover:bg-blue-600 active:scale-95 transition-all text-white font-semibold py-3 rounded-xl flex items-center justify-center gap-2 shadow-sm {{ ($absenMasuk && $absenPulang) ? 'opacity-50 cursor-not-allowed' : '' }}">
-                @if($absenMasuk && $absenPulang)
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg>
-                    Selesai
-                @elseif($absenMasuk)
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
-                    Absen Pulang
-                @else
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" /></svg>
-                    Absen Masuk
-                @endif
-            </a>
-            <button class="w-12 h-12 flex-shrink-0 bg-white/10 border border-white/20 hover:bg-white/20 active:scale-95 transition-all rounded-xl flex items-center justify-center backdrop-blur-md">
-                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 013.75 9.375v-4.5zM3.75 14.625c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5a1.125 1.125 0 01-1.125-1.125v-4.5zM13.5 4.875c0-.621.504-1.125 1.125-1.125h4.5c.621 0 1.125.504 1.125 1.125v4.5c0 .621-.504 1.125-1.125 1.125h-4.5A1.125 1.125 0 0113.5 9.375v-4.5z" />
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 6.75h.75v.75h-.75v-.75zM6.75 16.5h.75v.75h-.75v-.75zM16.5 6.75h.75v.75h-.75v-.75zM13.5 13.5h.75v.75h-.75v-.75zM13.5 19.5h1.5v-1.5H18v1.5h1.5v-1.5h-1.5v-1.5h-1.5v1.5h-1.5v1.5h-1.5v-1.5H12v1.5h1.5v1.5z" />
-                </svg>
-            </button>
+        <div class="relative mt-4">
+            <p class="text-sm text-white/65">{{ $sapaan }},</p>
+            <h1 class="mt-0.5 font-heading text-[1.7rem] font-semibold leading-tight">{{ $namaDepan }}</h1>
+            <p class="mt-1.5 text-[13px] text-white/55">{{ $sekarang->locale('id')->isoFormat('dddd, D MMMM YYYY') }}</p>
         </div>
-    </div>
+    </section>
 
-    <!-- Metrics Cards -->
-    <div class="grid grid-cols-2 gap-3">
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-            <div class="flex items-center gap-2 mb-2">
-                <div class="w-6 h-6 rounded-md bg-blue-50 flex items-center justify-center text-blue-600">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                </div>
-                <p class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Kehadiran</p>
-            </div>
-            <div class="flex items-end gap-1.5">
-                <h3 class="text-2xl font-bold text-ink-900">{{ $persentaseKehadiran }}<span class="text-lg text-slate-400 font-medium">%</span></h3>
-            </div>
-        </div>
-
-        <div class="bg-white rounded-xl p-4 shadow-sm border border-slate-100">
-            <div class="flex items-center gap-2 mb-2">
-                <div class="w-6 h-6 rounded-md bg-emerald-50 flex items-center justify-center text-emerald-600">
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                </div>
-                <p class="text-slate-500 text-xs font-semibold uppercase tracking-wide">Jurnal Terisi</p>
-            </div>
-            <div class="flex items-baseline gap-1">
-                <h3 class="text-2xl font-bold text-ink-900">{{ $totalJurnalTerisi }} <span class="text-sm font-medium text-slate-400">Sesi</span></h3>
-            </div>
-        </div>
-    </div>
-
-    <!-- Jadwal Mengajar -->
-    <div class="mt-8">
-        <div class="flex items-center justify-between mb-5">
-            <h3 class="text-base font-bold text-ink-900">Jadwal Hari Ini</h3>
-            <button @click="openCalendar = true" class="text-sm font-semibold text-[#3B65F3] bg-blue-50 px-3 py-1.5 rounded-lg active:scale-95 transition-transform flex items-center gap-1.5">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                Kalender
-            </button>
-        </div>
-
-        @if(count($jadwalHariIni) > 0)
-            <div class="space-y-4">
-                @foreach($jadwalHariIni as $j)
-                    <div class="bg-white rounded-[16px] p-4 shadow-sm ring-1 {{ $j['status'] === 'diisi' ? 'ring-slate-100' : 'ring-[#FCD34D] shadow-[#FEF3C7]/50' }}">
-                        <div class="flex items-center justify-between mb-3">
-                            <div class="flex items-center gap-2">
-                                <div class="w-2 h-2 rounded-full {{ $j['status'] === 'diisi' ? 'bg-[#059669]' : 'bg-[#D97706]' }}"></div>
-                                <span class="font-mono text-sm font-bold text-slate-700 tracking-tight">
-                                    {{ $j['jam_mulai'] }} - {{ $j['jam_selesai'] }}
-                                </span>
-                            </div>
-                            @if($j['status'] === 'diisi')
-                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-md bg-[#ECFDF5] text-[#059669] uppercase tracking-wider">
-                                    Selesai
-                                </span>
-                            @else
-                                <span class="text-[10px] font-bold px-2.5 py-1 rounded-md bg-[#FFFBEB] text-[#D97706] uppercase tracking-wider">
-                                    Belum Diisi
-                                </span>
-                            @endif
-                        </div>
-                        <h4 class="font-bold text-ink-900 text-lg mb-1">{{ $j['kelas'] }}</h4>
-                        <p class="text-sm text-slate-600 font-medium flex items-center gap-1.5">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-                            {{ $j['mapel'] }}
-                        </p>
-                        
-                        @if($j['status'] !== 'diisi')
-                            <a href="{{ route('guru.jurnal.form', implode(',', $j['jadwal_ids'])) }}" class="mt-4 w-full bg-[#121A2F] hover:bg-[#1f2937] text-white text-sm font-semibold py-3 rounded-xl flex items-center justify-center gap-2 transition-colors active:scale-[0.98]">
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                                Isi Jurnal Sekarang
-                            </a>
+    {{-- KARTU ABSEN (menumpuk di tepi hero) --}}
+    <section class="relative z-10 -mt-14 px-4">
+        <div class="rounded-3xl bg-white p-4 shadow-float ring-1 ring-ivory-300">
+            <div class="grid grid-cols-2 divide-x divide-ivory-300">
+                @foreach ([['Masuk', $absenMasuk], ['Pulang', $absenPulang]] as [$label, $absen])
+                    <div class="{{ $loop->first ? 'pr-4' : 'pl-4' }}">
+                        <p class="text-[12px] font-medium text-navy-400">Absen {{ strtolower($label) }}</p>
+                        @if ($absen)
+                            <p class="mt-1 font-heading text-2xl font-semibold tabular-nums text-navy-900">{{ \Carbon\Carbon::parse($absen->waktu_absen)->format('H:i') }}</p>
+                            <span @class([
+                                'mt-1 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold',
+                                'bg-ok-50 text-ok-500' => in_array($absen->status, ['hadir']),
+                                'bg-warn-50 text-warn-500' => in_array($absen->status, ['terlambat', 'pulang_cepat']),
+                                'bg-ivory-200 text-navy-600' => ! in_array($absen->status, ['hadir', 'terlambat', 'pulang_cepat']),
+                            ])>
+                                <span class="h-1.5 w-1.5 rounded-full bg-current"></span>{{ ucwords(str_replace('_', ' ', $absen->status)) }}
+                            </span>
+                        @else
+                            <p class="mt-1 font-heading text-2xl font-semibold text-navy-200">--:--</p>
+                            <span class="mt-1 inline-block text-[11px] text-navy-400">Belum tercatat</span>
                         @endif
                     </div>
                 @endforeach
             </div>
-        @else
-            <div class="bg-slate-50/50 rounded-2xl p-8 border border-slate-100 border-dashed text-center">
-                <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto mb-4 shadow-sm">
-                    <svg class="w-8 h-8 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"></path></svg>
-                </div>
-                <h4 class="text-slate-800 font-bold mb-1">Hari yang Kosong</h4>
-                <p class="text-sm text-slate-500 font-medium">Anda tidak memiliki jadwal mengajar hari ini.</p>
+
+            @if (! ($absenMasuk && $absenPulang))
+                <a wire:navigate href="{{ route('akademik.absensi.guru.form') }}"
+                   class="mt-4 flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-navy-900 text-[15px] font-semibold text-white transition hover:bg-navy-800 active:scale-[0.98]">
+                    <x-ui.icon name="absen" class="h-5 w-5 text-gold-300" />
+                    {{ $absenMasuk ? 'Absen pulang' : 'Absen masuk sekarang' }}
+                </a>
+            @else
+                <p class="mt-4 flex items-center justify-center gap-2 rounded-2xl bg-ok-50 py-3 text-[14px] font-semibold text-ok-500">
+                    <x-ui.icon name="cek" class="h-4 w-4" /> Absen hari ini lengkap
+                </p>
+            @endif
+        </div>
+    </section>
+
+    {{-- AKSES CEPAT (geser horizontal) --}}
+    <section class="mt-6" aria-label="Akses cepat">
+        <div class="flex snap-x gap-3 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            @foreach ($aksiCepat as [$label, $href, $ikon, $titik])
+                <{{ $href ? 'a' : 'button' }} @if ($href) wire:navigate href="{{ $href }}" @else type="button" @click="openCalendar = true" @endif
+                    class="flex w-[4.75rem] shrink-0 snap-start flex-col items-center gap-2 text-center">
+                    <span class="relative flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-navy-800 shadow-sm ring-1 ring-ivory-300 transition active:scale-95">
+                        <x-ui.icon :name="$ikon" class="h-6 w-6" />
+                        @if ($titik)<span class="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-gold-500 ring-2 ring-white"></span>@endif
+                    </span>
+                    <span class="text-[12px] font-medium leading-tight text-navy-700">{{ $label }}</span>
+                </{{ $href ? 'a' : 'button' }}>
+            @endforeach
+        </div>
+    </section>
+
+    {{-- SOROTAN KELAS --}}
+    @if ($sorotan)
+        <section class="mt-6 px-4">
+            <div class="relative overflow-hidden rounded-3xl bg-navy-800 p-5 text-white">
+                <span class="absolute -right-6 -top-6 h-28 w-28 rounded-full bg-gold-400/15"></span>
+                <p class="relative inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold">
+                    <span class="h-1.5 w-1.5 rounded-full {{ $sedangBerlangsung ? 'bg-emerald-400 animate-pulse' : 'bg-gold-300' }}"></span>
+                    {{ $sedangBerlangsung ? 'Sedang berlangsung' : 'Kelas berikutnya' }}
+                </p>
+                <h2 class="relative mt-3 font-heading text-xl font-semibold leading-snug">{{ $sorotan['mapel'] }}</h2>
+                <p class="relative mt-0.5 text-sm text-white/70">{{ $sorotan['kelas'] }} · {{ $sorotan['jam_mulai'] }}–{{ $sorotan['jam_selesai'] }}</p>
+                @if ($sorotan['status'] !== 'diisi')
+                    <a wire:navigate href="{{ route('guru.jurnal.form', implode(',', $sorotan['jadwal_ids'])) }}"
+                       class="relative mt-4 inline-flex h-11 items-center gap-2 rounded-2xl bg-gold-400 px-4 text-sm font-semibold text-navy-950 transition hover:bg-gold-300 active:scale-[0.98]">
+                        <x-ui.icon name="jurnal" class="h-4 w-4" /> Isi jurnal
+                    </a>
+                @endif
             </div>
-        @endif
-    </div>
+        </section>
+    @endif
+
+    {{-- RINGKASAN --}}
+    <section class="mt-6 grid grid-cols-2 gap-3 px-4">
+        <div class="rounded-2xl bg-white p-4 ring-1 ring-ivory-300">
+            <p class="text-[12px] font-medium text-navy-400">Kehadiran</p>
+            <p class="mt-1 font-heading text-2xl font-semibold text-navy-900">{{ $persentaseKehadiran }}<span class="text-base text-navy-300">%</span></p>
+            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-ivory-300"><div class="h-full rounded-full bg-ok-500" style="width: {{ $persentaseKehadiran }}%"></div></div>
+        </div>
+        <div class="rounded-2xl bg-white p-4 ring-1 ring-ivory-300">
+            <p class="text-[12px] font-medium text-navy-400">Jurnal terisi</p>
+            <p class="mt-1 font-heading text-2xl font-semibold text-navy-900">{{ $totalJurnalTerisi }} <span class="text-sm font-medium text-navy-300">sesi</span></p>
+            <p class="mt-1.5 text-[12px] text-navy-400">Semester ini</p>
+        </div>
+    </section>
+
+    {{-- MENGAJAR HARI INI --}}
+    <section class="mt-7 px-4">
+        <div class="mb-3 flex items-center justify-between">
+            <h2 class="font-heading text-[17px] font-semibold text-navy-900">Mengajar hari ini</h2>
+            <a wire:navigate href="{{ route('guru.jadwal') }}" class="text-[13px] font-semibold text-navy-600 hover:text-navy-900">Lihat semua</a>
+        </div>
+
+        @forelse ($jadwalHariIni as $j)
+            @php $lewat = $j['jam_selesai'] <= $jamSekarang; @endphp
+            <article class="mb-3 flex gap-3.5 rounded-2xl bg-white p-4 ring-1 {{ $j['status'] === 'diisi' ? 'ring-ivory-300' : 'ring-gold-300/70' }}">
+                <div class="w-14 shrink-0 text-center">
+                    <p class="font-heading text-[15px] font-semibold tabular-nums text-navy-900">{{ $j['jam_mulai'] }}</p>
+                    <p class="text-[12px] tabular-nums text-navy-400">{{ $j['jam_selesai'] }}</p>
+                </div>
+                <div class="min-w-0 flex-1 border-l border-ivory-300 pl-3.5">
+                    <h3 class="truncate text-[15px] font-semibold text-navy-900">{{ $j['mapel'] }}</h3>
+                    <p class="text-[13px] text-navy-500">{{ $j['kelas'] }}</p>
+                    <div class="mt-2.5 flex items-center justify-between gap-2">
+                        @if ($j['status'] === 'diisi')
+                            <span class="inline-flex items-center gap-1 rounded-full bg-ok-50 px-2 py-0.5 text-[11px] font-semibold text-ok-500"><x-ui.icon name="cek" class="h-3 w-3" /> Jurnal terisi</span>
+                        @else
+                            <span class="inline-flex items-center gap-1 rounded-full bg-warn-50 px-2 py-0.5 text-[11px] font-semibold text-warn-500">{{ $lewat ? 'Jurnal belum diisi' : 'Belum dimulai' }}</span>
+                            <a wire:navigate href="{{ route('guru.jurnal.form', implode(',', $j['jadwal_ids'])) }}" class="inline-flex h-9 items-center gap-1 rounded-full bg-navy-900 px-3.5 text-[13px] font-semibold text-white active:scale-95">Isi jurnal</a>
+                        @endif
+                    </div>
+                </div>
+            </article>
+        @empty
+            <div class="rounded-2xl border border-dashed border-ivory-400 bg-ivory-50 px-6 py-10 text-center">
+                <span class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-navy-300 ring-1 ring-ivory-300"><x-ui.icon name="jadwal" /></span>
+                <h3 class="mt-3 text-[15px] font-semibold text-navy-800">Tidak ada jadwal mengajar</h3>
+                <p class="mt-1 text-[13px] text-navy-400">Anda tidak memiliki kelas hari ini.</p>
+            </div>
+        @endforelse
+    </section>
 
     <!-- Calendar Modal (Alpine.js) -->
     <template x-teleport="body">

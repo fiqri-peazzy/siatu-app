@@ -10,17 +10,13 @@
         <link rel="icon" type="image/png" href="{{ asset('images/logo-removebg-preview.png') }}">
         <link rel="apple-touch-icon" href="{{ asset('images/logo-removebg-preview.png') }}">
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.googleapis.com">
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <!-- Premium Agency Font: Outfit -->
-        <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+        @include('components.layouts.partials.fonts')
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
         
         <style>
-            body { font-family: 'Outfit', sans-serif; }
+
             
             /* High-end Vibe: Ethereal Glass / Soft Structuralism */
             .ethereal-bg {

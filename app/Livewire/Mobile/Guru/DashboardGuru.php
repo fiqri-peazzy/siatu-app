@@ -147,58 +147,8 @@ class DashboardGuru extends Component
         $this->jadwalHariIni = $groupedJadwal;
     }
 
-    public function prosesAbsensiBg($lat, $lng)
-    {
-        $guruId = Auth::user()->guru_id ?? Auth::user()->guru->id ?? null;
-        if (!$guruId) return;
-
-        $tanggalSekarang = Carbon::today()->format('Y-m-d');
-        $waktuAbsen = Carbon::now();
-
-        // Refresh status
-        $this->absenMasuk = AbsensiGuru::where('guru_id', $guruId)
-            ->where('tanggal', $tanggalSekarang)
-            ->where('jenis', 'masuk')
-            ->first();
-
-        $this->absenPulang = AbsensiGuru::where('guru_id', $guruId)
-            ->where('tanggal', $tanggalSekarang)
-            ->where('jenis', 'pulang')
-            ->first();
-
-        if (!$this->absenMasuk) {
-            // Proses Absen Masuk
-            AbsensiGuru::create([
-                'guru_id' => $guruId,
-                'tanggal' => $tanggalSekarang,
-                'jenis' => 'masuk',
-                'status' => 'hadir',
-                'waktu_absen' => $waktuAbsen,
-                'latitude' => $lat,
-                'longitude' => $lng,
-            ]);
-
-            $this->dispatch('swal:success', ['Absen Masuk berhasil dicatat!']);
-        } elseif (!$this->absenPulang) {
-            // Proses Absen Pulang
-            AbsensiGuru::create([
-                'guru_id' => $guruId,
-                'tanggal' => $tanggalSekarang,
-                'jenis' => 'pulang',
-                'status' => 'hadir',
-                'waktu_absen' => $waktuAbsen,
-                'latitude' => $lat,
-                'longitude' => $lng,
-            ]);
-            
-            $this->dispatch('swal:success', ['Absen Pulang berhasil dicatat!']);
-        } else {
-            $this->dispatch('swal:error', ['Anda sudah melakukan absen masuk dan pulang hari ini.']);
-        }
-
-        // Reload data
-        $this->mount();
-    }
+    // prosesAbsensiBg() dihapus: method public Livewire bisa dipanggil langsung dari browser dan
+    // mencatat absen tanpa validasi radius, swafoto, maupun jendela waktu (AturanAbsensiService).
 
     public function nextMonth()
     {
@@ -306,6 +256,7 @@ class DashboardGuru extends Component
 
     public function render()
     {
-        return view('livewire.mobile.guru.dashboard-guru')->layout('components.layouts.pwa');
+        return view('livewire.mobile.guru.dashboard-guru')
+            ->layout('components.layouts.pwa', ['tanpaHeader' => true, 'judul' => 'Beranda']);
     }
 }
