@@ -11,8 +11,15 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
 
-class GuruExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize
+class GuruExport implements FromCollection, WithHeadings, WithMapping, WithStyles, ShouldAutoSize, \Maatwebsite\Excel\Concerns\WithEvents
 {
+    use \App\Exports\Concerns\KopResmi;
+
+    public function registerEvents(): array
+    {
+        return [\Maatwebsite\Excel\Events\AfterSheet::class => fn ($e) => $this->sisipkanKop($e->sheet->getDelegate(), 13)];
+    }
+
     public function collection()
     {
         return MasterGuru::with('mapel')->orderBy('nama', 'asc')->get();
@@ -41,7 +48,7 @@ class GuruExport implements FromCollection, WithHeadings, WithMapping, WithStyle
     public function headings(): array
     {
         return [
-            ['DATA GURU - SMAS MUHAMMADIYAH GORONTALO'],
+            ['DATA GURU'],
             [],
             [
                 'NIP',

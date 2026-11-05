@@ -10,8 +10,15 @@ use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use Maatwebsite\Excel\Concerns\WithStyles;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class TendikDataExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles
+class TendikDataExport implements FromCollection, WithHeadings, WithMapping, ShouldAutoSize, WithStyles, \Maatwebsite\Excel\Concerns\WithEvents
 {
+    use \App\Exports\Concerns\KopResmi;
+
+    public function registerEvents(): array
+    {
+        return [\Maatwebsite\Excel\Events\AfterSheet::class => fn ($e) => $this->sisipkanKop($e->sheet->getDelegate())];
+    }
+
     public function collection()
     {
         return MasterTendik::all();

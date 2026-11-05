@@ -1,18 +1,7 @@
 <table>
     <thead>
-        <!-- KOP SURAT -->
-        <tr>
-            <th colspan="9" style="text-align: center; font-size: 16px; font-weight: bold;">SMA MUHAMMADIYAH GORONTALO</th>
-        </tr>
-        <tr>
-            <th colspan="9" style="text-align: center; font-size: 14px; font-weight: bold;">ISLAMIC GLOBAL SCHOOL</th>
-        </tr>
-        <tr>
-            <th colspan="9" style="text-align: center; font-size: 10px;">Jln. Taman Bunga, Kota Timur, Kota Gorontalo | Email: smasmuhammadiyahkotagorontalo@gmail.com</th>
-        </tr>
-        <tr>
-            <th colspan="9"></th>
-        </tr>
+        {{-- Kop resmi (4 baris) --}}
+        @include('exports.partials.kop', ['kolom' => 9])
         <tr>
             <th colspan="9" style="text-align: center; font-size: 12px; font-weight: bold;">REKAP ABSENSI GURU</th>
         </tr>

@@ -12,6 +12,8 @@ use Carbon\Carbon;
 
 class JurnalExport implements FromView, ShouldAutoSize, WithEvents
 {
+    use \App\Exports\Concerns\KopResmi;
+
     protected $start_date;
     protected $end_date;
     protected $guru_id;
@@ -127,6 +129,9 @@ class JurnalExport implements FromView, ShouldAutoSize, WithEvents
                         ],
                     ]);
                 }
+
+                // Logo, garis ganda kop, dan tanda tangan Kepala Sekolah
+                $this->finalisasiDokumen($event->sheet->getDelegate());
             },
         ];
     }

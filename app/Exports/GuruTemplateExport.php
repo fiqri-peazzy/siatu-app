@@ -7,15 +7,26 @@ use Maatwebsite\Excel\Concerns\WithStyles;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 
-class GuruTemplateExport implements FromArray, WithStyles, ShouldAutoSize
+class GuruTemplateExport implements FromArray, WithStyles, ShouldAutoSize, \Maatwebsite\Excel\Concerns\WithEvents
 {
+    use \App\Exports\Concerns\KopResmi;
+
+    /** Kop resmi di baris 1–4 (baris judul) — posisi judul kolom & data tetap kompatibel dengan format Dapodik */
+    public function registerEvents(): array
+    {
+        return [\Maatwebsite\Excel\Events\AfterSheet::class => function ($e) {
+            $s = $e->sheet->getDelegate();
+            $this->timpaKopBaris1Sampai4($s, \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($s->getHighestColumn()), 'Template Import Data Guru');
+        }];
+    }
+
     public function array(): array
     {
         return [
             ['Daftar Guru'], // Row 1
             ['SMAS MUHAMMADIYAH GORONTALO'], // Row 2
-            [], // Row 3
-            [], // Row 4
+            [''], // Row 3 — jangan diganti [] (baris kosong dibuang → judul kolom bergeser dari baris 5)
+            [''], // Row 4
             // Row 5: Main Headers
             [
                 'No', 'Nama', 'NUPTK', 'JK', 'Tempat Lahir', 'Tanggal Lahir', 'NIP', 'Status Kepegawaian', 

@@ -11,6 +11,8 @@ use Maatwebsite\Excel\Events\AfterSheet;
 
 class RekapAbsensiTendikExport implements FromView, ShouldAutoSize, WithEvents
 {
+    use \App\Exports\Concerns\KopResmi;
+
     protected $startDate;
     protected $endDate;
     protected $filterStatus;
@@ -110,6 +112,9 @@ class RekapAbsensiTendikExport implements FromView, ShouldAutoSize, WithEvents
                         ],
                     ]);
                 }
+
+                // Logo, garis ganda kop, dan tanda tangan Kepala Sekolah
+                $this->finalisasiDokumen($event->sheet->getDelegate());
             },
         ];
     }

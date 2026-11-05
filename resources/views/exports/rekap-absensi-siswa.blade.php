@@ -1,18 +1,7 @@
 <table>
     <thead>
-        <!-- KOP SURAT (Simplified for Excel) -->
-        <tr>
-            <th colspan="{{ $isSemuaMapel ? 6 : (count($kolomTanggal) + 6) }}" style="text-align: center; font-size: 16px; font-weight: bold;">SMA MUHAMMADIYAH GORONTALO</th>
-        </tr>
-        <tr>
-            <th colspan="{{ $isSemuaMapel ? 6 : (count($kolomTanggal) + 6) }}" style="text-align: center; font-size: 14px; font-weight: bold;">ISLAMIC GLOBAL SCHOOL</th>
-        </tr>
-        <tr>
-            <th colspan="{{ $isSemuaMapel ? 6 : (count($kolomTanggal) + 6) }}" style="text-align: center; font-size: 10px;">Jln. Taman Bunga, Kota Timur, Kota Gorontalo | Email: smasmuhammadiyahkotagorontalo@gmail.com</th>
-        </tr>
-        <tr>
-            <th colspan="{{ $isSemuaMapel ? 6 : (count($kolomTanggal) + 6) }}"></th>
-        </tr>
+        {{-- Kop resmi (4 baris) --}}
+        @include('exports.partials.kop', ['kolom' => $isSemuaMapel ? 6 : (count($kolomTanggal) + 6)])
         <tr>
             <th colspan="{{ $isSemuaMapel ? 6 : (count($kolomTanggal) + 6) }}" style="text-align: center; font-size: 12px; font-weight: bold;">REKAPITULASI KEHADIRAN SISWA</th>
         </tr>

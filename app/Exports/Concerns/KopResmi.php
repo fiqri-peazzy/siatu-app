@@ -43,6 +43,9 @@ trait KopResmi
             $tulis(mb_strtoupper(trim($induk)), 11);
         }
         $tulis(mb_strtoupper($s['nama'] ?? 'SEKOLAH'), 15);
+        if (! empty($s['tagline'])) {
+            $tulis($s['tagline'], 10, false);
+        }
         if (! empty($s['akreditasi'])) {
             $tulis('TERAKREDITASI '.mb_strtoupper($s['akreditasi']), 10);
         }
@@ -107,6 +110,103 @@ trait KopResmi
             'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_THIN, 'color' => ['argb' => 'FFCBD5E1']]],
             'alignment' => ['vertical' => Alignment::VERTICAL_CENTER],
         ]);
+    }
+
+    /**
+     * Untuk export berbasis view (kop teks dari exports/partials/kop.blade.php, 4 baris):
+     * pasang logo, garis ganda di bawah kop, dan tanda tangan di bawah data.
+     */
+    protected function finalisasiDokumen(Worksheet $sheet, ?int $jumlahKolom = null, string $jabatan = 'Kepala Sekolah'): void
+    {
+        $jumlahKolom ??= Coordinate::columnIndexFromString($sheet->getHighestColumn());
+        $akhir = Coordinate::stringFromColumnIndex($jumlahKolom);
+        $barisData = $sheet->getHighestRow();
+
+        $logo = public_path('images/logo-removebg-preview.png');
+        if (is_file($logo)) {
+            $d = new Drawing;
+            $d->setName('Logo')->setPath($logo)->setHeight(52)->setCoordinates('A1')->setOffsetX(4)->setOffsetY(2);
+            $d->setWorksheet($sheet);
+        }
+        foreach ([1, 2, 3] as $r) {
+            $sheet->getRowDimension($r)->setRowHeight(18);
+        }
+        $sheet->getStyle("A4:{$akhir}4")->getBorders()->getTop()->setBorderStyle(Border::BORDER_DOUBLE);
+        $sheet->getRowDimension(4)->setRowHeight(6);
+
+        $sheet->getPageSetup()->setPaperSize(PageSetup::PAPERSIZE_A4)->setFitToWidth(1)->setFitToHeight(0);
+        $this->pasangTandaTangan($sheet, $barisData + 2, $jumlahKolom, $jabatan);
+    }
+
+    /** Teks 3 baris kop ringkas: [induk, nama sekolah, tagline+alamat+kontak] */
+    protected function teksKopRingkas(): array
+    {
+        $s = config('sekolah');
+
+        return [
+            mb_strtoupper(collect(explode('|', (string) ($s['induk'] ?? '')))->map(fn ($b) => trim($b))->filter()->implode(' — ')),
+            mb_strtoupper($s['nama'] ?? ''),
+            collect([
+                $s['tagline'] ?? null,
+                collect([$s['alamat'] ?? null, $s['kota'] ?? null, $s['provinsi'] ?? null])->filter()->implode(', '),
+                ! empty($s['telepon']) ? 'Telp. '.$s['telepon'] : null,
+                $s['email'] ?? null,
+                ! empty($s['npsn']) ? 'NPSN '.$s['npsn'] : null,
+            ])->filter()->implode(' | '),
+        ];
+    }
+
+    /** Tulis kop ringkas di baris 1–3 (+ pemisah baris 4) tanpa menggeser data — untuk template import. */
+    protected function timpaKopBaris1Sampai4(Worksheet $sheet, int $jumlahKolom, string $judul): void
+    {
+        $akhir = Coordinate::stringFromColumnIndex(max($jumlahKolom, 6));
+        [$induk, $nama, $kontak] = $this->teksKopRingkas();
+
+        // Lepas merge lama yang menyentuh baris 1–3 (bentuknya bisa apa saja di template)
+        foreach (array_keys($sheet->getMergeCells()) as $rentang) {
+            [$awalSel] = explode(':', $rentang);
+            if ((int) preg_replace('/\D/', '', $awalSel) <= 3) {
+                $sheet->unmergeCells($rentang);
+            }
+        }
+
+        foreach ([1 => [$nama.' — '.mb_strtoupper($judul), 13, true], 2 => [$induk, 9, true], 3 => [$kontak, 9, false]] as $r => [$teks, $ukuran, $tebal]) {
+            $sheet->setCellValue("A{$r}", $teks);
+            $sheet->mergeCells("A{$r}:{$akhir}{$r}");
+            $sheet->getStyle("A{$r}")->applyFromArray([
+                'font' => ['bold' => $tebal, 'size' => $ukuran],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+            $sheet->getRowDimension($r)->setRowHeight(18);
+        }
+        $sheet->getStyle("A4:{$akhir}4")->getBorders()->getTop()->setBorderStyle(Border::BORDER_DOUBLE);
+
+        $logo = public_path('images/logo-removebg-preview.png');
+        if (is_file($logo)) {
+            $d = new Drawing;
+            $d->setName('Logo')->setPath($logo)->setHeight(50)->setCoordinates('A1')->setOffsetX(4)->setOffsetY(2);
+            $d->setWorksheet($sheet);
+        }
+    }
+
+    /** Sisipkan 4 baris kop di atas tabel yang sudah ada, lalu logo & tanda tangan — untuk export data master. */
+    protected function sisipkanKop(Worksheet $sheet, ?int $jumlahKolom = null): void
+    {
+        $jumlahKolom ??= Coordinate::columnIndexFromString($sheet->getHighestColumn());
+        $akhir = Coordinate::stringFromColumnIndex($jumlahKolom);
+        $sheet->insertNewRowBefore(1, 4);
+        [$induk, $nama, $kontak] = $this->teksKopRingkas();
+        foreach ([1 => [$induk, 10, true], 2 => [$nama, 15, true], 3 => [$kontak, 9, false]] as $r => [$teks, $ukuran, $tebal]) {
+            $sheet->setCellValue("A{$r}", $teks);
+            $sheet->mergeCells("A{$r}:{$akhir}{$r}");
+            $sheet->getStyle("A{$r}")->applyFromArray([
+                'font' => ['bold' => $tebal, 'size' => $ukuran, 'color' => ['argb' => 'FF000000']],
+                'fill' => ['fillType' => 'none'],
+                'borders' => ['allBorders' => ['borderStyle' => Border::BORDER_NONE]],
+                'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+            ]);
+        }
+        $this->finalisasiDokumen($sheet, $jumlahKolom);
     }
 
     /** Blok tanda tangan Kepala Sekolah di kanan bawah */

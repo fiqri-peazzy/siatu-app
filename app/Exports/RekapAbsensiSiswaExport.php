@@ -16,6 +16,8 @@ use Carbon\Carbon;
 
 class RekapAbsensiSiswaExport implements FromView, ShouldAutoSize, WithEvents
 {
+    use \App\Exports\Concerns\KopResmi;
+
     protected $tahun_ajaran_id;
     protected $kelas_id;
     protected $mapel_id;
@@ -178,6 +180,9 @@ class RekapAbsensiSiswaExport implements FromView, ShouldAutoSize, WithEvents
                         ]
                     ]);
                 }
+
+                // Logo, garis ganda kop, dan tanda tangan Kepala Sekolah
+                $this->finalisasiDokumen($event->sheet->getDelegate());
             },
         ];
     }

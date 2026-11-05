@@ -12,14 +12,16 @@ return [
 
     // Baris kop di atas nama sekolah (pisahkan baris dengan |)
     'induk'       => env('SEKOLAH_INDUK', 'MAJELIS PENDIDIKAN DASAR DAN MENENGAH|PIMPINAN DAERAH MUHAMMADIYAH KOTA GORONTALO'),
-    'nama'        => env('SEKOLAH_NAMA', 'SMA Muhammadiyah Kota Gorontalo'),
+    'nama'        => env('SEKOLAH_NAMA') ?: 'SMA Muhammadiyah Kota Gorontalo',
+    'tagline'     => env('SEKOLAH_TAGLINE') ?: 'Islamic Global School',
     'akreditasi'  => env('SEKOLAH_AKREDITASI', ''),
     'npsn'        => env('SEKOLAH_NPSN', ''),
-    'alamat'      => env('SEKOLAH_ALAMAT', ''),
-    'kota'        => env('SEKOLAH_KOTA', ''),
-    'provinsi'    => env('SEKOLAH_PROVINSI', ''),
+    // ?: agar nilai kosong di .env tetap jatuh ke data resmi sekolah
+    'alamat'      => env('SEKOLAH_ALAMAT') ?: 'Jln. Taman Bunga, Kota Timur',
+    'kota'        => env('SEKOLAH_KOTA') ?: 'Kota Gorontalo',
+    'provinsi'    => env('SEKOLAH_PROVINSI') ?: 'Gorontalo',
     'telepon'     => env('SEKOLAH_TELEPON', ''),
-    'email'       => env('SEKOLAH_EMAIL', ''),
+    'email'       => env('SEKOLAH_EMAIL') ?: 'smasmuhammadiyahkotagorontalo@gmail.com',
     'logo_path'   => env('SEKOLAH_LOGO', 'logo/logo-sekolah.png'),
     
     // Pejabat berwenang

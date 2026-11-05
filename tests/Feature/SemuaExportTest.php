@@ -50,8 +50,45 @@ dataset('export', [
         MasterTahunAjaran::where('is_active', true)->value('id'), MasterKelas::value('id'), '', 'bulanan', null, '2026-11'),
 ]);
 
+function bukaXlsx(object $export): \PhpOffice\PhpSpreadsheet\Spreadsheet
+{
+    $file = tempnam(sys_get_temp_dir(), 'exp').'.xlsx';
+    file_put_contents($file, Excel::raw($export, ExcelFormat::XLSX));
+
+    return \PhpOffice\PhpSpreadsheet\IOFactory::load($file);
+}
+
 test('export menghasilkan file xlsx yang valid', function (object $export) {
     $isi = Excel::raw($export, ExcelFormat::XLSX);
 
     expect($isi)->toBeString()->and(substr($isi, 0, 2))->toBe('PK'); // xlsx = arsip zip
 })->with('export');
+
+test('setiap export memuat kop resmi sekolah', function (object $export) {
+    $teks = collect(bukaXlsx($export)->getActiveSheet()->toArray())->flatten()->filter()->implode(' ');
+
+    expect($teks)->toContain(mb_strtoupper(config('sekolah.nama')));
+})->with('export');
+
+test('laporan (bukan template) memuat tanda tangan kepala sekolah', function (object $export) {
+    $teks = collect(bukaXlsx($export)->getActiveSheet()->toArray())->flatten()->filter()->implode(' ');
+
+    expect($teks)->toContain('Kepala Sekolah');
+})->with([
+    'data guru' => fn () => new GuruExport,
+    'data tendik' => fn () => new TendikDataExport,
+    'rekap absensi guru' => fn () => new RekapAbsensiExport('2026-11-01', '2026-11-30', '', ''),
+    'rekap absensi tendik' => fn () => new RekapAbsensiTendikExport('2026-11-01', '2026-11-30', '', ''),
+    'jurnal mengajar' => fn () => new JurnalExport('2026-11-01', '2026-11-30', null, null, null),
+]);
+
+test('template import: kop di baris 1–4, judul kolom tetap di baris 5 (kompatibel Dapodik)', function (object $export, array $kolomWajib) {
+    $baris = bukaXlsx($export)->getActiveSheet()->toArray();
+
+    expect(implode(' ', array_filter($baris[0])))->toContain(mb_strtoupper(config('sekolah.nama')))
+        ->and($baris[4])->toContain(...$kolomWajib);
+})->with([
+    'guru' => [fn () => new GuruTemplateExport, ['Nama', 'NUPTK', 'NIP']],
+    'siswa' => [fn () => new SiswaTemplateExport, ['Nama', 'NISN', 'NIK']],
+    'tendik' => [fn () => new TendikTemplateExport, ['Nama', 'NUPTK', 'NIP']],
+]);
