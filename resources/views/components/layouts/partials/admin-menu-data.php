@@ -35,7 +35,8 @@ return (function () {
             ['Tendik', 'master.tendik', 'master.tendik', 'tendik', null],
             ['Mapel', 'master.mapel', 'master.mapel', 'mapel', null],
             ['Kelas / Rombel', 'master.kelas', 'master.kelas', 'kelas', null],
-            ['Siswa', 'master.siswa', 'master.siswa*', 'siswa', null],
+            ['Siswa', 'master.siswa', ['master.siswa', 'master.siswa.create', 'master.siswa.edit'], 'siswa', null],
+            ['Pindah Rombel', 'master.siswa.pindah-rombel', 'master.siswa.pindah-rombel', 'kelas', $admin],
             ['Jadwal Pelajaran', 'master.jadwal.index', 'master.jadwal.*', 'jadwal', null],
         ],
         'Sistem' => [

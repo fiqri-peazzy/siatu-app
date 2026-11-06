@@ -28,6 +28,7 @@ Route::middleware('auth')->group(function () {
         
         Route::get('/siswa', \App\Livewire\Master\Siswa\ListSiswa::class)->name('siswa');
         Route::get('/siswa/create', \App\Livewire\Master\Siswa\CreateSiswa::class)->name('siswa.create');
+        Route::get('/siswa/pindah-rombel', \App\Livewire\Master\Siswa\PindahRombel::class)->name('siswa.pindah-rombel');
         Route::get('/siswa/{siswa}/edit', \App\Livewire\Master\Siswa\EditSiswa::class)->name('siswa.edit');
     });
 

@@ -8,7 +8,7 @@
         [(bool) $data['tahun_ajaran'], 'Tahun ajaran aktif', $data['tahun_ajaran'] ?? 'Belum ada tahun ajaran aktif', route('master.tahun-ajaran')],
         [$data['lokasi_diatur'], 'Lokasi & radius absensi', $data['lokasi_diatur'] ? 'Titik sekolah sudah diatur' : 'Titik koordinat sekolah belum diatur', route('sistem.pengaturan', ['tab' => 'lokasi'])],
         [$data['pengampu_kosong'] === 0, 'Guru pengampu', $data['pengampu_kosong'] ? $data['pengampu_kosong'].' mapel belum punya guru' : 'Semua mapel sudah ada pengampunya', route('master.jadwal.index')],
-        [count($data['rombel_kosong']) === 0, 'Siswa per rombel', count($data['rombel_kosong']) ? count($data['rombel_kosong']).' rombel belum berisi siswa' : 'Semua rombel berisi siswa', route('master.kelas')],
+        [count($data['rombel_kosong']) === 0, 'Siswa per rombel', count($data['rombel_kosong']) ? count($data['rombel_kosong']).' rombel belum berisi siswa' : 'Semua rombel berisi siswa', route('master.siswa.pindah-rombel')],
     ];
     $beres = collect($cekList)->where(0, true)->count();
 
