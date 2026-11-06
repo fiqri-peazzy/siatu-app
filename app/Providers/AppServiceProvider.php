@@ -21,6 +21,13 @@ class AppServiceProvider extends ServiceProvider
     {
         Schema::defaultStringLength(191);
 
+        // Middleware role/tendik juga diterapkan ulang pada setiap aksi Livewire (/livewire/update),
+        // bukan hanya saat halaman pertama dibuka.
+        \Livewire\Livewire::addPersistentMiddleware([
+            \Spatie\Permission\Middleware\RoleMiddleware::class,
+            \App\Http\Middleware\PastikanTendik::class,
+        ]);
+
         // Identitas sekolah dari Pengaturan Sistem menimpa config('sekolah')
         if (! $this->app->runningUnitTests()) {
             app(\App\Services\PengaturanService::class)->terapkanIdentitas();

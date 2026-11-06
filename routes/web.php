@@ -22,7 +22,8 @@ Route::middleware('auth')->group(function () {
     })->name('dashboard');
 
     // Data Master Routes
-    Route::prefix('master')->name('master.')->group(function () {
+    // Lapisan pertama; tiap komponen tetap membatasi lebih ketat (mis. hanya admin-tu/super-admin)
+    Route::prefix('master')->name('master.')->middleware('role:admin-tu|super-admin|staf-tu')->group(function () {
         Route::get('/tahun-ajaran', \App\Livewire\Master\TahunAjaran\ListTahunAjaran::class)->name('tahun-ajaran');
         Route::get('/guru', \App\Livewire\Master\Guru\ListGuru::class)->name('guru');
         Route::get('/tendik', \App\Livewire\Master\Tendik\ListTendik::class)->name('tendik');
@@ -161,23 +162,28 @@ Route::middleware('auth')->group(function () {
     // Akademik / Absensi
     Route::prefix('akademik')->name('akademik.')->group(function () {
         // Peminatan Admin
-        Route::get('/peminatan', \App\Livewire\Akademik\Peminatan\AssignPeminatan::class)->name('peminatan.index');
+        Route::get('/peminatan', \App\Livewire\Akademik\Peminatan\AssignPeminatan::class)
+            ->middleware('role:admin-tu|super-admin')->name('peminatan.index');
 
-        // Absensi Siswa (Rekap)
-        Route::get('/absensi-siswa/rekap', \App\Livewire\Akademik\Absensi\RekapSiswa::class)->name('absensi-siswa.rekap');
-        Route::get('/absensi-siswa/export', [\App\Http\Controllers\Akademik\ExportRekapSiswaController::class, 'export'])->name('absensi-siswa.export');
+        // Monitoring & rekap lintas pegawai/siswa — pimpinan & TU saja (memuat swafoto & data pribadi)
+        Route::middleware('role:admin-tu|kepala-sekolah|super-admin|staf-tu')->group(function () {
+            Route::get('/absensi-siswa/rekap', \App\Livewire\Akademik\Absensi\RekapSiswa::class)->name('absensi-siswa.rekap');
+            Route::get('/absensi-siswa/export', [\App\Http\Controllers\Akademik\ExportRekapSiswaController::class, 'export'])->name('absensi-siswa.export');
+            Route::get('/absensi/monitoring', \App\Livewire\Absensi\DashboardAbsensiHariIni::class)->name('absensi.monitoring');
+            Route::get('/absensi/tendik/monitoring', \App\Livewire\Absensi\Tendik\DashboardAbsensiTendik::class)->name('absensi.tendik.monitoring');
+        });
 
         // Guru
-        Route::get('/absensi/absen-sekarang', \App\Livewire\Absensi\Guru\FormAbsensi::class)->name('absensi.guru.form');
-        Route::get('/absensi/riwayat', \App\Livewire\Absensi\Guru\RiwayatAbsensi::class)->name('absensi.guru.riwayat');
-        
-        // Tendik (Staf/Admin)
-        Route::get('/absensi/tendik/absen-sekarang', \App\Livewire\Absensi\Tendik\FormAbsensi::class)->name('absensi.tendik.form');
-        Route::get('/absensi/tendik/riwayat', \App\Livewire\Absensi\Tendik\RiwayatAbsensi::class)->name('absensi.tendik.riwayat');
-        
-        // Monitoring (Web Dashboard)
-        Route::get('/absensi/monitoring', \App\Livewire\Absensi\DashboardAbsensiHariIni::class)->name('absensi.monitoring');
-        Route::get('/absensi/tendik/monitoring', \App\Livewire\Absensi\Tendik\DashboardAbsensiTendik::class)->name('absensi.tendik.monitoring');
+        Route::middleware('role:guru')->group(function () {
+            Route::get('/absensi/absen-sekarang', \App\Livewire\Absensi\Guru\FormAbsensi::class)->name('absensi.guru.form');
+            Route::get('/absensi/riwayat', \App\Livewire\Absensi\Guru\RiwayatAbsensi::class)->name('absensi.guru.riwayat');
+        });
+
+        // Tendik (akun yang terhubung ke data tenaga kependidikan)
+        Route::middleware('tendik')->group(function () {
+            Route::get('/absensi/tendik/absen-sekarang', \App\Livewire\Absensi\Tendik\FormAbsensi::class)->name('absensi.tendik.form');
+            Route::get('/absensi/tendik/riwayat', \App\Livewire\Absensi\Tendik\RiwayatAbsensi::class)->name('absensi.tendik.riwayat');
+        });
 
         // Rekap kehadiran bulanan (Excel 2 sheet, kop resmi) — pimpinan & TU
         Route::get('/absensi/rekap-bulanan', \App\Http\Controllers\Akademik\ExportRekapKehadiranController::class)
@@ -185,7 +191,7 @@ Route::middleware('auth')->group(function () {
     });
 
     // Supervisi
-    Route::prefix('supervisi')->name('supervisi.')->group(function () {
+    Route::prefix('supervisi')->name('supervisi.')->middleware('role:admin-tu|kepala-sekolah|super-admin')->group(function () {
         Route::get('/jurnal/realtime', \App\Livewire\Supervisi\DashboardSupervisiRealtime::class)->name('jurnal.realtime');
         Route::get('/jurnal/rekapan', \App\Livewire\Supervisi\RekapanJurnal::class)->name('jurnal.rekapan');
         Route::get('/jurnal/export', [\App\Http\Controllers\ExportJurnalController::class, 'cetakExcel'])->name('jurnal.export');

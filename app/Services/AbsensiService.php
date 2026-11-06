@@ -101,13 +101,13 @@ class AbsensiService
             
             if ($foto instanceof \Illuminate\Http\UploadedFile) {
                 $image = $manager->decodePath($foto->getRealPath());
-                $filename = uniqid() . '.jpg';
+                $filename = \App\Support\Berkas::namaAcak('jpg');
             } elseif (is_string($foto) && str_starts_with($foto, 'data:image')) {
                 // Decode base64
                 $image_parts = explode(";base64,", $foto);
                 $image_base64 = base64_decode($image_parts[1]);
                 $image = $manager->decode($image_base64);
-                $filename = uniqid() . '.jpg';
+                $filename = \App\Support\Berkas::namaAcak('jpg');
             } else {
                 return null;
             }

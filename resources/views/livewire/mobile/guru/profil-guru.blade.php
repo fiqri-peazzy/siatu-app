@@ -17,7 +17,7 @@
                     @if ($foto)
                         <img src="{{ $foto->temporaryUrl() }}" alt="" class="h-full w-full object-cover">
                     @elseif ($guru->foto_path)
-                        <img src="{{ Storage::disk('r2')->url($guru->foto_path) }}" alt="" class="h-full w-full object-cover">
+                        <img src="{{ \App\Support\Berkas::url($guru->foto_path) }}" alt="" class="h-full w-full object-cover">
                     @else
                         <span class="flex h-full w-full items-center justify-center bg-gold-400 font-heading text-2xl font-semibold text-navy-950">{{ $inisial }}</span>
                     @endif

@@ -78,6 +78,9 @@ return [
                 'region' => 'auto',
                 'bucket' => env('CLOUDFLARE_R2_BUCKET'),
                 'url' => env('CLOUDFLARE_R2_URL'),
+                // false (disarankan): akses lewat signed URL kedaluwarsa, bucket tetap privat.
+                // true: pakai CLOUDFLARE_R2_URL (custom domain publik). Lihat docs/STORAGE_R2.md
+                'publik' => (bool) env('CLOUDFLARE_R2_PUBLIK', false),
                 'endpoint' => env('CLOUDFLARE_R2_ENDPOINT'),
                 'use_path_style_endpoint' => true,
                 'throw' => false,

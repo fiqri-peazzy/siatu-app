@@ -193,7 +193,7 @@ class FormJurnal extends Component
         $manager = new \Intervention\Image\ImageManager(new \Intervention\Image\Drivers\Gd\Driver);
         foreach ($this->dokumentasi as $foto) {
             $image = $manager->decodePath($foto->getRealPath())->scaleDown(width: 1280, height: 1280);
-            $path = 'jurnal/'.now()->format('Y/m').'/'.uniqid().'.jpg';
+            $path = 'jurnal/'.now()->format('Y/m').'/'.\App\Support\Berkas::namaAcak('jpg');
             Storage::disk('r2')->put($path, (string) $image->encodeUsingFileExtension('jpg', quality: 70));
             $paths[] = $path;
         }
@@ -206,7 +206,7 @@ class FormJurnal extends Component
         $paths = [];
         foreach ($this->bukti_izin as $siswaId => $file) {
             if ($file && in_array($this->absensi[$siswaId] ?? null, ['izin', 'sakit'], true)) {
-                $paths[(int) $siswaId] = $file->storeAs('bukti_izin', "bukti_izin_{$siswaId}_".uniqid().'.'.$file->getClientOriginalExtension(), 'r2');
+                $paths[(int) $siswaId] = $file->storeAs('bukti_izin', \App\Support\Berkas::namaAcak($file->extension() ?: 'bin'), 'r2');
             }
         }
 

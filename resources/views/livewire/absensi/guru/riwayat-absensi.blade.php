@@ -44,7 +44,7 @@
                                 <p class="font-heading text-[15px] font-semibold tabular-nums text-navy-900">
                                     {{ \Carbon\Carbon::parse($a->waktu_absen)->format('H:i') }}
                                     @if ($a->foto_path)
-                                        <a href="{{ Storage::disk('r2')->url($a->foto_path) }}" target="_blank" class="ml-1 inline-flex align-middle text-navy-300 hover:text-navy-600" aria-label="Lihat swafoto {{ strtolower($judul) }}"><x-ui.icon name="kamera" class="h-3.5 w-3.5" /></a>
+                                        <a href="{{ \App\Support\Berkas::url($a->foto_path) }}" target="_blank" class="ml-1 inline-flex align-middle text-navy-300 hover:text-navy-600" aria-label="Lihat swafoto {{ strtolower($judul) }}"><x-ui.icon name="kamera" class="h-3.5 w-3.5" /></a>
                                     @endif
                                 </p>
                                 <span class="mt-0.5 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold {{ $warna[$a->status] ?? 'bg-ivory-200 text-navy-600' }}">{{ $label[$a->status] ?? ucfirst($a->status) }}</span>

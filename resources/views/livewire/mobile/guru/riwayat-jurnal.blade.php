@@ -130,8 +130,8 @@
                     @if ($foto->isNotEmpty())
                         <div class="mt-4 grid grid-cols-3 gap-2">
                             @foreach ($foto as $path)
-                                <a href="{{ Storage::disk('r2')->url($path) }}" target="_blank" class="aspect-square overflow-hidden rounded-xl ring-1 ring-ivory-300">
-                                    <img src="{{ Storage::disk('r2')->url($path) }}" alt="Dokumentasi" loading="lazy" class="h-full w-full object-cover">
+                                <a href="{{ \App\Support\Berkas::url($path) }}" target="_blank" class="aspect-square overflow-hidden rounded-xl ring-1 ring-ivory-300">
+                                    <img src="{{ \App\Support\Berkas::url($path) }}" alt="Dokumentasi" loading="lazy" class="h-full w-full object-cover">
                                 </a>
                             @endforeach
                         </div>

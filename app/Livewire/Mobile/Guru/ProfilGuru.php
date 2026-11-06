@@ -75,7 +75,7 @@ class ProfilGuru extends Component
                 $image->scaleDown(width: 800, height: 800);
                 $encoded = $image->encodeUsingFileExtension('jpg', quality: 60);
                 
-                $filename = uniqid() . '.jpg';
+                $filename = \App\Support\Berkas::namaAcak('jpg');
                 $path = 'foto_guru/' . $filename;
                 
                 // Upload to R2

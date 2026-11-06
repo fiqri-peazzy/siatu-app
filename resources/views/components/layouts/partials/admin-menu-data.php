@@ -5,6 +5,8 @@ return (function () {
     $u = auth()->user();
     $admin = ['admin-tu', 'super-admin'];
     $pimpinan = ['admin-tu', 'kepala-sekolah', 'super-admin'];
+    $pemantau = [...$pimpinan, 'staf-tu']; // monitoring absensi & rekap siswa
+    $tu = [...$admin, 'staf-tu'];
 
     $grup = [
         null => [
@@ -17,11 +19,11 @@ return (function () {
         'Akademik' => [
             ['Absen Sekarang', 'akademik.absensi.guru.form', 'akademik.absensi.guru.form', 'absen', ['guru']],
             ['Riwayat Absensi', 'akademik.absensi.guru.riwayat', 'akademik.absensi.guru.riwayat', 'riwayat', ['guru']],
-            ['Monitoring Absen Guru', 'akademik.absensi.monitoring', 'akademik.absensi.monitoring', 'monitor', $pimpinan],
-            ['Monitoring Absen Tendik', 'akademik.absensi.tendik.monitoring', 'akademik.absensi.tendik.monitoring', 'monitor', $pimpinan],
-            ['Rekap Absen Siswa', 'akademik.absensi-siswa.rekap', 'akademik.absensi-siswa.rekap', 'rekap', $admin],
+            ['Monitoring Absen Guru', 'akademik.absensi.monitoring', 'akademik.absensi.monitoring', 'monitor', $pemantau],
+            ['Monitoring Absen Tendik', 'akademik.absensi.tendik.monitoring', 'akademik.absensi.tendik.monitoring', 'monitor', $pemantau],
+            ['Rekap Absen Siswa', 'akademik.absensi-siswa.rekap', 'akademik.absensi-siswa.rekap', 'rekap', $pemantau],
             ['Peminatan', 'akademik.peminatan.index', 'akademik.peminatan.index', 'peminatan', $admin],
-            ['Jurnal Mengajar', 'supervisi.jurnal.rekapan', 'supervisi.jurnal.*', 'jurnal', null],
+            ['Jurnal Mengajar', 'supervisi.jurnal.rekapan', 'supervisi.jurnal.*', 'jurnal', $pimpinan],
             ['Pusat Laporan', 'laporan.index', 'laporan.*', 'rekap', $pimpinan],
         ],
         'Manajemen' => [
@@ -30,14 +32,14 @@ return (function () {
             ['Kegiatan', null, null, 'kegiatan', null],
         ],
         'Data Master' => [
-            ['Tahun Ajaran', 'master.tahun-ajaran', 'master.tahun-ajaran', 'tahun-ajaran', null],
-            ['Guru', 'master.guru', 'master.guru', 'guru', null],
-            ['Tendik', 'master.tendik', 'master.tendik', 'tendik', null],
-            ['Mapel', 'master.mapel', 'master.mapel', 'mapel', null],
-            ['Kelas / Rombel', 'master.kelas', 'master.kelas', 'kelas', null],
-            ['Siswa', 'master.siswa', ['master.siswa', 'master.siswa.create', 'master.siswa.edit'], 'siswa', null],
-            ['Pindah Rombel', 'master.siswa.pindah-rombel', 'master.siswa.pindah-rombel', 'kelas', $admin],
-            ['Jadwal Pelajaran', 'master.jadwal.index', 'master.jadwal.*', 'jadwal', null],
+            ['Tahun Ajaran', 'master.tahun-ajaran', 'master.tahun-ajaran', 'tahun-ajaran', $admin],
+            ['Guru', 'master.guru', 'master.guru', 'guru', $admin],
+            ['Tendik', 'master.tendik', 'master.tendik', 'tendik', $admin],
+            ['Mapel', 'master.mapel', 'master.mapel', 'mapel', $admin],
+            ['Kelas / Rombel', 'master.kelas', 'master.kelas', 'kelas', $admin],
+            ['Siswa', 'master.siswa', ['master.siswa', 'master.siswa.create', 'master.siswa.edit'], 'siswa', $admin],
+            ['Pindah Rombel', 'master.siswa.pindah-rombel', 'master.siswa.pindah-rombel', 'kelas', $tu],
+            ['Jadwal Pelajaran', 'master.jadwal.index', 'master.jadwal.*', 'jadwal', $admin],
         ],
         'Sistem' => [
             ['Pengaturan Sistem', 'sistem.pengaturan', 'sistem.pengaturan', 'pengaturan', $admin],
