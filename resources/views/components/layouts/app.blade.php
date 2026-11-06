@@ -4,6 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="siatu-versi" content="{{ \App\Support\VersiAplikasi::nilai() }}">
         <title>{{ isset($header) && trim(strip_tags($header)) ? trim(strip_tags($header)).' · ' : '' }}SIATU SMAMGo</title>
 
         <link rel="icon" type="image/png" href="{{ asset('images/logo-removebg-preview.png') }}">
@@ -135,7 +136,7 @@
         @endif
 
         <script>
-            if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js').catch(() => {}));
+            if ('serviceWorker' in navigator) window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).catch(() => {}));
 
             // Tabel → kartu di layar kecil: beri label kolom ke setiap sel berdasarkan <thead>.
             // Tabel yang tidak ingin diubah: tambahkan atribut data-tetap-tabel.

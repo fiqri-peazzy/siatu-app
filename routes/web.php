@@ -5,6 +5,10 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/login', Login::class)->name('login')->middleware('guest');
 
+// Versi build untuk deteksi pembaruan PWA (publik, tanpa data sensitif, tidak di-cache)
+Route::get('/versi', fn () => response()->json(['versi' => \App\Support\VersiAplikasi::nilai()])
+    ->header('Cache-Control', 'no-store, max-age=0'))->name('versi');
+
 Route::middleware('auth')->group(function () {
     Route::get('/', function () {
         if (auth()->user()->hasRole('guru')) {

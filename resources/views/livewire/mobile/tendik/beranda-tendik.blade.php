@@ -65,7 +65,7 @@
     <section class="mt-6 px-4">
         <div class="mb-3 flex items-center justify-between">
             <h2 class="font-heading text-[17px] font-semibold text-navy-900">Jam absen hari ini</h2>
-            <a wire:navigate href="{{ route('akademik.absensi.tendik.riwayat') }}" class="text-[13px] font-semibold text-navy-600">Riwayat</a>
+            <a wire:navigate href="{{ route('akademik.absensi.tendik.riwayat') }}" class="-my-2 -mr-2 inline-flex min-h-10 items-center px-2 text-[13px] font-semibold text-navy-600">Riwayat</a>
         </div>
         @if ($jendela['hari_kerja'] && ! $jendela['libur'])
             <div class="rounded-2xl bg-white p-4 ring-1 ring-ivory-300">

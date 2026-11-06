@@ -23,3 +23,11 @@
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteRule ^ index.php [L]
 </IfModule>
+
+# PWA: service worker & manifest selalu dicek ulang agar pembaruan cepat sampai ke aplikasi terpasang.
+# Aset build (/build/assets/*-HASH.*) boleh di-cache karena namanya berubah tiap build.
+<IfModule mod_headers.c>
+    <FilesMatch "^(sw\.js|manifest\.json)$">
+        Header set Cache-Control "no-cache, max-age=0, must-revalidate"
+    </FilesMatch>
+</IfModule>

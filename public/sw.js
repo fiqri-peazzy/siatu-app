@@ -1,3 +1,14 @@
+// Versi baru service worker langsung aktif & mengambil alih semua tab/PWA yang terbuka
+// (tanpa menunggu semua jendela ditutup). SW ini tidak meng-cache halaman/aset,
+// jadi aplikasi selalu memuat versi terbaru dari server.
+self.addEventListener('install', function () {
+    self.skipWaiting();
+});
+
+self.addEventListener('activate', function (e) {
+    e.waitUntil(self.clients.claim());
+});
+
 self.addEventListener('push', function (e) {
     if (!(self.Notification && self.Notification.permission === 'granted')) {
         return;

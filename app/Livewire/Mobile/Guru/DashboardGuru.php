@@ -16,7 +16,11 @@ class DashboardGuru extends Component
     public $jadwalHariIni = [];
     public $absenMasuk = null;
     public $absenPulang = null;
-    public $persentaseKehadiran = 100;
+    public ?int $persentaseKehadiran = null; // null = belum ada hari kerja yang dinilai
+
+    public int $hariHadir = 0;
+
+    public int $hariEfektif = 0;
     public $totalJurnalTerisi = 0;
 
     public $calendarMonth;
@@ -54,30 +58,30 @@ class DashboardGuru extends Component
             ->where('jenis', 'pulang')
             ->first();
 
-        // 2. Hitung Persentase Kehadiran
+        // 2. Persentase kehadiran = hari hadir (tepat/terlambat/dinas luar) ÷ hari kerja efektif.
+        //    Hari kerja tanpa catatan absen = tidak hadir (konsisten dengan rekap bulanan).
+        //    Dihitung sejak sistem absensi dipakai (bukan awal TA) agar tidak terhukum oleh masa sebelum aplikasi ada;
+        //    hari ini hanya dihitung bila sudah absen masuk.
         $tahunAjaran = MasterTahunAjaran::where('is_active', true)->first();
-        if ($tahunAjaran && $tahunAjaran->mulai) {
-            $startDate = Carbon::parse($tahunAjaran->mulai);
-            $endDate = Carbon::today();
+        $this->persentaseKehadiran = null;
+        $mulaiSistem = AbsensiGuru::min('tanggal');
+        if ($tahunAjaran && $tahunAjaran->mulai && $mulaiSistem) {
+            $startDate = Carbon::parse($tahunAjaran->mulai)->max(Carbon::parse($mulaiSistem))->startOfDay();
+            $endDate = $this->absenMasuk ? Carbon::today() : Carbon::yesterday();
             if ($tahunAjaran->selesai && Carbon::parse($tahunAjaran->selesai)->lt($endDate)) {
                 $endDate = Carbon::parse($tahunAjaran->selesai);
             }
 
             if ($startDate->lte($endDate)) {
-                $totalHariEfektif = HolidayService::getEffectiveWorkDays($startDate, $endDate);
-                
-                // Hitung total alfa guru tersebut dalam rentang waktu yang sama
-                $totalAlfa = AbsensiGuru::where('guru_id', $guruId)
-                    ->whereBetween('tanggal', [$startDate->format('Y-m-d'), $endDate->format('Y-m-d')])
-                    ->where('status', 'alfa')
-                    ->where('jenis', 'masuk') // Alfa biasanya dicatat di jenis masuk (harian)
-                    ->count();
+                $this->hariEfektif = HolidayService::getEffectiveWorkDays($startDate, $endDate);
+                $this->hariHadir = AbsensiGuru::where('guru_id', $guruId)
+                    ->whereBetween('tanggal', [$startDate->toDateString(), $endDate->toDateString()])
+                    ->where('jenis', 'masuk')
+                    ->whereIn('status', ['hadir', 'terlambat', 'dinas_luar'])
+                    ->distinct()->count('tanggal');
 
-                if ($totalHariEfektif > 0) {
-                    // Rumus: (Total Hari - Alfa) / Total Hari * 100
-                    $persentase = (($totalHariEfektif - $totalAlfa) / $totalHariEfektif) * 100;
-                    // Pastikan tidak minus
-                    $this->persentaseKehadiran = max(0, round($persentase));
+                if ($this->hariEfektif > 0) {
+                    $this->persentaseKehadiran = (int) min(100, round($this->hariHadir / $this->hariEfektif * 100));
                 }
             }
         }

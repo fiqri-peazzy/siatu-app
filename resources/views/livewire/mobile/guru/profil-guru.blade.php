@@ -47,7 +47,7 @@
                 <p class="text-[12px] font-medium text-navy-400">Kepatuhan jurnal bulan ini</p>
                 <p class="mt-0.5 font-heading text-2xl font-semibold text-navy-900">{{ $persentase }}<span class="text-base text-navy-300">%</span></p>
             </div>
-            <a wire:navigate href="{{ route('guru.jurnal.riwayat') }}" class="text-[13px] font-semibold text-navy-600">Riwayat</a>
+            <a wire:navigate href="{{ route('guru.jurnal.riwayat') }}" class="-my-2 -mr-2 inline-flex min-h-10 items-center px-2 text-[13px] font-semibold text-navy-600">Riwayat</a>
         </div>
         <div class="mt-3 h-2 overflow-hidden rounded-full bg-ivory-300">
             <div class="h-full rounded-full {{ $persentase >= 80 ? 'bg-ok-500' : ($persentase >= 50 ? 'bg-warn-400' : 'bg-bad-400') }}" style="width: {{ $persentase }}%"></div>

@@ -122,8 +122,14 @@
     <section class="mt-6 grid grid-cols-2 gap-3 px-4">
         <div class="rounded-2xl bg-white p-4 ring-1 ring-ivory-300">
             <p class="text-[12px] font-medium text-navy-400">Kehadiran</p>
-            <p class="mt-1 font-heading text-2xl font-semibold text-navy-900">{{ $persentaseKehadiran }}<span class="text-base text-navy-300">%</span></p>
-            <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-ivory-300"><div class="h-full rounded-full bg-ok-500" style="width: {{ $persentaseKehadiran }}%"></div></div>
+            @if ($persentaseKehadiran === null)
+                <p class="mt-1 font-heading text-2xl font-semibold text-navy-300">—</p>
+                <p class="mt-1 text-[12px] text-navy-400">Belum ada hari kerja dinilai</p>
+            @else
+                <p class="mt-1 font-heading text-2xl font-semibold text-navy-900">{{ $persentaseKehadiran }}<span class="text-base text-navy-300">%</span></p>
+                <div class="mt-2 h-1.5 overflow-hidden rounded-full bg-ivory-300"><div class="h-full rounded-full {{ $persentaseKehadiran >= 85 ? 'bg-ok-500' : ($persentaseKehadiran >= 60 ? 'bg-gold-400' : 'bg-bad-400') }}" style="width: {{ $persentaseKehadiran }}%"></div></div>
+                <p class="mt-1.5 text-[12px] text-navy-400">{{ $hariHadir }} dari {{ $hariEfektif }} hari kerja</p>
+            @endif
         </div>
         <div class="rounded-2xl bg-white p-4 ring-1 ring-ivory-300">
             <p class="text-[12px] font-medium text-navy-400">Jurnal terisi</p>
@@ -136,7 +142,7 @@
     <section class="mt-7 px-4">
         <div class="mb-3 flex items-center justify-between">
             <h2 class="font-heading text-[17px] font-semibold text-navy-900">Mengajar hari ini</h2>
-            <a wire:navigate href="{{ route('guru.jadwal') }}" class="text-[13px] font-semibold text-navy-600 hover:text-navy-900">Lihat semua</a>
+            <a wire:navigate href="{{ route('guru.jadwal') }}" class="-my-2 -mr-2 inline-flex min-h-10 items-center px-2 text-[13px] font-semibold text-navy-600 hover:text-navy-900">Lihat semua</a>
         </div>
 
         @forelse ($jadwalHariIni as $j)

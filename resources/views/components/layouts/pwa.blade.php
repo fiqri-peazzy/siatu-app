@@ -5,6 +5,7 @@
         {{-- Zoom diizinkan (aksesibilitas); viewport-fit=cover untuk safe-area notch --}}
         <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta name="siatu-versi" content="{{ \App\Support\VersiAplikasi::nilai() }}">
 
         <title>{{ $judul ?? 'Portal' }} · SIATU SMAMGo</title>
 
@@ -129,7 +130,7 @@
 
             if ('serviceWorker' in navigator) {
                 window.addEventListener('load', () => {
-                    navigator.serviceWorker.register('/sw.js').then(() => {
+                    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(() => {
                         // Perangkat yang sudah pernah mengizinkan: perbarui langganan secara diam-diam
                         if (window.Notification && Notification.permission === 'granted') window.siatuSubscribePush().catch(() => {});
                     });
