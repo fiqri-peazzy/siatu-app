@@ -202,6 +202,12 @@ Route::middleware('auth')->group(function () {
         Route::get('/notifikasi', \App\Livewire\Mobile\Guru\DaftarNotifikasi::class)->name('notifikasi');
     });
 
+    // Pusat Laporan bulanan (pimpinan & TU)
+    Route::prefix('laporan')->name('laporan.')->middleware(['role:admin-tu|kepala-sekolah|super-admin'])->group(function () {
+        Route::get('/', \App\Livewire\Laporan\PusatLaporan::class)->name('index');
+        Route::get('/unduh/{jenis}', \App\Http\Controllers\Laporan\UnduhLaporanController::class)->name('unduh');
+    });
+
     // Sistem / Pengaturan (Hanya Super Admin & Admin TU)
     Route::prefix('sistem')->name('sistem.')->middleware(['role:super-admin|admin-tu'])->group(function () {
         Route::get('/pengguna', \App\Livewire\Sistem\User\ListUser::class)->name('user');

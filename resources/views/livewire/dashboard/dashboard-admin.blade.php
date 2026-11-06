@@ -167,7 +167,7 @@
                         {{ $l }} <span class="text-[11px] font-medium text-navy-400">.xlsx ↓</span>
                     </a>
                 @endforeach
-                <a href="{{ route('supervisi.jurnal.rekapan') }}" class="flex items-center justify-between rounded-xl px-3 py-2 text-[13px] font-semibold text-navy-800 ring-1 ring-ivory-300 hover:bg-ivory-100">Rekapan jurnal mengajar <span class="text-navy-400">›</span></a>
+                <a href="{{ route('laporan.index') }}" class="flex items-center justify-between rounded-xl px-3 py-2 text-[13px] font-semibold text-navy-800 ring-1 ring-ivory-300 hover:bg-ivory-100">Pusat laporan (siswa, jurnal, dll.) <span class="text-navy-400">›</span></a>
             </div>
         </x-ui.panel>
     </div>

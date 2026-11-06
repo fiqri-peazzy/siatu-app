@@ -23,8 +23,8 @@
                     <svg class="h-4 w-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
                     Rekap guru bulan ini
                 </a>
-                <a href="{{ route('akademik.absensi.rekap-bulanan', ['kategori' => 'tendik', 'bulan' => now()->format('Y-m')]) }}"
-                   class="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-[13px] font-semibold text-white ring-1 ring-white/25 hover:bg-white/10">Rekap tendik</a>
+                <a href="{{ route('laporan.index') }}"
+                   class="inline-flex h-10 items-center gap-2 rounded-xl px-4 text-[13px] font-semibold text-white ring-1 ring-white/25 hover:bg-white/10">Semua laporan ›</a>
             </div>
         </div>
     </section>

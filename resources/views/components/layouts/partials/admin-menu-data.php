@@ -22,6 +22,7 @@ return (function () {
             ['Rekap Absen Siswa', 'akademik.absensi-siswa.rekap', 'akademik.absensi-siswa.rekap', 'rekap', $admin],
             ['Peminatan', 'akademik.peminatan.index', 'akademik.peminatan.index', 'peminatan', $admin],
             ['Jurnal Mengajar', 'supervisi.jurnal.rekapan', 'supervisi.jurnal.*', 'jurnal', null],
+            ['Pusat Laporan', 'laporan.index', 'laporan.*', 'rekap', $pimpinan],
         ],
         'Manajemen' => [
             ['Sapras & Aset', null, null, 'aset', null],
